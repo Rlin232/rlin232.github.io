@@ -118,17 +118,17 @@
       ]
     },
     {
-      "name": "Developer Tools",
-      "icon": "fa-solid fa-hashtag",
-      "keywords": [
-        "PyTorch", "Jupyter", "Weights & Biases", "SLURM", "GitHub", "Android Studios", "AWS", "Brew", "Bash/Shell", "Docker", "Eclipse", "Firebase", "NodeJS", "VSCode", "PyCharm", "RStudio", "PostgreSQL", "Jenkins", "Vuex", "Chef", "Ansible"
-      ]
-    },
-    {
       "name": "Developer Practices",
       "icon": "fa-solid fa-hashtag",
       "keywords": [
         "Continuous Integration (CI)", "Agile Development", "Test-Driven Development", "Machine Learning", "Code Review"
+      ]
+    },
+    {
+      "name": "Developer Tools",
+      "icon": "fa-solid fa-hashtag",
+      "keywords": [
+        "PyTorch", "Jupyter", "Weights & Biases", "SLURM", "GitHub", "Android Studios", "AWS", "Brew", "Bash/Shell", "Docker", "Eclipse", "Firebase", "NodeJS", "VSCode", "PyCharm", "RStudio", "PostgreSQL", "Jenkins", "Vuex", "Chef", "Ansible"
       ]
     }
   ],
