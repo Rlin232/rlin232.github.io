@@ -46,7 +46,7 @@
             "Developed an initial, modern reimplementation for STIGViewer within Heimdall (a full-stack application for viewing security results). The backend uses PostgreSQL, JavaScript, and Typescript. The frontend uses Vue and Typescript.",
             "Expanded the enterprise capabilities of Heimdall, a flagship application within the SAF, and validated/tested server-side Rest API calls to the Heimdall PostgreSQL database."
           ],
-          "position": "Software Engineering Intern – Full-Stack Application Development"
+          "position": "Software Engineering Intern - Full-Stack Application Development"
         },
         {
           "startDate": "2021-06",
