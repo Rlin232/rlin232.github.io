@@ -1,7 +1,7 @@
 ---
 layout: page
-title: Stock Prediction Using LSTMs With Sentiment Analysis
-# description: Using Pennylane and Tensorflow to explore hybrid Quantum models. 
+title: Stock Prediction
+description: Incorporating sentiment analysis and time series data into an LSTM for stock prediction.  
 img: assets/img/StockLSTM.png
 importance: 1
 category: school
