@@ -69,18 +69,18 @@
       "startDate": "2023",
       "endDate": "2027",
       "graduateCourses": [
-        "Machine Learning and Data Mining (CS 155)",
-        "Learning Systems (CS 156a)",
-        "Advanced Topics in Machine Learning: TOPIC TBD (CS 159)"
+        "CS 155: Machine Learning and Data Mining",
+        "CS 156a: Learning Systems",
+        "CS 159: Advanced Topics in Machine Learning: TOPIC TBD"
       ],
       "undergraduateCourses": [
-        "Introduction to Computer Programming (CS 1)",
-        "Introduction to Programming Methods (CS 2) - (Data Structures)",
-        "Introduction to Software Design (CS 3)",
-        "Calculus of One and Several Variables and Linear Algebra (Ma 1abc)",
-        "Introduction to Probability and Statistics (Ma 3)",
-        "Differential Equations (Ma 2)",
-        "Mathematical Foundations of Computer Science (CS 13) - (Discrete Mathematics)"
+        "CS 1: Introduction to Computer Programming",
+        "CS 2: Introduction to Programming Methods (Data Structures)",
+        "CS 3: Introduction to Software Design",
+        "Ma 1abc: Calculus of One and Several Variables and Linear Algebra",
+        "Ma 2: Differential Equations",
+        "Ma 3: Introduction to Probability and Statistics",
+        "CS 13: Mathematical Foundations of Computer Science (Discrete Mathematics)"
       ]
     }
   ],
