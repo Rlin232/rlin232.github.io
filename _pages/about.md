@@ -2,7 +2,7 @@
 layout: about
 title: about
 permalink: /
-subtitle: rylin@caltech.edu
+subtitle: <a href="mailto:rylin@caltech.edu">rylin@caltech.edu</a>
 
 profile:
   align: right
