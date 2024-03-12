@@ -42,13 +42,16 @@
           <h6 class="ml-1 ml-md-4" style="font-size: 0.95rem; font-style: italic">{{ content.area }}</h6>
           <div>
             <h6 class="ml-1 ml-md-4 font-weight-bold" style="font-size: 0.95rem">Graduate Technical Courses</h6>
-            <ul class="items mb-4">
+            <ul class="items">
               {% for item in content.graduateCourses %}
                 <li>
                   <span class="item">{{ item }}</span>
                 </li>
               {% endfor %}
             </ul>
+          </div>
+          <div>
+            <p><br></p>
           </div>
           <div>
             <h6 class="ml-1 ml-md-4 font-weight-bold" style="font-size: 0.95rem">Undergraduate Technical Courses</h6>
