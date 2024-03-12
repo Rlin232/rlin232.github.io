@@ -9,22 +9,6 @@
   },
   "work": [
     {
-      "name": "Caltech - Anima AI + Science Lab",
-      "position": "Undergraduate Researcher",
-      "url": "https://www.mitre.org/",
-      "dates": [
-        {
-          "startDate": "2023-10",
-          "highlights": [
-            "Tuned hyperparameters for neural operator models to improve performance in solving PDEs",
-            "Improving code quality and flexibility of the neural operator repository.", 
-            "Configured development environment to interface with High Performance Computing (HPC) cluster for training large models."
-          ],
-          "position": "Undergraduate Researcher"
-        }
-      ]
-    },
-    {
       "name": "The MITRE Corporation",
       "position": "Software Development & DevSecOps Intern - Security Automation Framework (SAF)",
       "url": "https://www.mitre.org/",
@@ -58,8 +42,23 @@
           "position": "Software Engineering Intern - Open Source Tools"
         }
       ]
+    },
+    {
+      "name": "Caltech - Anima AI + Science Lab",
+      "position": "Undergraduate Researcher",
+      "url": "https://www.mitre.org/",
+      "dates": [
+        {
+          "startDate": "2023-10",
+          "highlights": [
+            "Tuned hyperparameters for neural operator models to improve performance in solving PDEs",
+            "Improving code quality and flexibility of the neural operator repository.", 
+            "Configured development environment to interface with High Performance Computing (HPC) cluster for training large models."
+          ],
+          "position": "Undergraduate Researcher"
+        }
+      ]
     }
-
   ],
   "education": [
     {
