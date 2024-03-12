@@ -7,7 +7,7 @@ importance: 1
 category: school
 related_publications: false
 ---
-For Stanford Online High School's UP135, the final project involved writing a brief paper a topic of your choosing. I decided to explore the structural similarities between a CNN and a quantum circuit. 
+For Stanford Online High School's UP135: Introduction to Quantum Computing, the final project involved writing a brief paper a topic of your choosing. I decided to explore the structural similarities between a CNN and a quantum circuit. 
 
 <embed src="{{ site.baseurl }}/assets/pdf/RyanLin-UP135-FinalProject.pdf" type="application/pdf" width="100%" height="600px" />
 
