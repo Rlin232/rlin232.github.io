@@ -1,19 +1,11 @@
 {
   "basics": {
-    "name": "Albert Einstein",
-    "label": "Scientist",
+    "name": "Ryan Lin",
     "image": "",
-    "email": "albert@einstein.de",
-    "phone": "(912) 123-4567",
-    "url": "https://alshedivat.github.io/al-folio/",
-    "summary": "A German-born theoretical physicist, widely ranked among the greatest and most influential scientists of all time",
-    "location": {
-      "address": "2712 Broadway St",
-      "postalCode": "CA 94115",
-      "city": "San Francisco",
-      "countryCode": "US",
-      "region": "California"
-    },
+    "email": "rylin@caltech.edu",
+    "phone": "(415) 866-0174",
+    "url": "https://rlin232.github.io/",
+    "summary": "Motivated undergraduate student at Caltech pursuing a B.S. in Computer Science.",
     "profiles": [
       {
         "network": "Twitter",
