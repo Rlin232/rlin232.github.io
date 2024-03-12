@@ -30,13 +30,14 @@
       "url": "https://www.mitre.org/",
       "dates": [
         {
-          "startDate": "2021-06",
-          "endDate": "2021-09",
+          "startDate": "2023-06",
+          "endDate": "2023-09",
           "highlights": [
-            "Authored the SAF CLI (Command Line Interface), a software that streamlines security automation for IT Systems and DevOps pipelines. The tool has over 25,000 downloads by the security community.", 
-            "Created and published libraries to normalize outputs from various cybersecurity scanning tools into Heimdall Data Format (HDF) for various government sponsors and commercial partners."
+            "Engineered an end-to-end DevSecOps pipeline for SAF using applications, libraries, and tools developed by MITRE and the security community. Hosted pipeline on EC2.",
+            "Automated pipeline for key tasks (hardening, validation, visualization) to inform platform owners of security risks and accelerate capability deployment in development, test, and production environments.",
+            "Presented and demonstrated the prototype pipeline directly to corporate partners and government sponsors, articulating intricate technical details while highlighting its operational benefits and simplicity."
           ],
-          "position": "Software Engineering Intern - Open Source Tools"
+          "position": "Software Development & DevSecOps Intern - Security Automation Framework (SAF)"
         },
         {
           "startDate": "2022-06",
@@ -48,14 +49,13 @@
           "position": "Software Engineering Intern – Full-Stack Application Development"
         },
         {
-          "startDate": "2023-06",
-          "endDate": "2023-09",
+          "startDate": "2021-06",
+          "endDate": "2021-09",
           "highlights": [
-            "Engineered an end-to-end DevSecOps pipeline for SAF using applications, libraries, and tools developed by MITRE and the security community. Hosted pipeline on EC2.",
-            "Automated pipeline for key tasks (hardening, validation, visualization) to inform platform owners of security risks and accelerate capability deployment in development, test, and production environments.",
-            "Presented and demonstrated the prototype pipeline directly to corporate partners and government sponsors, articulating intricate technical details while highlighting its operational benefits and simplicity."
+            "Authored the SAF CLI (Command Line Interface), a software that streamlines security automation for IT Systems and DevOps pipelines. The tool has over 25,000 downloads by the security community.", 
+            "Created and published libraries to normalize outputs from various cybersecurity scanning tools into Heimdall Data Format (HDF) for various government sponsors and commercial partners."
           ],
-          "position": "Software Development & DevSecOps Intern - Security Automation Framework (SAF)"
+          "position": "Software Engineering Intern - Open Source Tools"
         }
       ]
     }
