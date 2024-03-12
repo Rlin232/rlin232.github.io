@@ -9,11 +9,25 @@
   },
   "work": [
     {
+      "name": "Caltech - Anima AI + Science Lab",
+      "position": "Undergraduate Researcher",
+      "url": "https://www.mitre.org/",
+      "dates": [
+        {
+          "startDate": "2023-10",
+          "highlights": [
+            "Tuned hyperparameters for neural operator models to improve performance in solving PDEs",
+            "Improving code quality and flexibility of the neural operator repository.", 
+            "Configured development environment to interface with High Performance Computing (HPC) cluster for training large models."
+          ],
+          "position": "Undergraduate Researcher"
+        }
+      ]
+    },
+    {
       "name": "The MITRE Corporation",
       "position": "Software Development & DevSecOps Intern - Security Automation Framework (SAF)",
       "url": "https://www.mitre.org/",
-      "startDate": "1933-01-01",
-      "endDate": "1955-01-01",
       "dates": [
         {
           "startDate": "2021-06",
@@ -43,10 +57,9 @@
           ],
           "position": "Software Development & DevSecOps Intern - Security Automation Framework (SAF)"
         }
-      ],
-      "summary": "Teaching at Palmer Physical Laboratory (now 302 Frist Campus Center). While not a professor at Princeton, I associated with the physics professors and continued to give lectures on campus.",
-      "highlights": ["Relativity"]
+      ]
     }
+
   ],
   "education": [
     {
