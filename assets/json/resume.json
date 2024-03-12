@@ -31,9 +31,10 @@
   ],
   "awards": [
     {
-      "title": "Stanford Online High School Math Division Award",
-      "date": "2020",
-      "awarder": "Stanford Online High School"
+      "title": "National Merit Scholarship Finalist",
+      "date": "2023",
+      "awarder": "National Merit Scholarship Corporation",
+      "url": "https://www.nationalmerit.org/"
     },
     {
       "title": "FIRST Tech Challenge Dean's Award Semi-Finalist",
@@ -48,10 +49,9 @@
       "url": "https://usaco.org/"
     },
     {
-      "title": "National Merit Scholarship Finalist",
-      "date": "2023",
-      "awarder": "National Merit Scholarship Corporation",
-      "url": "https://www.nationalmerit.org/"
+      "title": "Stanford Online High School Math Division Award",
+      "date": "2020",
+      "awarder": "Stanford Online High School"
     }
   ],
   "skills": [
@@ -92,21 +92,21 @@
       "name": "Quantum ML Models",
       "summary": "Explored structural and mathematical parallels of a Convolutional Neural Network and a Quantum Circuit. Implemented a hybrid quantum/classical binary classification model using Pennylane and TensorFlow",
       "highlights": ["Quantum Computing", "Machine Learning"],
-      "date": "2023-05-01",
+      "date": "2023-05",
       "url": "https://rlin232.github.io/projects/QuantumML/"
     },
     {
       "name": "Stock Prediction Using LSTMs With Sentiment Analysis",
       "summary": "Implemented a multivariable LSTM model in R to predict the trajectory of any given ticker. Notable considered variables include previous time series data and a sentiment analysis on news headers.",
       "highlights": ["Machine Learning", "LSTM", "Finance"],
-      "date": "2022-04-30",
+      "date": "2022-04",
       "url": ""
     },
     {
       "name": "Y86 Architecture Simulation",
       "summary": "Programmed and implemented a simulator of a processor and assembler in Y86, a simplified version of X86.",
       "highlights": ["Computer Systems and Architecture", "Assembly"],
-      "date": "2022-05-05",
+      "date": "2022-05",
       "url": "https://github.com/Rlin232/Y-86"
     }
   ]
