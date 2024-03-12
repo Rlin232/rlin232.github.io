@@ -18,8 +18,14 @@ selected_papers: false # includes a list of papers marked as "selected={true}"
 social: true # includes social icons at the bottom of the page
 ---
 
-Write your biography here. Tell the world about yourself. Link to your favorite [subreddit](http://reddit.com). You can put a picture in, too. The code is already in, just name your picture `prof_pic.jpg` and put it in the `img/` folder.
+Hi, my name is Ryan Lin, an undergraduate student at the California Institute of Technology. I am currently pursuing a degree in 
+Computer Science, with a keen focus on machine learning. 
 
-Put your address / P.O. box / other info right below your picture. You can also disable any of these elements by editing `profile` property of the YAML header of your `_pages/about.md`. Edit `_bibliography/papers.bib` and Jekyll will render your [publications page](/al-folio/publications/) automatically.
+My journey in academia has brought me to my role as an undergraduate researcher at the 
+Anima AI + Science Lab. Equipped with the knowledge I gained from various graduate-level machine learning courses, I hope to delve deeper into the 
+complex concepts and techniques related to artificial intelligence. 
 
-Link to your social media connections, too. This theme is set up to use [Font Awesome icons](https://fontawesome.com/) and [Academicons](https://jpswalsh.github.io/academicons/), like the ones below. Add your Facebook, Twitter, LinkedIn, Google Scholar, or just disable all of them.
+In the industry, I have spent three summers as a full-stack developer and a DevSecOps engineer at the MITRE Corporation, where I honed my skills in 
+software engineering and learned about industry practices and methodologies. I also worked with MITRE during the school year as a part-time employee. 
+
+Beyond academics and professional pursuits, I am a part of the Caltech NCAA Division III Swimming & Diving team. Go Beavers!
