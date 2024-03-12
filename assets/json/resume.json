@@ -158,11 +158,18 @@
       "url": "https://rlin232.github.io/projects/QuantumML/"
     },
     {
+      "name": "Lattice Point Geometry Proof Portfolio",
+      "summary": "A collection of 100+ proofs exploring the fundamental properties of the lattice plane.",
+      "highlights": ["Number Theory", "Graph Theory", "Abstract Algebra"],
+      "date": "2023-05",
+      "url": "https://rlin232.github.io/projects/LPGPortfolio/"
+    },
+    {
       "name": "Stock Prediction Using LSTMs With Sentiment Analysis",
       "summary": "Implemented a multivariable LSTM model in R to predict the trajectory of any given ticker. Notable considered variables include previous time series data and a sentiment analysis on news headers.",
       "highlights": ["Machine Learning", "LSTM", "Finance"],
       "date": "2022-04",
-      "url": ""
+      "url": "https://rlin232.github.io/projects/StockLSTM/"
     },
     {
       "name": "Y86 Architecture Simulation",

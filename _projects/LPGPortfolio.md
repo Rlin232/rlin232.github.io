@@ -2,9 +2,6 @@
 layout: page
 title: Lattice Point Geometry Proof Portfolio
 description: A collection of 100+ proofs exploring the fundamental properties of the lattice plane. 
-
-
-These include results on the algebraic structure of the lattice plane, 
 img: assets/img/LPG.png
 importance: 1
 category: school
