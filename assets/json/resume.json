@@ -51,6 +51,7 @@
         {
           "startDate": "2023-10",
           "highlights": [
+            "Selected as a Caltech Summer Undergraduate Research Fellow",
             "Tuned hyperparameters for neural operator models to improve performance in solving PDEs",
             "Improving code quality and flexibility of the neural operator repository.", 
             "Configured development environment to interface with High Performance Computing (HPC) cluster for training large models."
@@ -70,7 +71,7 @@
       "graduateCourses": [
         "CS 155: Machine Learning and Data Mining",
         "CS 156a: Learning Systems",
-        "CS 159: Advanced Topics in Machine Learning: TOPIC TBD"
+        "CS 159: Advanced Topics in Machine Learning: Large Language Models for Reasoning"
       ],
       "undergraduateCourses": [
         "CS 1: Introduction to Computer Programming",
