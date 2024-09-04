@@ -10,9 +10,17 @@
   "work": [
     {
       "name": "The MITRE Corporation",
-      "position": "Software Development & DevSecOps Intern - Security Automation Framework (SAF)",
       "url": "https://www.mitre.org/",
       "dates": [
+        {
+          "startDate": "2024-06",
+          "endDate": "2024-09",
+          "highlights": [
+            "Designed a pipeline leveraging Retrieval-Augmented Generation (RAG) and Large Language Models (LLMs) to enhance domain-specific knowledge retrieval and automate the creation of security tests from STIGs, accelerating security profile delivery by 500%.",
+            "Utilized OpenAI API and LangChain's Chroma vector store, and custom embeddings to optimize context retrieval from various security resource documentations."
+          ],
+          "position": "Software Engineering & Machine Learning Intern"
+        },
         {
           "startDate": "2023-06",
           "endDate": "2023-09",
@@ -21,7 +29,7 @@
             "Automated pipeline for key tasks (hardening, validation, visualization) to inform platform owners of security risks and accelerate capability deployment in development, test, and production environments.",
             "Presented and demonstrated the prototype pipeline directly to corporate partners and government sponsors, articulating intricate technical details while highlighting its operational benefits and simplicity."
           ],
-          "position": "Software Development & DevSecOps Intern - Security Automation Framework (SAF)"
+          "position": "Software Development & DevSecOps Intern"
         },
         {
           "startDate": "2022-06",
@@ -30,7 +38,7 @@
             "Developed an initial, modern reimplementation for STIGViewer within Heimdall (a full-stack application for viewing security results). The backend uses PostgreSQL, JavaScript, and Typescript. The frontend uses Vue and Typescript.",
             "Expanded the enterprise capabilities of Heimdall, a flagship application within the SAF, and validated/tested server-side Rest API calls to the Heimdall PostgreSQL database."
           ],
-          "position": "Software Engineering Intern - Full-Stack Application Development"
+          "position": "Software Engineering Intern"
         },
         {
           "startDate": "2021-06",
@@ -39,7 +47,7 @@
             "Authored the SAF CLI (Command Line Interface), a software that streamlines security automation for IT Systems and DevOps pipelines. The tool has over 25,000 downloads by the security community.", 
             "Created and published libraries to normalize outputs from various cybersecurity scanning tools into Heimdall Data Format (HDF) for various government sponsors and commercial partners."
           ],
-          "position": "Software Engineering Intern - Open Source Tools"
+          "position": "Software Engineering Intern"
         }
       ]
     },
@@ -56,7 +64,7 @@
             "Improving code quality and flexibility of the neural operator repository.", 
             "Configured development environment to interface with High Performance Computing (HPC) cluster for training large models."
           ],
-          "position": "Undergraduate Researcher"
+          "position": "Researcher"
         }
       ]
     }
@@ -74,12 +82,12 @@
         "CS 159: Advanced Topics in Machine Learning: Large Language Models for Reasoning"
       ],
       "undergraduateCourses": [
-        "CS 1: Introduction to Computer Programming",
-        "CS 2: Introduction to Programming Methods (Data Structures)",
-        "CS 3: Introduction to Software Design",
+        "CS 1: Computer Programming",
+        "CS 2: Programming Methods (Data Structures)",
+        "CS 3: Software Design",
         "Ma 1abc: Calculus of One and Several Variables and Linear Algebra",
         "Ma 2: Differential Equations",
-        "Ma 3: Introduction to Probability and Statistics",
+        "Ma 3: Probability and Statistics",
         "CS 13: Mathematical Foundations of Computer Science (Discrete Mathematics)"
       ]
     }
