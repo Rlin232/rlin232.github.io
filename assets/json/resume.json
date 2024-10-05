@@ -77,6 +77,8 @@
       "startDate": "2023",
       "endDate": "2026",
       "graduateCourses": [
+        "ACM 116: Probability Models",
+        "CS 163: Projects in Machine Learning",
         "CS 155: Machine Learning and Data Mining",
         "CS 156a: Learning Systems",
         "CS 159: Advanced Topics in Machine Learning: Large Language Models for Reasoning"
@@ -88,8 +90,17 @@
         "Ma 1abc: Calculus of One and Several Variables and Linear Algebra",
         "Ma 2: Differential Equations",
         "Ma 3: Probability and Statistics",
-        "CS 13: Mathematical Foundations of Computer Science (Discrete Mathematics)"
+        "CS 13: Mathematical Foundations of Computer Science (Discrete Mathematics)",
+        "CS 24: Computer Systems"
       ]
+    }
+  ],
+  "publications": [
+    {
+      "title": "Strategic Collusion of LLM Agents: Market Division in Multi-Commodity Competitions",
+      "date": "2024",
+      "url": "https://arxiv.org/abs/2410.00031",
+      "author": "Ryan Y. Lin, Siddhartha Ojha, Kevin Cai and Maxwell F. Chen"
     }
   ],
   "awards": [

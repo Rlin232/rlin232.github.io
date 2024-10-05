@@ -18,14 +18,11 @@ selected_papers: false # includes a list of papers marked as "selected={true}"
 social: true # includes social icons at the bottom of the page
 ---
 
-Hi, my name is Ryan Lin, an undergraduate student at the California Institute of Technology. I am currently pursuing a degree in 
-Computer Science, with a keen focus on machine learning. 
+Hi, my name is Ryan Lin, an undergraduate student at the California Institute of Technology. I am currently pursuing a degree in Computer Science, with a keen focus on machine learning. 
 
 My journey in academia has brought me to my role as an undergraduate researcher at the 
-Anima AI + Science Lab. Equipped with the knowledge I gained from various graduate-level machine learning courses, I hope to delve deeper into the 
-complex concepts and techniques related to artificial intelligence. 
+Anima AI + Science Lab. Equipped with the knowledge I gained from various graduate-level machine learning courses, I hope to delve deeper into the complex concepts and techniques related to artificial intelligence. 
 
-In the industry, I have spent three summers as a full-stack developer and a DevSecOps engineer at the MITRE Corporation, where I honed my skills in 
-software engineering and learned about industry practices and methodologies. I also worked with MITRE during the school year as a part-time employee. 
+In the industry, I have spent three summers full-time as a full-stack developer and a DevSecOps engineer at the MITRE Corporation, where I honed my skills in software engineering and learned about industry practices and methodologies. I also worked with MITRE during the school year as a part-time employee. Moreover, in summer of 2024, I joined MITRE part-time as a machine learning and software engineering intern.
 
 Beyond academics and professional pursuits, I am a part of the Caltech NCAA Division III Swimming & Diving team. Go Beavers!
