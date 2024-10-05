@@ -97,10 +97,11 @@
   ],
   "publications": [
     {
-      "title": "Strategic Collusion of LLM Agents: Market Division in Multi-Commodity Competitions",
-      "date": "2024",
+      "name": "Strategic Collusion of LLM Agents: Market Division in Multi-Commodity Competitions",
+      "releaseDate": "2024-09-19",
       "url": "https://arxiv.org/abs/2410.00031",
-      "author": "Ryan Y. Lin, Siddhartha Ojha, Kevin Cai and Maxwell F. Chen"
+      "author": "Ryan Y. Lin, Siddhartha Ojha, Kevin Cai and Maxwell F. Chen",
+      "summary": "We find that LLM agents specialize and divide markets in a multi-commodity Cournot competition setting even without explicit instructions to collude. "
     }
   ],
   "awards": [
