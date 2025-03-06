@@ -17,11 +17,17 @@ jobs:
       - name: Checkout your repository using git
         uses: actions/checkout@v4
 
-      - name: Install, build, and upload your site
-        uses: withastro/action@v1
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
-          package-manager: npm
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build site
+        run: npm run build
 
       - name: Install PurgeCSS
         run: npm install -g purgecss
@@ -30,6 +36,11 @@ jobs:
         run: |
           cd dist
           purgecss --css "**/*.css" --content "**/*.html" --output ./ --safelist dark:* prose-*
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
 
   deploy:
     needs: build
