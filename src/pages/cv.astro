@@ -13,33 +13,51 @@ const education = [
   {
     title: "B.S. Computer Science",
     institution: "California Institute of Technology",
-    year: "2023-2026",
+    year: "Sep 2023 - Present",
     descriptions: [
-      "First-year undergraduate student",
-      "Relevant Coursework: Data Structures and Algorithms, Computer Systems, Machine Learning"
+      "Student Organizations: Executive Director of Hacktech (Caltech's Annual Hackathon), NCAA DIII Varsity Men's Swim & Dive", 
+      "Graduate-level Coursework: Large Language Models for Reasoning, Machine Learning & Data Mining, Projects in Machine Learning, Probability Models, Distributed Computing, Bayesian Statistics",
+      "Undergraduate-level Coursework: Data Structures & Algorithms, Mathematical Foundations of Computer Science (Discrete Mathematics), Differential Equations, Probability & Statistics, Software Design, Computer Systems"
     ]
   }
 ];
 
 const experience = [
   {
-    title: "Research Assistant",
-    institution: "Caltech Computational Economics Lab",
-    year: "2023 - Present",
+    title: "Incoming AI/ML Intern",
+    institution: "Apple"
+  },
+  {
+    title: "Researcher",
+    institution: "Caltech - Anima AI + Science Lab",
+    year: "Oct 2023 - Present",
     descriptions: [
-      "Researching strategic behavior in multi-agent systems and LLM interactions",
-      "Published paper on strategic collusion in multi-commodity competitions",
-      "Developed simulation frameworks for analyzing agent behaviors"
+      "Developing new machine learning architectures capable of zero-shot super-resolution for solving families of Partial Differential Equations (PDEs) with arbitrary geometries.",
+      "Incorporating new loss functions to neural operators (ex. physics losses) to improve training speed and data usage",
+      "Performing ablation studies on neural operator architectures to understand the impact of different components on performance and compare against state-of-the-art models.",
+      "Improving code quality and flexibility of the neural operator repository."
+    ]
+  },
+  {
+    title: "Teaching Assistant",
+    instituteion: "Caltech",
+    year: "Jan 2025 - Present",
+    descriptions: [
+      "CS 2: Introduction to Programming Methods",
+      "CMS/CS/CNS/EE/IDS 155: Machine Learning & Data Mining"
     ]
   },
   {
     title: "Software Engineering Intern",
-    institution: "Various Projects",
-    year: "2022 - 2023",
+    institution: "The MITRE Corporation",
+    year: "Jun - Sep 2021, Jun - Sep 2022, Jun - Sep 2023, Jun - Sep 2024",
     descriptions: [
-      "Developed full-stack web applications using modern frameworks",
-      "Implemented machine learning models for stock price prediction",
-      "Created educational tools and platforms"
+      "Designed a pipeline leveraging Retrieval-Augmented Generation (RAG) and Large Language Models (LLMs) to enhance domain-specific knowledge retrieval and automate the creation of security tests from Security Technical Implementation Guides (STIGs), accelerating security profile delivery by 500%",
+      "Engineered an end-to-end DevSecOps pipeline for Security Automation Framework (SAF) using applications, libraries, and tools created by MITRE and the security community. Hosted pipeline on EC2.",
+      "Automated pipeline for key tasks (hardening, validation, visualization) to inform platform owners of security risks and accelerate capability deployment in development, test, and prod environments by up to 500%",
+      "One of ≈ 5 high school sophomores out of all the (500+) interns selected for the MITRE Internship Program",
+      "Authored the SAF CLI (Command Line Interface), a software that streamlines security automation for IT Systems and DevOps pipelines with over 100,000 downloads by the security community.",
+      "Created and published libraries to normalize outputs from various cybersecurity scanning tools into Heimdall Data Format for government sponsors and commercial partners, accelerating accreditation processes by up to 1000%."
     ]
   }
 ];
@@ -68,26 +86,19 @@ const projects = [
 const skills = [
   {
     category: "Programming Languages",
-    items: ["Python", "JavaScript/TypeScript", "C++", "Java", "Verilog"]
+    items: ["Java", "Python", "Typescript", "JavaScript", "R", "Ruby", "C", "C++", "Shell Script"]
   },
   {
     category: "Technologies & Frameworks",
-    items: ["React", "Node.js", "TensorFlow", "PyTorch", "Git"]
+    items: ["TensorFlow", "PyTorch", "Git", "Jupyter", "Weights & Biases", "SLURM", "CUDA", "Linux", "High Performance Computing (HPC)", "Natural Language Processing", "GitHub", "Android Studios", "AWS", "Brew", "Bash/Shell", "Docker", "Eclipse", "Firebase", "VSCode", "PyCharm", "RStudio", "PostgreSQL", "Jenkins", "Vuex", "React", "Node.js", "Chef", "Ansible", "Github Actions", "LangChain", "OpenAI API", "Huggingface", "Agile Development"]
   },
   {
     category: "Areas of Expertise",
-    items: ["Machine Learning", "Full-Stack Development", "Systems Programming", "Computer Architecture"]
+    items: ["Machine Learning Research", "Full-Stack Development", "Cybersecurity"]
   }
 ];
 
 const awards = [
-  {
-    year: "2023",
-    items: [
-      "Caltech Merit Award",
-      "Research Fellowship - Computational Economics Lab"
-    ]
-  }
 ];
 ---
 
@@ -183,9 +194,9 @@ const awards = [
       </div>
     </section>
 
-    <!-- Projects section replacement -->
+    <!-- Publications -->
     <section class="mb-8 bg-neutral-50 dark:bg-neutral-800 rounded-lg px-6 pt-4 pb-6 shadow-sm">
-      <h2 class="text-2xl font-semibold mb-4 text-neutral-900 dark:text-neutral-50">Selected Publications</h2>
+      <h2 class="text-2xl font-semibold mb-4 text-neutral-900 dark:text-neutral-50">Publications</h2>
       <div class="space-y-6">
         <div class="publication-item">
           <h3 class="text-lg font-medium text-neutral-900 dark:text-neutral-50">
@@ -221,20 +232,22 @@ const awards = [
     </section>
 
     <!-- Awards -->
-    <section class="mb-8 bg-neutral-50 dark:bg-neutral-800 rounded-lg px-6 pt-4 pb-6 shadow-sm">
-      <h2 class="text-2xl font-semibold mb-4 text-neutral-900 dark:text-neutral-50">Honors and Awards</h2>
-      <div class="space-y-6">
-        {awards.map((award) => (
-          <div class="award-item">
-            <h3 class="text-lg font-medium text-neutral-900 dark:text-neutral-50">{award.year}</h3>
-            <ul class="list-disc pl-5 mt-2 text-neutral-700 dark:text-neutral-300">
-              {award.items.map((item) => (
-                <li>{item}</li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
-    </section>
+    {awards.length > 0 && (
+      <section class="mb-8 bg-neutral-50 dark:bg-neutral-800 rounded-lg px-6 pt-4 pb-6 shadow-sm">
+        <h2 class="text-2xl font-semibold mb-4 text-neutral-900 dark:text-neutral-50">Honors and Awards</h2>
+        <div class="space-y-6">
+          {awards.map((award) => (
+            <div class="award-item">
+              <h3 class="text-lg font-medium text-neutral-900 dark:text-neutral-50">{award.year}</h3>
+              <ul class="list-disc pl-5 mt-2 text-neutral-700 dark:text-neutral-300">
+                {award.items.map((item) => (
+                  <li>{item}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
   </div>
 </Layout> 
