@@ -1,0 +1,71 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const projects = [
+  {
+    title: "Lattice Point Geometry Proof Portfolio",
+    description: "A collection of 100+ proofs exploring the fundamental properties of the lattice plane.",
+    image: "/assets/img/LPG.png",
+    technologies: ["Mathematics", "Geometry", "Proof Writing"],
+  },
+  {
+    title: "Quantum Machine Learning",
+    description: "Research on quantum machine learning algorithms and their applications.",
+    image: "/assets/img/QuantumML.png",
+    technologies: ["Quantum Computing", "Machine Learning", "Python"],
+  },
+  {
+    title: "Stock Price Prediction with LSTM",
+    description: "Implementation of LSTM neural networks for stock price prediction.",
+    image: "/assets/img/StockLSTM.png",
+    technologies: ["Deep Learning", "Python", "TensorFlow"],
+  },
+  {
+    title: "Y86 Processor",
+    description: "Implementation of a Y86 processor in hardware description language.",
+    image: "/assets/img/Y86.png",
+    technologies: ["Computer Architecture", "X86"],
+  }
+];
+---
+
+<Layout title="Projects" description="Research and development projects">
+  <div class="max-w-4xl mx-auto pt-8">
+    <h1 class="text-4xl font-bold mb-8 text-neutral-900 dark:text-neutral-50">Projects</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      {projects.map((project) => (
+        <div class="project-card bg-neutral-50 dark:bg-neutral-800 rounded-lg overflow-hidden shadow-sm">
+          <div class="aspect-w-16 aspect-h-9">
+            {project.image ? (
+              <img 
+                src={project.image} 
+                alt={project.title}
+                class="w-full h-48 object-cover"
+              />
+            ) : (
+              <div class="w-full h-48 bg-neutral-100 dark:bg-neutral-700 flex items-center justify-center text-neutral-500 dark:text-neutral-400">
+                Image Coming Soon
+              </div>
+            )}
+          </div>
+          <div class="p-6">
+            <div class="flex justify-between items-start mb-2">
+              <h3 class="text-xl font-semibold text-neutral-900 dark:text-neutral-50">{project.title}</h3>
+            </div>
+            <p class="text-neutral-600 dark:text-neutral-300 mb-4">
+              {project.description}
+            </p>
+            <div class="flex flex-wrap gap-2">
+              {project.technologies.map((tech) => (
+                <span class="px-2 py-1 bg-accent-100 dark:bg-accent-900 text-accent-800 dark:text-accent-100 text-sm rounded">
+                  {tech}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</Layout> 

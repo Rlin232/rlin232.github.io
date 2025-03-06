@@ -1,0 +1,102 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const publications = [
+  {
+    title: "Strategic Collusion of LLM Agents: Market Division in Multi-Commodity Competitions",
+    authors: ["Ryan Y. Lin", "Siddhartha Ojha", "Kevin Cai", "Maxwell F. Chen"],
+    year: "2024",
+    venue: "NeurIPS Workshop on Language Gamification",
+    links: {
+      pdf: "https://openreview.net/pdf?id=X9vAImw5Yj",
+      url: "https://openreview.net/forum?id=X9vAImw5Yj"
+    },
+    preview: "/assets/img/Collusion.png"
+  }
+];
+---
+
+<Layout title="Publications" description="Academic publications and research work">
+  <div class="max-w-4xl mx-auto pt-8">
+    <h1 class="text-4xl font-bold mb-8 text-neutral-900 dark:text-neutral-50">Publications</h1>
+    
+    <div class="space-y-12">
+      {publications.map((pub) => (
+        <div class="publication bg-neutral-50 dark:bg-neutral-800 rounded-lg p-6 shadow-sm">
+          <h3 class="text-xl font-semibold mb-2 text-neutral-900 dark:text-neutral-50">{pub.title}</h3>
+          <p class="text-sm text-neutral-600 dark:text-neutral-300">
+            {pub.authors.map((author) => (
+              author === "Ryan Y. Lin" ? 
+                <span class="font-bold text-accent-600 dark:text-accent-400">{author}</span> : 
+                author
+            )).reduce((prev, curr) => [prev, ", ", curr])}
+          </p>
+          <p class="text-sm text-neutral-600 dark:text-neutral-300 mt-1">
+            {pub.venue}, {pub.year}
+          </p>
+          <div class="mt-4 flex space-x-4">
+            {pub.links.pdf && (
+              <a 
+                href={pub.links.pdf} 
+                class="px-3 py-1 rounded-md bg-accent-600 text-white hover:bg-accent-700 dark:bg-accent-500 dark:hover:bg-accent-600 transition-colors duration-200"
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                PDF
+              </a>
+            )}
+            {pub.links.url && (
+              <a 
+                href={pub.links.url} 
+                class="px-3 py-1 rounded-md bg-accent-600 text-white hover:bg-accent-700 dark:bg-accent-500 dark:hover:bg-accent-600 transition-colors duration-200"
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                OpenReview
+              </a>
+            )}
+            <button
+              class="px-3 py-1 rounded-md bg-accent-600 text-white hover:bg-accent-700 dark:bg-accent-500 dark:hover:bg-accent-600 transition-colors duration-200 copy-bibtex"
+              data-bibtex={`@inproceedings{
+lin2024strategic,
+title={Strategic Collusion of {LLM} Agents: Market Division in Multi-Commodity Competitions},
+author={Ryan Y. Lin and Siddhartha Ojha and Kevin Cai and Maxwell Chen},
+
+booktitle={Language Gamification - NeurIPS 2024 Workshop},
+year={2024},
+url={https://openreview.net/forum?id=X9vAImw5Yj}
+}`}
+            >
+              BibTeX
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</Layout>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.copy-bibtex').forEach(button => {
+      button.addEventListener('click', async () => {
+        const bibtex = button.getAttribute('data-bibtex');
+        try {
+          await navigator.clipboard.writeText(bibtex);
+          
+          const originalText = button.textContent;
+          button.textContent = 'Copied!';
+          button.classList.add('bg-accent-700');
+          
+          setTimeout(() => {
+            button.textContent = originalText;
+            button.classList.remove('bg-accent-700');
+          }, 2000);
+        } catch (err) {
+          console.error('Failed to copy:', err);
+          alert('Failed to copy BibTeX. Please try again.');
+        }
+      });
+    });
+  });
+</script> 
