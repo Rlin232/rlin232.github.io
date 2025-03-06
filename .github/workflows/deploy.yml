@@ -40,7 +40,7 @@ jobs:
       - name: Purge unused CSS
         run: |
           cd dist
-          purgecss --css "**/*.css" --content "**/*.html" --output ./ --safelist dark:* prose-*
+          purgecss --css "**/*.css" --content "**/*.html" --output ./
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
