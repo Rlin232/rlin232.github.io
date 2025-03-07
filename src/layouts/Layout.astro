@@ -19,14 +19,14 @@ const GA_ID = "G-3M9BV2QREG";
 		<meta name="generator" content={Astro.generator} />
 		<meta name="description" content={description} />
 		<title>{title}</title>
-		<script async src="https://www.googletagmanager.com/gtag/js?id=G-3M9BV2QREG"></script>
-		<script>
-			{`
+		<script type="text/partytown" async src="https://www.googletagmanager.com/gtag/js?id={{ site.google_analytics }}"></script>
+		<script type="text/partytown">
 			window.dataLayer = window.dataLayer || [];
-			function gtag(){dataLayer.push(arguments);}
+			function gtag() {
+			window.dataLayer.push(arguments);
+			}
 			gtag('js', new Date());
-			gtag('config', 'G-3M9BV2QREG', { anonymize_ip: true });
-			`}
+			gtag('config', '{{ site.google_analytics }}');
 		</script>
 	</head>
 	<body class="min-h-full theme-transition">
