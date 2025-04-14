@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { publications } from "../data/publications";
 
 const personalInfo = {
   fullName: "Ryan Y. Lin",
@@ -198,17 +199,53 @@ const awards = [
     <section class="mb-8 bg-neutral-50 dark:bg-neutral-800 rounded-lg px-6 pt-4 pb-6 shadow-sm">
       <h2 class="text-2xl font-semibold mb-4 text-neutral-900 dark:text-neutral-50">Publications</h2>
       <div class="space-y-6">
-        <div class="publication-item">
-          <h3 class="text-lg font-medium text-neutral-900 dark:text-neutral-50">
-            Strategic Collusion of LLM Agents: Market Division in Multi-Commodity Competitions
-          </h3>
-          <p class="text-neutral-600 dark:text-neutral-300 mt-1">
-            <span class="font-bold text-accent-600 dark:text-accent-400">Ryan Y. Lin</span>, Siddhartha Ojha, Kevin Cai, Maxwell F. Chen
-          </p>
-          <p class="text-sm text-neutral-500 dark:text-neutral-400">
-            NeurIPS Workshop on Language Gamification, 2024
-          </p>
-        </div>
+        {publications.map((pub) => (
+          <div class="publication bg-neutral-50 dark:bg-neutral-800 rounded-lg p-6 shadow-sm flex flex-col md:flex-row md:items-start md:space-x-6">
+            
+            {/* Left: Text Content */}
+            <div class="flex-1">
+              <h3 class="text-xl font-semibold mb-2 text-neutral-900 dark:text-neutral-50">{pub.title}</h3>
+              <p class="text-sm text-neutral-600 dark:text-neutral-300">
+                {pub.authors.map((author) => (
+                  author === "Ryan Y. Lin" ? 
+                    <span class="font-bold text-accent-600 dark:text-accent-400">{author}</span> : 
+                    author
+                )).reduce((prev, curr) => [prev, ", ", curr])}
+              </p>
+              <p class="text-sm text-neutral-600 dark:text-neutral-300 mt-1">
+                {pub.venue}, {pub.year}
+              </p>
+              <div class="mt-4 flex space-x-4">
+                {pub.links.pdf && (
+                  <a 
+                    href={pub.links.pdf} 
+                    class="px-3 py-1 rounded-md bg-accent-600 text-white hover:bg-accent-700 dark:bg-accent-500 dark:hover:bg-accent-600 transition-colors duration-200"
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                  >
+                    PDF
+                  </a>
+                )}
+                {pub.links.url && (
+                  <a 
+                    href={pub.links.url} 
+                    class="px-3 py-1 rounded-md bg-accent-600 text-white hover:bg-accent-700 dark:bg-accent-500 dark:hover:bg-accent-600 transition-colors duration-200"
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                  >
+                    {pub.platform}
+                  </a>
+                )}
+                <button
+                  class="px-3 py-1 rounded-md bg-accent-600 text-white hover:bg-accent-700 dark:bg-accent-500 dark:hover:bg-accent-600 transition-colors duration-200 copy-bibtex"
+                  data-bibtex={pub.bibtex}
+                >
+                  BibTeX
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     </section>
 
