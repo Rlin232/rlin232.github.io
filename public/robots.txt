@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://rlin232.github.io/sitemap-index.xml
