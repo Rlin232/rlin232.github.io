@@ -47,7 +47,9 @@ const experience = [
     descriptions: [
       "CS 2: Programming Methods",
       "CS 3: Software Design",
-      "CMS/CS/CNS/EE/IDS 155: Machine Learning & Data Mining"
+      "CMS/CS/CNS/EE/IDS 155: Machine Learning & Data Mining",
+      "CS/EE/IDS 143: Networks: Algorithms & Architecture",
+      "SA 16: Cooking Basics :)"
     ]
   },
   {
@@ -221,28 +223,53 @@ const awards = [
                 {pub.links.pdf && (
                   <a 
                     href={pub.links.pdf} 
-                    class="px-3 py-1 rounded-md bg-accent-600 text-white hover:bg-accent-700 dark:bg-accent-500 dark:hover:bg-accent-600 transition-colors duration-200"
+                    class="p-2 rounded-xl bg-accent-600 text-white hover:bg-accent-700 dark:bg-accent-500 dark:hover:bg-accent-600 transition-transform duration-200 flex items-center justify-center hover:scale-110"
                     target="_blank" 
                     rel="noopener noreferrer"
+                    title="Open PDF"
                   >
-                    PDF
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" 
+                        d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zM14 2v6h6" />
+                    </svg>
                   </a>
                 )}
+
                 {pub.links.url && (
                   <a 
                     href={pub.links.url} 
-                    class="px-3 py-1 rounded-md bg-accent-600 text-white hover:bg-accent-700 dark:bg-accent-500 dark:hover:bg-accent-600 transition-colors duration-200"
+                    class="p-2 rounded-xl bg-accent-600 text-white hover:bg-accent-700 dark:bg-accent-500 dark:hover:bg-accent-600 transition-transform duration-200 flex items-center justify-center hover:scale-110"
                     target="_blank" 
                     rel="noopener noreferrer"
+                    title={pub.platform}
                   >
-                    {pub.platform}
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" 
+                        d="M18 13v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" />
+                    </svg>
                   </a>
                 )}
+
                 <button
-                  class="px-3 py-1 rounded-md bg-accent-600 text-white hover:bg-accent-700 dark:bg-accent-500 dark:hover:bg-accent-600 transition-colors duration-200 copy-bibtex"
+                  class="relative p-2 w-9 h-9 rounded-xl bg-accent-600 text-white hover:bg-accent-700 
+                        dark:bg-accent-500 dark:hover:bg-accent-600 transition-transform duration-200 
+                        flex items-center justify-center hover:scale-110 copy-bibtex"
                   data-bibtex={pub.bibtex}
+                  title="Copy BibTeX"
                 >
-                  BibTeX
+                  <!-- Clipboard icon -->
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 icon transition-opacity duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" 
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002-2h2a2 2 0 002 2H9z" />
+                  </svg>
+
+                  <!-- Checkmark overlay (hidden by default) -->
+                  <svg xmlns="http://www.w3.org/2000/svg" 
+                      class="w-5 h-5 absolute top-1.5 right-1.5 text-green-400 dark:text-green-300 
+                              opacity-0 scale-75 check transition-all duration-200" 
+                      fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="5" d="M5 13l4 4L19 7" />
+                  </svg>
                 </button>
               </div>
             </div>
@@ -290,3 +317,29 @@ const awards = [
     )}
   </div>
 </Layout> 
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.copy-bibtex').forEach(button => {
+      const icon = button.querySelector('.icon');
+      const check = button.querySelector('.check');
+
+      button.addEventListener('click', async () => {
+        const bibtex = button.getAttribute('data-bibtex');
+        try {
+          await navigator.clipboard.writeText(bibtex || '');
+
+          // Animate swap
+          check.style.opacity = '1';
+
+          setTimeout(() => {
+            check.style.opacity = '0';
+          }, 1500);
+        } catch (err) {
+          console.error('Failed to copy:', err);
+          alert('Failed to copy BibTeX. Please try again.');
+        }
+      });
+    });
+  });
+</script>

@@ -1,6 +1,25 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { publications } from "../data/publications";
+
+const venueColors = {
+  NeurIPS: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+  ICML: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  ICLR: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
+  CVPR: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  TMLR: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+} as const;
+
+type VenueKey = keyof typeof venueColors;
+
+function getVenueBadge(venue: string): string | null {
+  const match = (Object.keys(venueColors) as VenueKey[]).find((v) =>
+    venue.includes(v)
+  );
+  if (!match) return null;
+
+  return `<span class="inline-block px-2 py-0.5 rounded-full font-medium text-xs ${venueColors[match]}">${match}</span>`;
+}
 ---
 
 <Layout title="Publications" description="Academic publications and research work">
@@ -8,61 +27,95 @@ import { publications } from "../data/publications";
     <h1 class="text-4xl font-bold mb-8 text-neutral-900 dark:text-neutral-50">Publications</h1>
     
     <div class="space-y-12">
-      {publications.map((pub) => (
-        <div class="publication bg-neutral-50 dark:bg-neutral-800 rounded-lg p-6 shadow-sm flex flex-col md:flex-row md:items-start md:space-x-6">
-          
-          {/* Left: Text Content */}
-          <div class="flex-1">
-            <h3 class="text-xl font-semibold mb-2 text-neutral-900 dark:text-neutral-50">{pub.title}</h3>
-            <p class="text-sm text-neutral-600 dark:text-neutral-300">
-              {pub.authors.map((author) => (
-                author === "Ryan Y. Lin" ? 
-                  <span class="font-bold text-accent-600 dark:text-accent-400">{author}</span> : 
-                  author
-              )).reduce((prev, curr) => [prev, ", ", curr])}
-            </p>
-            <p class="text-sm text-neutral-600 dark:text-neutral-300 mt-1">
-              {pub.venue}, {pub.year}
-            </p>
-            <div class="mt-4 flex space-x-4">
-              {pub.links.pdf && (
-                <a 
-                  href={pub.links.pdf} 
-                  class="px-3 py-1 rounded-md bg-accent-600 text-white hover:bg-accent-700 dark:bg-accent-500 dark:hover:bg-accent-600 transition-colors duration-200"
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                >
-                  PDF
-                </a>
+      {publications.map((pub) => {
+        const badge = getVenueBadge(pub.venue);
+        return (
+          <div class="publication bg-neutral-50 dark:bg-neutral-800 rounded-lg p-6 shadow-sm flex flex-col md:flex-row md:items-start md:space-x-6">
+            
+            {/* Left: Text Content */}
+            <div class="flex-1">
+              <h3 class="text-xl font-semibold mb-2 text-neutral-900 dark:text-neutral-50">{pub.title}</h3>
+              <p class="text-sm text-neutral-600 dark:text-neutral-300">
+                {pub.authors.map((author) => (
+                  author === "Ryan Y. Lin" ? 
+                    <span class="font-bold text-accent-600 dark:text-accent-400">{author}</span> : 
+                    author
+                )).reduce((prev, curr) => [prev, ", ", curr])}
+              </p>
+
+              <p class="text-sm text-neutral-600 dark:text-neutral-300 mt-1">
+                {pub.venue}, {pub.year}
+              </p>
+
+              {/* New Row: Venue Badge */}
+              {badge && (
+                <div class="mt-2" set:html={badge}></div>
               )}
-              {pub.links.url && (
-                <a 
-                  href={pub.links.url} 
-                  class="px-3 py-1 rounded-md bg-accent-600 text-white hover:bg-accent-700 dark:bg-accent-500 dark:hover:bg-accent-600 transition-colors duration-200"
-                  target="_blank" 
-                  rel="noopener noreferrer"
+
+              <div class="mt-4 flex space-x-4">
+                {pub.links.pdf && (
+                  <a 
+                    href={pub.links.pdf} 
+                    class="p-2 rounded-xl bg-accent-600 text-white hover:bg-accent-700 dark:bg-accent-500 dark:hover:bg-accent-600 transition-transform duration-200 flex items-center justify-center hover:scale-110"
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    title="Open PDF"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" 
+                        d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zM14 2v6h6" />
+                    </svg>
+                  </a>
+                )}
+
+                {pub.links.url && (
+                  <a 
+                    href={pub.links.url} 
+                    class="p-2 rounded-xl bg-accent-600 text-white hover:bg-accent-700 dark:bg-accent-500 dark:hover:bg-accent-600 transition-transform duration-200 flex items-center justify-center hover:scale-110"
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    title={pub.platform}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" 
+                        d="M18 13v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" />
+                    </svg>
+                  </a>
+                )}
+
+                <button
+                  class="relative p-2 w-9 h-9 rounded-xl bg-accent-600 text-white hover:bg-accent-700 
+                        dark:bg-accent-500 dark:hover:bg-accent-600 transition-transform duration-200 
+                        flex items-center justify-center hover:scale-110 copy-bibtex"
+                  data-bibtex={pub.bibtex}
+                  title="Copy BibTeX"
                 >
-                  {pub.platform}
-                </a>
-              )}
-              <button
-                class="px-3 py-1 rounded-md bg-accent-600 text-white hover:bg-accent-700 dark:bg-accent-500 dark:hover:bg-accent-600 transition-colors duration-200 copy-bibtex"
-                data-bibtex={pub.bibtex}
-              >
-                BibTeX
-              </button>
+                  <!-- Clipboard icon -->
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 icon transition-opacity duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" 
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002-2h2a2 2 0 002 2H9z" />
+                  </svg>
+
+                  <!-- Checkmark overlay (hidden by default) -->
+                  <svg xmlns="http://www.w3.org/2000/svg" 
+                      class="w-5 h-5 absolute top-1.5 right-1.5 text-green-400 dark:text-green-300 
+                              opacity-0 scale-75 check transition-all duration-200" 
+                      fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="5" d="M5 13l4 4L19 7" />
+                  </svg>
+                </button>
+              </div>
             </div>
+      
+            {/* Right: Preview Image */}
+            {pub.preview && (
+              <div class="mt-6 md:mt-0 md:w-48 md:flex-shrink-0">
+                <img src={pub.preview} alt={`Preview for ${pub.title}`} class="rounded-md shadow-sm w-full h-auto object-cover" />
+              </div>
+            )}
           </div>
-    
-          {/* Right: Preview Image */}
-          {pub.preview && (
-            <div class="mt-6 md:mt-0 md:w-48 md:flex-shrink-0">
-              <img src={pub.preview} alt={`Preview for ${pub.title}`} class="rounded-md shadow-sm w-full h-auto object-cover" />
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
+        );
+      })}
     </div>
   </div>
 </Layout>
@@ -70,19 +123,20 @@ import { publications } from "../data/publications";
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.copy-bibtex').forEach(button => {
+      const icon = button.querySelector('.icon');
+      const check = button.querySelector('.check');
+
       button.addEventListener('click', async () => {
         const bibtex = button.getAttribute('data-bibtex');
         try {
           await navigator.clipboard.writeText(bibtex || '');
-          
-          const originalText = button.textContent;
-          button.textContent = 'Copied!';
-          button.classList.add('bg-accent-700');
-          
+
+          // Animate swap
+          check.style.opacity = '1';
+
           setTimeout(() => {
-            button.textContent = originalText;
-            button.classList.remove('bg-accent-700');
-          }, 2000);
+            check.style.opacity = '0';
+          }, 1500);
         } catch (err) {
           console.error('Failed to copy:', err);
           alert('Failed to copy BibTeX. Please try again.');
@@ -90,4 +144,4 @@ import { publications } from "../data/publications";
       });
     });
   });
-</script> 
+</script>
