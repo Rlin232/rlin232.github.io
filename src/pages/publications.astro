@@ -23,15 +23,15 @@ function getVenueBadge(venue: string): string | null {
 ---
 
 <Layout title="Publications | Ryan Lin" description="Academic publications and research work">
-  <div class="max-w-4xl mx-auto px-4 sm:px-6">
-    <h1 class="text-4xl font-bold mb-12 text-white" data-aos="fade-down">Publications</h1>
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 pb-20">
+    <h1 class="text-4xl font-bold mb-12 text-white animate-fade-in-up">Publications</h1>
     
     <div class="space-y-8">
       {publications.map((pub, index) => {
         const badge = getVenueBadge(pub.venue);
         return (
-          <div class="glass-card rounded-2xl p-8 flex flex-col md:flex-row md:items-start md:space-x-8 transition-all duration-300 hover:bg-white/5" 
-               data-aos="fade-up" data-aos-delay={index * 100}>
+          <div class="glass-card rounded-2xl p-8 flex flex-col md:flex-row md:items-start md:space-x-8 transition-all duration-300 hover:bg-white/5 animate-fade-in-up" 
+               style={`animation-delay: ${index * 50}ms`}>
             
             {/* Left: Text Content */}
             <div class="flex-1">

@@ -30,13 +30,13 @@ const projects = [
 ---
 
 <Layout title="Projects | Ryan Lin" description="Research and development projects">
-  <div class="max-w-6xl mx-auto px-4 sm:px-6">
-    <h1 class="text-4xl font-bold mb-12 text-white" data-aos="fade-down">Projects</h1>
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 pb-20">
+    <h1 class="text-4xl font-bold mb-12 text-white animate-fade-in-up">Projects</h1>
     
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
       {projects.map((project, index) => (
-        <div class="glass-card rounded-2xl overflow-hidden group hover:border-accent-500/30 transition-all duration-300" 
-             data-aos="fade-up" data-aos-delay={index * 100}>
+        <div class="glass-card rounded-2xl overflow-hidden group hover:border-accent-500/30 transition-all duration-300 animate-fade-in-up" 
+             style={`animation-delay: ${index * 50}ms`}>
           <div class="aspect-w-16 aspect-h-9 overflow-hidden">
             {project.image ? (
               <img 
