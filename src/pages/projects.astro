@@ -29,36 +29,37 @@ const projects = [
 ];
 ---
 
-<Layout title="Projects" description="Research and development projects">
-  <div class="max-w-4xl mx-auto pt-8">
-    <h1 class="text-4xl font-bold mb-8 text-neutral-900 dark:text-neutral-50">Projects</h1>
+<Layout title="Projects | Ryan Lin" description="Research and development projects">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6">
+    <h1 class="text-4xl font-bold mb-12 text-white" data-aos="fade-down">Projects</h1>
     
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-      {projects.map((project) => (
-        <div class="project-card bg-neutral-50 dark:bg-neutral-800 rounded-lg overflow-hidden shadow-sm">
-          <div class="aspect-w-16 aspect-h-9">
+      {projects.map((project, index) => (
+        <div class="glass-card rounded-2xl overflow-hidden group hover:border-accent-500/30 transition-all duration-300" 
+             data-aos="fade-up" data-aos-delay={index * 100}>
+          <div class="aspect-w-16 aspect-h-9 overflow-hidden">
             {project.image ? (
               <img 
                 src={project.image} 
                 alt={project.title}
-                class="w-full h-48 object-cover"
+                class="w-full h-48 object-cover transform group-hover:scale-105 transition-transform duration-500"
               />
             ) : (
-              <div class="w-full h-48 bg-neutral-100 dark:bg-neutral-700 flex items-center justify-center text-neutral-500 dark:text-neutral-400">
+              <div class="w-full h-48 bg-slate-900/50 flex items-center justify-center text-slate-500">
                 Image Coming Soon
               </div>
             )}
           </div>
-          <div class="p-6">
-            <div class="flex justify-between items-start mb-2">
-              <h3 class="text-xl font-semibold text-neutral-900 dark:text-neutral-50">{project.title}</h3>
+          <div class="p-8">
+            <div class="flex justify-between items-start mb-4">
+              <h3 class="text-xl font-bold text-white group-hover:text-accent-400 transition-colors">{project.title}</h3>
             </div>
-            <p class="text-neutral-600 dark:text-neutral-300 mb-4">
+            <p class="text-slate-400 mb-6 leading-relaxed">
               {project.description}
             </p>
             <div class="flex flex-wrap gap-2">
               {project.technologies.map((tech) => (
-                <span class="px-2 py-1 bg-accent-100 dark:bg-accent-900 text-accent-800 dark:text-accent-100 text-sm rounded">
+                <span class="px-3 py-1 bg-accent-500/10 text-accent-300 border border-accent-500/20 text-xs font-medium rounded-full">
                   {tech}
                 </span>
               ))}

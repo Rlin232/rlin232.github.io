@@ -3,11 +3,11 @@ import Layout from '../layouts/Layout.astro';
 import { publications } from "../data/publications";
 
 const venueColors = {
-  NeurIPS: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
-  ICML: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  ICLR: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
-  CVPR: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-  TMLR: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  NeurIPS: "bg-purple-500/20 text-purple-200 border border-purple-500/30",
+  ICML: "bg-blue-500/20 text-blue-200 border border-blue-500/30",
+  ICLR: "bg-pink-500/20 text-pink-200 border border-pink-500/30",
+  CVPR: "bg-red-500/20 text-red-200 border border-red-500/30",
+  TMLR: "bg-green-500/20 text-green-200 border border-green-500/30",
 } as const;
 
 type VenueKey = keyof typeof venueColors;
@@ -22,41 +22,42 @@ function getVenueBadge(venue: string): string | null {
 }
 ---
 
-<Layout title="Publications" description="Academic publications and research work">
-  <div class="max-w-4xl mx-auto pt-8">
-    <h1 class="text-4xl font-bold mb-8 text-neutral-900 dark:text-neutral-50">Publications</h1>
+<Layout title="Publications | Ryan Lin" description="Academic publications and research work">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6">
+    <h1 class="text-4xl font-bold mb-12 text-white" data-aos="fade-down">Publications</h1>
     
-    <div class="space-y-12">
-      {publications.map((pub) => {
+    <div class="space-y-8">
+      {publications.map((pub, index) => {
         const badge = getVenueBadge(pub.venue);
         return (
-          <div class="publication bg-neutral-50 dark:bg-neutral-800 rounded-lg p-6 shadow-sm flex flex-col md:flex-row md:items-start md:space-x-6">
+          <div class="glass-card rounded-2xl p-8 flex flex-col md:flex-row md:items-start md:space-x-8 transition-all duration-300 hover:bg-white/5" 
+               data-aos="fade-up" data-aos-delay={index * 100}>
             
             {/* Left: Text Content */}
             <div class="flex-1">
-              <h3 class="text-xl font-semibold mb-2 text-neutral-900 dark:text-neutral-50">{pub.title}</h3>
-              <p class="text-sm text-neutral-600 dark:text-neutral-300">
+              <h3 class="text-xl font-bold mb-3 text-white leading-tight">{pub.title}</h3>
+              <p class="text-slate-400 mb-2">
                 {pub.authors.map((author) => (
                   author === "Ryan Y. Lin" ? 
-                    <span class="font-bold text-accent-600 dark:text-accent-400">{author}</span> : 
+                    <span class="font-bold text-accent-400">{author}</span> : 
                     author
                 )).reduce((prev, curr) => [prev, ", ", curr])}
               </p>
 
-              <p class="text-sm text-neutral-600 dark:text-neutral-300 mt-1">
+              <p class="text-sm text-slate-500 mb-4">
                 {pub.venue}, {pub.year}
               </p>
 
               {/* New Row: Venue Badge */}
               {badge && (
-                <div class="mt-2" set:html={badge}></div>
+                <div class="mb-4" set:html={badge}></div>
               )}
 
-              <div class="mt-4 flex space-x-4">
+              <div class="flex space-x-3">
                 {pub.links.pdf && (
                   <a 
                     href={pub.links.pdf} 
-                    class="p-2 rounded-xl bg-accent-600 text-white hover:bg-accent-700 dark:bg-accent-500 dark:hover:bg-accent-600 transition-transform duration-200 flex items-center justify-center hover:scale-110"
+                    class="p-2 rounded-lg bg-white/5 text-slate-300 hover:text-white hover:bg-accent-600 transition-all duration-300"
                     target="_blank" 
                     rel="noopener noreferrer"
                     title="Open PDF"
@@ -71,7 +72,7 @@ function getVenueBadge(venue: string): string | null {
                 {pub.links.url && (
                   <a 
                     href={pub.links.url} 
-                    class="p-2 rounded-xl bg-accent-600 text-white hover:bg-accent-700 dark:bg-accent-500 dark:hover:bg-accent-600 transition-transform duration-200 flex items-center justify-center hover:scale-110"
+                    class="p-2 rounded-lg bg-white/5 text-slate-300 hover:text-white hover:bg-accent-600 transition-all duration-300"
                     target="_blank" 
                     rel="noopener noreferrer"
                     title={pub.platform}
@@ -84,9 +85,7 @@ function getVenueBadge(venue: string): string | null {
                 )}
 
                 <button
-                  class="relative p-2 w-9 h-9 rounded-xl bg-accent-600 text-white hover:bg-accent-700 
-                        dark:bg-accent-500 dark:hover:bg-accent-600 transition-transform duration-200 
-                        flex items-center justify-center hover:scale-110 copy-bibtex"
+                  class="relative p-2 w-9 h-9 rounded-lg bg-white/5 text-slate-300 hover:text-white hover:bg-accent-600 transition-all duration-300 copy-bibtex"
                   data-bibtex={pub.bibtex}
                   title="Copy BibTeX"
                 >
@@ -98,10 +97,9 @@ function getVenueBadge(venue: string): string | null {
 
                   <!-- Checkmark overlay (hidden by default) -->
                   <svg xmlns="http://www.w3.org/2000/svg" 
-                      class="w-5 h-5 absolute top-1.5 right-1.5 text-green-400 dark:text-green-300 
-                              opacity-0 scale-75 check transition-all duration-200" 
+                      class="w-5 h-5 absolute top-2 right-2 text-green-400 opacity-0 scale-75 check transition-all duration-200" 
                       fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="5" d="M5 13l4 4L19 7" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
                   </svg>
                 </button>
               </div>
@@ -110,7 +108,7 @@ function getVenueBadge(venue: string): string | null {
             {/* Right: Preview Image */}
             {pub.preview && (
               <div class="mt-6 md:mt-0 md:w-48 md:flex-shrink-0">
-                <img src={pub.preview} alt={`Preview for ${pub.title}`} class="rounded-md shadow-sm w-full h-auto object-cover" />
+                <img src={pub.preview} alt={`Preview for ${pub.title}`} class="rounded-lg shadow-lg w-full h-auto object-cover border border-white/10" />
               </div>
             )}
           </div>
