@@ -35,7 +35,20 @@ function getVenueBadge(venue: string): string | null {
             
             {/* Left: Text Content */}
             <div class="flex-1">
-              <h3 class="text-xl font-bold mb-3 text-white leading-tight">{pub.title}</h3>
+              <h3 class="text-xl font-bold mb-3 leading-tight">
+                {pub.links.url ? (
+                  <a 
+                    href={pub.links.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    class="text-white hover:text-accent-400 transition-colors duration-200"
+                  >
+                    {pub.title}
+                  </a>
+                ) : (
+                  <span class="text-white">{pub.title}</span>
+                )}
+              </h3>
               <p class="text-slate-400 mb-2">
                 {pub.authors.map((author) => (
                   author === "Ryan Y. Lin" ? 
