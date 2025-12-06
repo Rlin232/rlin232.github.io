@@ -72,8 +72,9 @@ const researchInterests = [
 				</a>
 			</div>
 			
-			<div class="absolute bottom-10 animate-bounce text-slate-500">
-				<svg class="w-10 h-10 drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<!-- Scroll Arrow -->
+			<div id="scroll-arrow" class="mt-16 animate-bounce text-slate-500" data-aos="fade-up" data-aos-delay="200">
+				<svg class="w-10 h-10 mx-auto drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
 				</svg>
 			</div>
@@ -163,5 +164,31 @@ const researchInterests = [
 
 		// Start typing when element is in view or after a slight delay
 		setTimeout(typeWriter, 1000);
+
+		// Hide scroll arrow on scroll
+		const scrollArrow = document.getElementById("scroll-arrow");
+		let lastScrollTop = 0;
+
+		window.addEventListener("scroll", () => {
+			const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+			
+			// If user scrolled down at all, fade out the arrow
+			if (scrollTop > 50) {
+				scrollArrow.style.opacity = "0";
+				scrollArrow.style.transition = "opacity 0.3s ease-out";
+				// After fade out, make it invisible but keep the space
+				setTimeout(() => {
+					scrollArrow.style.visibility = "hidden";
+					scrollArrow.style.pointerEvents = "none";
+				}, 300);
+			} else {
+				// Show arrow when back at top
+				scrollArrow.style.visibility = "visible";
+				scrollArrow.style.pointerEvents = "auto";
+				scrollArrow.style.opacity = "1";
+			}
+			
+			lastScrollTop = scrollTop;
+		});
 	</script>
 </Layout>
