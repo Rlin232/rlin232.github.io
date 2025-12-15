@@ -1,0 +1,810 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Paper Reader | Ryan Lin" hideFooter={true}>
+	<!-- Full viewport height container accounting for navbar (5rem = 80px) -->
+	<div class="fixed inset-0 top-20 flex overflow-hidden bg-slate-950" style="height: calc(100vh - 5rem); max-width: 100vw;">
+		<!-- Sidebar - collapsible on mobile -->
+		<aside id="sidebar" class="w-80 glass-card border-r border-white/10 flex flex-col transition-all duration-300 lg:relative absolute inset-y-0 left-0 z-50 lg:translate-x-0 -translate-x-full">
+			<!-- Sidebar Header -->
+			<div class="p-6 border-b border-white/10">
+				<h2 class="text-2xl font-bold mb-4 flex items-center">
+					<span class="bg-accent-500 w-2 h-8 mr-4 rounded-full"></span>
+					Paper Library
+				</h2>
+				
+				<!-- Add Paper Form -->
+				<div class="space-y-3">
+					<textarea
+						id="pdf-url-input"
+						rows="3"
+						placeholder="Paste PDF URLs or arXiv links (one per line)..."
+						class="w-full px-4 py-2 bg-slate-900/50 border border-white/10 rounded-lg text-sm focus:outline-none focus:border-accent-500 transition-colors resize-none"
+					></textarea>
+					<button
+						id="add-paper-btn"
+						class="w-full px-4 py-2 bg-accent-600 hover:bg-accent-700 rounded-lg text-sm font-medium transition-colors"
+					>
+						Add Papers
+					</button>
+					
+					<!-- CORS Proxy Toggle -->
+					<div class="flex items-center gap-2 text-xs text-slate-400 mt-2">
+						<input
+							type="checkbox"
+							id="cors-proxy-toggle"
+							checked
+							class="w-4 h-4 rounded border-white/10 bg-slate-900/50 text-accent-600 focus:ring-accent-500 focus:ring-offset-0"
+						/>
+						<label for="cors-proxy-toggle" class="cursor-pointer select-none" title="Enable CORS proxy to load PDFs from sources that block cross-origin requests (like arXiv)">
+							Use CORS Proxy
+							<span class="text-slate-500">(for arXiv & others)</span>
+						</label>
+					</div>
+				</div>
+			</div>
+
+			<!-- Paper List -->
+			<div id="paper-list" class="flex-1 overflow-y-auto p-4 space-y-2">
+				<div class="text-slate-500 text-sm text-center py-8">
+					No papers added yet.<br/>Add a PDF URL to get started.
+				</div>
+			</div>
+
+			<!-- Sidebar Toggle (Mobile) -->
+			<button
+				id="sidebar-toggle"
+				class="lg:hidden absolute top-20 -right-10 bg-accent-600 hover:bg-accent-700 p-2 rounded-r-lg shadow-lg transition-colors"
+				title="Toggle Paper List"
+			>
+				<svg id="sidebar-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+				</svg>
+			</button>
+		</aside>
+
+		<!-- Main Content -->
+		<main class="flex-1 flex flex-col bg-slate-900/30 overflow-hidden min-w-0">
+			<!-- Header Controls -->
+			<header class="glass-card border-b border-white/10 p-4 flex items-center justify-between gap-4 flex-wrap">
+				<div class="flex items-center gap-4 flex-1 min-w-0">
+					<h1 id="current-paper-title" class="text-lg font-semibold truncate">
+						Select a paper to begin reading
+					</h1>
+				</div>
+
+				<!-- Navigation Controls -->
+				<div id="controls" class="flex items-center gap-3 flex-wrap" style="display: none;">
+					<!-- Paper Navigation -->
+					<div class="flex items-center gap-2 border-r border-white/10 pr-3">
+						<button id="prev-paper-btn" class="p-2 hover:bg-white/10 rounded-lg transition-colors" title="Previous Paper (←)">
+							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+							</svg>
+						</button>
+						<button id="next-paper-btn" class="p-2 hover:bg-white/10 rounded-lg transition-colors" title="Next Paper (→)">
+							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+							</svg>
+						</button>
+					</div>
+
+					<!-- Page Navigation -->
+					<div class="flex items-center gap-2 border-r border-white/10 pr-3">
+						<span class="text-sm text-slate-400">Page</span>
+						<input
+							type="number"
+							id="page-input"
+							min="1"
+							value="1"
+							class="w-16 px-2 py-1 bg-slate-900/50 border border-white/10 rounded text-sm text-center focus:outline-none focus:border-accent-500"
+						/>
+						<span class="text-sm text-slate-400">of <span id="total-pages">0</span></span>
+					</div>
+
+					<!-- Zoom Controls -->
+					<div class="flex items-center gap-2">
+						<button id="zoom-out-btn" class="p-2 hover:bg-white/10 rounded-lg transition-colors" title="Zoom Out (-)">
+							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"></path>
+							</svg>
+						</button>
+						<span id="zoom-level" class="text-sm text-slate-400 min-w-[3rem] text-center">100%</span>
+						<button id="zoom-in-btn" class="p-2 hover:bg-white/10 rounded-lg transition-colors" title="Zoom In (+)">
+							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path>
+							</svg>
+						</button>
+						<button id="fit-width-btn" class="px-3 py-1 text-sm hover:bg-white/10 rounded-lg transition-colors" title="Fit to Width">
+							Fit Width
+						</button>
+					</div>
+				</div>
+			</header>
+
+			<!-- PDF Viewer -->
+			<div id="pdf-container" class="flex-1 overflow-auto py-8 px-4">
+				<div id="pdf-viewer"></div>
+				<div id="loading-message" class="text-slate-400 text-center py-20">
+					<svg class="w-12 h-12 mx-auto mb-4 text-accent-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+					</svg>
+					<p class="text-lg">Select a paper from the sidebar to start reading</p>
+					<p class="text-sm text-slate-500 mt-2">Keyboard shortcuts: ← → (papers), j k (scroll), + - (zoom)</p>
+				</div>
+			</div>
+		</main>
+	</div>
+
+	<!-- PDF.js Library -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+	
+	<script is:inline>
+		// Wait for PDF.js to load
+		window.addEventListener('load', function() {
+			// PDF.js worker configuration
+			pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+		// State management
+		const state = {
+			papers: [],
+			currentPaperIndex: -1,
+			currentPdf: null,
+			currentPage: 1,
+			totalPages: 0,
+			zoom: 1.0,
+			renderTask: null,
+			useCorsProxy: true // Enable CORS proxy by default
+		};
+
+		// CORS proxy configuration
+		const CORS_PROXY = 'https://corsproxy.io/?';
+
+		// LocalStorage keys
+		const STORAGE_KEYS = {
+			PAPERS: 'paperReader_papers',
+			PROGRESS: 'paperReader_progress'
+		};
+
+		// DOM elements
+		const elements = {
+			sidebar: document.getElementById('sidebar'),
+			sidebarToggle: document.getElementById('sidebar-toggle'),
+			paperList: document.getElementById('paper-list'),
+			pdfUrlInput: document.getElementById('pdf-url-input'),
+			addPaperBtn: document.getElementById('add-paper-btn'),
+			corsProxyToggle: document.getElementById('cors-proxy-toggle'),
+			currentPaperTitle: document.getElementById('current-paper-title'),
+			controls: document.getElementById('controls'),
+			prevPaperBtn: document.getElementById('prev-paper-btn'),
+			nextPaperBtn: document.getElementById('next-paper-btn'),
+			pageInput: document.getElementById('page-input'),
+			totalPagesSpan: document.getElementById('total-pages'),
+			zoomOutBtn: document.getElementById('zoom-out-btn'),
+			zoomInBtn: document.getElementById('zoom-in-btn'),
+			fitWidthBtn: document.getElementById('fit-width-btn'),
+			zoomLevel: document.getElementById('zoom-level'),
+			pdfContainer: document.getElementById('pdf-container'),
+			pdfViewer: document.getElementById('pdf-viewer'),
+			loadingMessage: document.getElementById('loading-message')
+		};
+
+		// Utility: Convert arXiv URL to PDF URL
+		function convertArxivUrl(url) {
+			const arxivPattern = /arxiv\.org\/abs\/(\d+\.\d+)/;
+			const match = url.match(arxivPattern);
+			if (match) {
+				return `https://arxiv.org/pdf/${match[1]}.pdf`;
+			}
+			return url;
+		}
+
+		// Utility: Extract arXiv ID from URL
+		function extractArxivId(url) {
+			const arxivPattern = /arxiv\.org\/(abs|pdf)\/(\d+\.\d+)/;
+			const match = url.match(arxivPattern);
+			return match ? match[2] : null;
+		}
+
+		// Utility: Fetch arXiv paper title
+		async function fetchArxivTitle(arxivId) {
+			try {
+				// Use CORS proxy for arXiv API
+				const apiUrl = `https://export.arxiv.org/api/query?id_list=${arxivId}`;
+				const proxiedUrl = state.useCorsProxy ? CORS_PROXY + encodeURIComponent(apiUrl) : apiUrl;
+				
+				console.log('Fetching arXiv title for:', arxivId);
+				const response = await fetch(proxiedUrl);
+				const text = await response.text();
+				
+				// Parse XML to get title
+				const parser = new DOMParser();
+				const xml = parser.parseFromString(text, 'text/xml');
+				const titleElement = xml.querySelector('entry > title');
+				
+				if (titleElement) {
+					// Clean up title (remove extra whitespace/newlines)
+					const title = titleElement.textContent.replace(/\s+/g, ' ').trim();
+					console.log('Found arXiv title:', title);
+					return title;
+				} else {
+					console.warn('No title found in arXiv response for:', arxivId);
+				}
+			} catch (error) {
+				console.error('Error fetching arXiv title:', error);
+			}
+			return null;
+		}
+
+		// Utility: Apply CORS proxy if needed
+		function applyCorsProxy(url) {
+			if (!state.useCorsProxy) return url;
+			// Apply proxy to all URLs to avoid CORS issues
+			return CORS_PROXY + encodeURIComponent(url);
+		}
+
+		// Utility: Extract title from URL or fetch from arXiv
+		async function extractTitle(url) {
+			// Check if it's an arXiv URL
+			const arxivId = extractArxivId(url);
+			if (arxivId) {
+				const title = await fetchArxivTitle(arxivId);
+				if (title) return title;
+			}
+			
+			// Fallback to filename
+			const filename = url.split('/').pop().split('?')[0];
+			return filename.replace('.pdf', '').replace(/_/g, ' ').replace(/-/g, ' ');
+		}
+
+		// Load papers from LocalStorage
+		function loadPapers() {
+			const stored = localStorage.getItem(STORAGE_KEYS.PAPERS);
+			if (stored) {
+				state.papers = JSON.parse(stored);
+				renderPaperList();
+			}
+		}
+
+		// Save papers to LocalStorage
+		function savePapers() {
+			localStorage.setItem(STORAGE_KEYS.PAPERS, JSON.stringify(state.papers));
+		}
+
+		// Load progress from LocalStorage
+		function loadProgress(paperUrl) {
+			const stored = localStorage.getItem(STORAGE_KEYS.PROGRESS);
+			if (stored) {
+				const progress = JSON.parse(stored);
+				return progress[paperUrl] || { page: 1, zoom: 1.0 };
+			}
+			return { page: 1, zoom: 1.0 };
+		}
+
+		// Save progress to LocalStorage
+		function saveProgress(paperUrl, page, zoom) {
+			const stored = localStorage.getItem(STORAGE_KEYS.PROGRESS) || '{}';
+			const progress = JSON.parse(stored);
+			progress[paperUrl] = { page, zoom };
+			localStorage.setItem(STORAGE_KEYS.PROGRESS, JSON.stringify(progress));
+		}
+
+		// Add paper(s) - supports multiple URLs separated by newlines
+		async function addPaper() {
+			const input = elements.pdfUrlInput.value.trim();
+			if (!input) return;
+
+			// Split by newlines and filter empty lines
+			const urls = input.split('\n')
+				.map(url => url.trim())
+				.filter(url => url.length > 0);
+
+			let addedCount = 0;
+			let skippedCount = 0;
+			let errorCount = 0;
+
+			// Process all URLs and wait for titles to be fetched
+			await Promise.all(urls.map(async (url) => {
+				// Convert arXiv URL if needed
+				url = convertArxivUrl(url);
+				const originalUrl = url;
+
+				// Basic validation
+				if (!url.startsWith('http')) {
+					errorCount++;
+					return;
+				}
+
+				// Check if already exists
+				if (state.papers.some(p => p.url === url)) {
+					skippedCount++;
+					return;
+				}
+
+				// Get title (async for arXiv papers)
+				const title = await extractTitle(originalUrl);
+
+				const paper = {
+					id: Date.now() + Math.random(), // Ensure unique IDs for bulk adds
+					url: originalUrl, // Store original URL
+					title: title,
+					addedAt: new Date().toISOString()
+				};
+
+				state.papers.push(paper);
+				addedCount++;
+			}));
+
+			if (addedCount > 0) {
+				savePapers();
+				renderPaperList();
+				elements.pdfUrlInput.value = '';
+
+				// Auto-load if it's the first paper
+				if (state.papers.length === addedCount) {
+					loadPaper(0);
+				}
+			}
+
+			// Show feedback
+			if (errorCount > 0 || skippedCount > 0) {
+				let message = '';
+				if (addedCount > 0) message += `Added ${addedCount} paper(s). `;
+				if (skippedCount > 0) message += `${skippedCount} already in library. `;
+				if (errorCount > 0) message += `${errorCount} invalid URL(s).`;
+				alert(message.trim());
+			}
+		}
+
+		// Remove paper
+		function removePaper(index) {
+			if (confirm('Remove this paper from your library?')) {
+				state.papers.splice(index, 1);
+				savePapers();
+
+				// If current paper was removed, load another or clear
+				if (index === state.currentPaperIndex) {
+					if (state.papers.length > 0) {
+						loadPaper(Math.min(index, state.papers.length - 1));
+					} else {
+						clearViewer();
+						renderPaperList();
+					}
+				} else {
+					if (index < state.currentPaperIndex) {
+						state.currentPaperIndex--;
+					}
+					renderPaperList();
+				}
+			}
+		}
+
+		// Render paper list
+		function renderPaperList() {
+			if (state.papers.length === 0) {
+				elements.paperList.innerHTML = `
+					<div class="text-slate-500 text-sm text-center py-8">
+						No papers added yet.<br/>Add a PDF URL to get started.
+					</div>
+				`;
+				return;
+			}
+
+			elements.paperList.innerHTML = state.papers.map((paper, index) => `
+				<div class="paper-item ${index === state.currentPaperIndex ? 'active' : ''} group relative bg-slate-900/30 hover:bg-slate-900/50 border border-white/5 hover:border-accent-500/30 rounded-lg p-3 cursor-pointer transition-all"
+					data-index="${index}">
+					<div class="flex items-start gap-3">
+						<div class="flex-1 min-w-0">
+							<h3 class="text-sm font-medium truncate mb-1">${paper.title}</h3>
+							<p class="text-xs text-slate-500 truncate">${paper.url}</p>
+						</div>
+						<button class="remove-paper-btn opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 rounded transition-opacity"
+							data-index="${index}">
+							<svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+							</svg>
+						</button>
+					</div>
+				</div>
+			`).join('');
+
+			// Add event listeners
+			document.querySelectorAll('.paper-item').forEach(item => {
+				item.addEventListener('click', (e) => {
+					if (!e.target.closest('.remove-paper-btn')) {
+						loadPaper(parseInt(item.dataset.index));
+					}
+				});
+			});
+
+			document.querySelectorAll('.remove-paper-btn').forEach(btn => {
+				btn.addEventListener('click', (e) => {
+					e.stopPropagation();
+					removePaper(parseInt(btn.dataset.index));
+				});
+			});
+		}
+
+		// Load paper
+		async function loadPaper(index) {
+			if (index < 0 || index >= state.papers.length) return;
+
+			state.currentPaperIndex = index;
+			renderPaperList();
+			const paper = state.papers[index];
+			
+			elements.currentPaperTitle.textContent = paper.title;
+			elements.loadingMessage.innerHTML = `
+				<div class="animate-pulse">
+					<svg class="w-12 h-12 mx-auto mb-4 text-accent-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+					</svg>
+					<p class="text-lg">Loading PDF...</p>
+				</div>
+			`;
+			elements.pdfViewer.innerHTML = '';
+			elements.controls.style.display = 'none';
+
+			// Load progress
+			const progress = loadProgress(paper.url);
+			state.zoom = progress.zoom;
+
+			try {
+				// Load PDF with CORS proxy if enabled
+				const pdfUrl = applyCorsProxy(paper.url);
+				const loadingTask = pdfjsLib.getDocument(pdfUrl);
+				const pdf = await loadingTask.promise;
+				state.currentPdf = pdf;
+				state.totalPages = pdf.numPages;
+				
+				elements.totalPagesSpan.textContent = state.totalPages;
+				elements.pageInput.max = state.totalPages;
+				elements.controls.style.display = 'flex';
+				elements.loadingMessage.style.display = 'none';
+
+				// Render all pages (will auto-scroll to saved position)
+				await renderAllPages();
+			} catch (error) {
+				console.error('Error loading PDF:', error);
+				elements.loadingMessage.innerHTML = `
+					<div class="text-red-400">
+						<svg class="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+						</svg>
+						<p class="text-lg">Failed to load PDF</p>
+						<p class="text-sm text-slate-500 mt-2">Please check the URL and try again</p>
+					</div>
+				`;
+			}
+		}
+
+		// Render all pages (optimized to start at saved page)
+		async function renderAllPages() {
+			elements.pdfViewer.innerHTML = '';
+			
+			// Get saved page from progress
+			const paper = state.papers[state.currentPaperIndex];
+			const progress = loadProgress(paper.url);
+			const startPage = progress.page || 1;
+			
+			// Render pages in order, but prioritize the start page
+			// Calculate optimal scale to fit viewport width
+			const containerWidth = elements.pdfContainer.clientWidth - 64; // Account for padding
+			let optimalScale = state.zoom;
+			
+			for (let pageNum = 1; pageNum <= state.totalPages; pageNum++) {
+				const page = await state.currentPdf.getPage(pageNum);
+				
+				// Calculate scale to fit width on first page
+				if (pageNum === 1 && state.zoom === 1.0) {
+					const viewport = page.getViewport({ scale: 1.0 });
+					optimalScale = containerWidth / viewport.width;
+					state.zoom = optimalScale;
+				}
+				
+				const viewport = page.getViewport({ scale: state.zoom });
+
+				const canvas = document.createElement('canvas');
+				canvas.className = 'pdf-page mb-4 shadow-2xl';
+				canvas.dataset.pageNumber = pageNum;
+				const context = canvas.getContext('2d');
+				
+				// Use device pixel ratio for high-DPI displays (Retina, etc.)
+				const outputScale = window.devicePixelRatio || 1;
+				canvas.width = Math.floor(viewport.width * outputScale);
+				canvas.height = Math.floor(viewport.height * outputScale);
+				
+				// Scale canvas display size back down
+				canvas.style.width = Math.floor(viewport.width) + 'px';
+				canvas.style.height = Math.floor(viewport.height) + 'px';
+
+				elements.pdfViewer.appendChild(canvas);
+
+				// Render immediately if it's near the start page, defer others
+				if (Math.abs(pageNum - startPage) <= 2) {
+					const transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
+					const renderContext = {
+						canvasContext: context,
+						viewport: viewport,
+						transform: transform
+					};
+					await page.render(renderContext).promise;
+					
+					// Scroll to start page as soon as it's rendered
+					if (pageNum === startPage) {
+						canvas.scrollIntoView({ block: 'start' });
+						state.currentPage = startPage;
+						elements.pageInput.value = startPage;
+					}
+				} else {
+					// Defer rendering of other pages
+					setTimeout(async () => {
+						const transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
+						const renderContext = {
+							canvasContext: context,
+							viewport: viewport,
+							transform: transform
+						};
+						await page.render(renderContext).promise;
+					}, 100 * Math.abs(pageNum - startPage));
+				}
+			}
+
+			updateZoomDisplay();
+		}
+
+		// Update zoom display
+		function updateZoomDisplay() {
+			elements.zoomLevel.textContent = Math.round(state.zoom * 100) + '%';
+		}
+
+		// Zoom in
+		function zoomIn() {
+			state.zoom = Math.min(state.zoom + 0.2, 3.0);
+			renderAllPages();
+			saveCurrentProgress();
+		}
+
+		// Zoom out
+		function zoomOut() {
+			state.zoom = Math.max(state.zoom - 0.2, 0.5);
+			renderAllPages();
+			saveCurrentProgress();
+		}
+
+		// Fit to width
+		function fitToWidth() {
+			const containerWidth = elements.pdfContainer.clientWidth - 64; // padding
+			if (state.currentPdf) {
+				state.currentPdf.getPage(1).then(page => {
+					const viewport = page.getViewport({ scale: 1.0 });
+					state.zoom = containerWidth / viewport.width;
+					renderAllPages();
+					saveCurrentProgress();
+				});
+			}
+		}
+
+		// Navigate to previous paper
+		function prevPaper() {
+			if (state.currentPaperIndex > 0) {
+				loadPaper(state.currentPaperIndex - 1);
+			}
+		}
+
+		// Navigate to next paper
+		function nextPaper() {
+			if (state.currentPaperIndex < state.papers.length - 1) {
+				loadPaper(state.currentPaperIndex + 1);
+			}
+		}
+
+		// Jump to page
+		function jumpToPage(pageNum) {
+			pageNum = Math.max(1, Math.min(pageNum, state.totalPages));
+			const pageElement = document.querySelector(`[data-page-number="${pageNum}"]`);
+			if (pageElement) {
+				pageElement.scrollIntoView({ behavior: 'smooth' });
+			}
+		}
+
+		// Clear viewer
+		function clearViewer() {
+			state.currentPaperIndex = -1;
+			state.currentPdf = null;
+			elements.currentPaperTitle.textContent = 'Select a paper to begin reading';
+			elements.pdfViewer.innerHTML = '';
+			elements.loadingMessage.style.display = 'block';
+			elements.loadingMessage.innerHTML = `
+				<svg class="w-12 h-12 mx-auto mb-4 text-accent-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+				</svg>
+				<p class="text-lg">Select a paper from the sidebar to start reading</p>
+				<p class="text-sm text-slate-500 mt-2">Keyboard shortcuts: ← → (papers), j k (scroll), + - (zoom)</p>
+			`;
+			elements.controls.style.display = 'none';
+		}
+
+		// Save current progress
+		function saveCurrentProgress() {
+			if (state.currentPaperIndex >= 0 && state.currentPdf) {
+				const paper = state.papers[state.currentPaperIndex];
+				saveProgress(paper.url, state.currentPage, state.zoom);
+			}
+		}
+
+		// Track current page based on scroll position
+		function updateCurrentPage() {
+			const pages = document.querySelectorAll('.pdf-page');
+			const containerRect = elements.pdfContainer.getBoundingClientRect();
+			
+			for (let i = 0; i < pages.length; i++) {
+				const pageRect = pages[i].getBoundingClientRect();
+				if (pageRect.top <= containerRect.top + 100 && pageRect.bottom > containerRect.top + 100) {
+					state.currentPage = i + 1;
+					elements.pageInput.value = state.currentPage;
+					saveCurrentProgress();
+					break;
+				}
+			}
+		}
+
+		// Event listeners
+		elements.addPaperBtn.addEventListener('click', addPaper);
+		elements.pdfUrlInput.addEventListener('keypress', (e) => {
+			if (e.key === 'Enter') addPaper();
+		});
+
+		// CORS proxy toggle
+		elements.corsProxyToggle.addEventListener('change', (e) => {
+			state.useCorsProxy = e.target.checked;
+		});
+
+		elements.prevPaperBtn.addEventListener('click', prevPaper);
+		elements.nextPaperBtn.addEventListener('click', nextPaper);
+		elements.zoomInBtn.addEventListener('click', zoomIn);
+		elements.zoomOutBtn.addEventListener('click', zoomOut);
+		elements.fitWidthBtn.addEventListener('click', fitToWidth);
+
+		elements.pageInput.addEventListener('change', (e) => {
+			jumpToPage(parseInt(e.target.value));
+		});
+
+		elements.pdfContainer.addEventListener('scroll', () => {
+			updateCurrentPage();
+		});
+
+		// Sidebar toggle for mobile
+		let sidebarOpen = false;
+		elements.sidebarToggle.addEventListener('click', () => {
+			sidebarOpen = !sidebarOpen;
+			if (sidebarOpen) {
+				elements.sidebar.classList.remove('-translate-x-full');
+			} else {
+				elements.sidebar.classList.add('-translate-x-full');
+			}
+		});
+
+		// Close sidebar when clicking outside on mobile
+		document.addEventListener('click', (e) => {
+			if (window.innerWidth < 1024 && sidebarOpen) {
+				if (!elements.sidebar.contains(e.target) && !elements.sidebarToggle.contains(e.target)) {
+					sidebarOpen = false;
+					elements.sidebar.classList.add('-translate-x-full');
+				}
+			}
+		});
+
+		// Keyboard shortcuts
+		document.addEventListener('keydown', (e) => {
+			// Ignore if typing in input
+			if (e.target.tagName === 'INPUT') return;
+
+			switch(e.key) {
+				case 'ArrowLeft':
+					prevPaper();
+					break;
+				case 'ArrowRight':
+					nextPaper();
+					break;
+				case 'j':
+					elements.pdfContainer.scrollBy({ top: 100, behavior: 'smooth' });
+					break;
+				case 'k':
+					elements.pdfContainer.scrollBy({ top: -100, behavior: 'smooth' });
+					break;
+				case '+':
+				case '=':
+					zoomIn();
+					break;
+				case '-':
+					zoomOut();
+					break;
+			}
+		});
+
+		// Initialize
+		loadPapers();
+	}); // End of window load event
+	</script>
+
+	<style>
+		/* Prevent body scrolling on this page */
+		:global(html),
+		:global(body) {
+			overflow: hidden;
+			height: 100vh;
+			width: 100vw;
+			max-width: 100vw;
+		}
+
+		:global(.paper-item.active) {
+			background: linear-gradient(135deg, rgba(251, 146, 60, 0.15), rgba(249, 115, 22, 0.1)) !important;
+			border-color: rgb(249, 115, 22) !important;
+			border-width: 2px !important;
+			box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2), 0 4px 12px rgba(249, 115, 22, 0.15) !important;
+		}
+
+		:global(.paper-item.active:hover) {
+			background: linear-gradient(135deg, rgba(251, 146, 60, 0.2), rgba(249, 115, 22, 0.15)) !important;
+			border-color: rgb(251, 146, 60) !important;
+		}
+
+		:global(.paper-item.active h3) {
+			color: rgb(251, 146, 60) !important;
+			font-weight: 600 !important;
+		}
+
+		:global(.pdf-page) {
+			background: white;
+			border-radius: 4px;
+		}
+
+		/* PDF container - fixed width, scrollable */
+		#pdf-container {
+			position: relative;
+			width: 100%;
+			max-width: 100%;
+		}
+
+		/* PDF viewer - centered for proper display */
+		#pdf-viewer {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 0.5rem;
+			min-height: 100%;
+			width: 100%;
+		}
+
+		.pdf-page {
+			background: white;
+			border-radius: 4px;
+		}
+
+		/* Loading message centered */
+		#loading-message {
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			min-height: 100%;
+		}
+
+		/* Overlay for mobile sidebar */
+		@media (max-width: 1023px) {
+			#sidebar:not(.-translate-x-full)::before {
+				content: '';
+				position: fixed;
+				inset: 0;
+				background: rgba(0, 0, 0, 0.5);
+				z-index: -1;
+			}
+		}
+	</style>
+</Layout>

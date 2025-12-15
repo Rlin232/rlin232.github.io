@@ -4,9 +4,10 @@ import '../styles/global.css';
 interface Props {
 	title: string;
 	description?: string;
+	hideFooter?: boolean;
 }
 
-const { title, description = "Ryan Lin – AI/ML researcher, developer, and Caltech student. Explore my projects, publications, and CV." } = Astro.props;
+const { title, description = "Ryan Lin – AI/ML researcher, developer, and Caltech student. Explore my projects, publications, and CV.", hideFooter = false } = Astro.props;
 ---
 
 <!DOCTYPE html>
@@ -99,6 +100,7 @@ const { title, description = "Ryan Lin – AI/ML researcher, developer, and Calt
 				<slot />
 			</main>
 
+			{!hideFooter && (
 			<footer class="border-t border-white/5 bg-slate-950/50 backdrop-blur-sm mt-auto">
 				<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 					<div class="flex flex-col md:flex-row justify-between items-center">
@@ -111,6 +113,7 @@ const { title, description = "Ryan Lin – AI/ML researcher, developer, and Calt
 					</div>
 				</div>
 			</footer>
+			)}
 		</div>
 
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.8/cdn.min.js" defer></script>
