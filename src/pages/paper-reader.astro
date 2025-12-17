@@ -42,6 +42,17 @@ import Layout from '../layouts/Layout.astro';
 							<span class="text-slate-500">(for arXiv & others)</span>
 						</label>
 					</div>
+
+					<!-- Clear Library Button -->
+					<button
+						id="clear-library-btn"
+						class="w-full mt-3 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/20 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+					>
+						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+						</svg>
+						Clear Library
+					</button>
 				</div>
 			</div>
 
@@ -174,6 +185,7 @@ import Layout from '../layouts/Layout.astro';
 			paperList: document.getElementById('paper-list'),
 			pdfUrlInput: document.getElementById('pdf-url-input'),
 			addPaperBtn: document.getElementById('add-paper-btn'),
+			clearLibraryBtn: document.getElementById('clear-library-btn'),
 			corsProxyToggle: document.getElementById('cors-proxy-toggle'),
 			currentPaperTitle: document.getElementById('current-paper-title'),
 			controls: document.getElementById('controls'),
@@ -377,6 +389,25 @@ import Layout from '../layouts/Layout.astro';
 					}
 					renderPaperList();
 				}
+			}
+		}
+
+		// Clear library
+		function clearLibrary() {
+			if (state.papers.length === 0) return;
+			
+			if (confirm('Are you sure you want to clear your entire paper library? This cannot be undone.')) {
+				state.papers = [];
+				state.currentPaperIndex = -1;
+				state.currentPdf = null;
+				
+				// Clear storage
+				localStorage.removeItem(STORAGE_KEYS.PAPERS);
+				localStorage.removeItem(STORAGE_KEYS.PROGRESS);
+				
+				// Reset UI
+				clearViewer();
+				renderPaperList();
 			}
 		}
 
@@ -652,6 +683,7 @@ import Layout from '../layouts/Layout.astro';
 
 		// Event listeners
 		elements.addPaperBtn.addEventListener('click', addPaper);
+		elements.clearLibraryBtn.addEventListener('click', clearLibrary);
 		elements.pdfUrlInput.addEventListener('keypress', (e) => {
 			if (e.key === 'Enter') addPaper();
 		});
