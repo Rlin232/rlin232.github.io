@@ -2,8 +2,8 @@ export const publications = [
   {
     title: "Same or Not? Enhancing Visual Perception in Vision-Language Models",
     authors: ["Damiano Marsili", "Aditya Mehta", "Ryan Y. Lin", "Georgia Gkioxari"],
-    year: "2025",
-    venue: "arXiv Preprint",
+    year: "2026",
+    venue: "Conference on Computer Vision and Pattern Recognition (CVPR)",
     links: {
       pdf: "https://arxiv.org/pdf/2512.23592",
       url: "https://glab-caltech.github.io/twin/"
