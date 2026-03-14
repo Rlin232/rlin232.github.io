@@ -1,92 +1,146 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import Layout from "../layouts/Layout.astro";
 
 const projects = [
   {
+    title: "Trip Restaurant Planner",
+    description:
+      "An interactive mapping dashboard for saving restaurants. Features automatic background geocoding and real-time saved locations list view.",
+    image: "/assets/img/TripPlanner.png",
+    technologies: [
+      "Astro",
+      "Tailwind CSS",
+      "Leaflet",
+      "Supabase",
+      "Vanilla JS",
+    ],
+    link: "/trip-planner",
+  },
+  {
     title: "Paper Reader",
-    description: "A distraction-free PDF reader for academic papers with a sidebar library and progress tracking.",
+    description:
+      "A distraction-free PDF reader for academic papers with a sidebar library and progress tracking.",
     image: "/assets/img/PaperReader.png",
     technologies: ["Astro", "PDF.js", "Tailwind CSS"],
-    link: "/paper-reader"
+    link: "/paper-reader",
   },
   {
     title: "Lattice Point Geometry Proof Portfolio",
-    description: "A collection of 100+ proofs exploring the fundamental properties of the lattice plane.",
+    description:
+      "A collection of 100+ proofs exploring the fundamental properties of the lattice plane.",
     image: "/assets/img/LPG.png",
-    technologies: ["High School Project", "Mathematics", "Geometry", "Proof Writing"],
+    technologies: [
+      "High School Project",
+      "Mathematics",
+      "Geometry",
+      "Proof Writing",
+    ],
   },
   {
     title: "Quantum Machine Learning",
-    description: "Research on quantum machine learning algorithms and their applications.",
+    description:
+      "Research on quantum machine learning algorithms and their applications.",
     image: "/assets/img/QuantumML.png",
-    technologies: ["High School Project", "Quantum Computing", "Machine Learning", "Python"],
+    technologies: [
+      "High School Project",
+      "Quantum Computing",
+      "Machine Learning",
+      "Python",
+    ],
   },
   {
     title: "Stock Price Prediction with LSTM",
-    description: "Implementation of LSTM neural networks for stock price prediction.",
+    description:
+      "Implementation of LSTM neural networks for stock price prediction.",
     image: "/assets/img/StockLSTM.png",
-    technologies: ["High School Project", "Deep Learning", "Python", "TensorFlow"],
+    technologies: [
+      "High School Project",
+      "Deep Learning",
+      "Python",
+      "TensorFlow",
+    ],
   },
   {
     title: "Y86 Processor",
-    description: "Implementation of a Y86 processor in hardware description language.",
+    description:
+      "Implementation of a Y86 processor in hardware description language.",
     image: "/assets/img/Y86.png",
     technologies: ["High School Project", "Computer Architecture", "X86"],
-    link: "https://github.com/Rlin232/Y-86"
-  }
+    link: "https://github.com/Rlin232/Y-86",
+  },
 ];
 ---
 
-<Layout title="Projects | Ryan Lin" description="Research and development projects">
+<Layout
+  title="Projects | Ryan Lin"
+  description="Research and development projects"
+>
   <div class="max-w-6xl mx-auto px-4 sm:px-6 pb-20">
-    <h1 class="text-4xl font-bold mb-12 text-white animate-fade-in-up">Projects</h1>
-    
+    <h1 class="text-4xl font-bold mb-12 text-white animate-fade-in-up">
+      Projects
+    </h1>
+
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-      {projects.map((project, index) => {
-        const Container = project.link ? 'a' : 'div';
-        const props = project.link ? { href: project.link } : {};
-        
-        return (
-        <Container 
-          {...props}
-          class="glass-card rounded-2xl overflow-hidden group hover:border-accent-500/30 transition-all duration-300 animate-fade-in-up block text-left" 
-          style={`animation-delay: ${index * 50}ms`}
-        >
-          <div class="aspect-w-16 aspect-h-9 overflow-hidden">
-            {project.image ? (
-              <img 
-                src={project.image} 
-                alt={project.title}
-                class="w-full h-48 object-cover transform group-hover:scale-105 transition-transform duration-500"
-              />
-            ) : (
-              <div class="w-full h-48 bg-slate-900/50 flex items-center justify-center text-slate-500">
-                Image Coming Soon
+      {
+        projects.map((project, index) => {
+          const Container = project.link ? "a" : "div";
+          const props = project.link ? { href: project.link } : {};
+
+          return (
+            <Container
+              {...props}
+              class="glass-card rounded-2xl overflow-hidden group hover:border-accent-500/30 transition-all duration-300 animate-fade-in-up block text-left"
+              style={`animation-delay: ${index * 50}ms`}
+            >
+              <div class="aspect-w-16 aspect-h-9 overflow-hidden">
+                {project.image ? (
+                  <img
+                    src={project.image}
+                    alt={project.title}
+                    class="w-full h-48 object-cover transform group-hover:scale-105 transition-transform duration-500"
+                  />
+                ) : (
+                  <div class="w-full h-48 bg-slate-900/50 flex items-center justify-center text-slate-500">
+                    Image Coming Soon
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-          <div class="p-8">
-            <div class="flex justify-between items-start mb-4">
-              <h3 class="text-xl font-bold text-white group-hover:text-accent-400 transition-colors">{project.title}</h3>
-              {project.link && (
-                <svg class="w-5 h-5 text-slate-500 group-hover:text-accent-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                </svg>
-              )}
-            </div>
-            <p class="text-slate-400 mb-6 leading-relaxed">
-              {project.description}
-            </p>
-            <div class="flex flex-wrap gap-2">
-              {project.technologies.map((tech) => (
-                <span class="px-3 py-1 bg-accent-500/10 text-accent-300 border border-accent-500/20 text-xs font-medium rounded-full">
-                  {tech}
-                </span>
-              ))}
-            </div>
-          </div>
-        </Container>
-      )})}
+              <div class="p-8">
+                <div class="flex justify-between items-start mb-4">
+                  <h3 class="text-xl font-bold text-white group-hover:text-accent-400 transition-colors">
+                    {project.title}
+                  </h3>
+                  {project.link && (
+                    <svg
+                      class="w-5 h-5 text-slate-500 group-hover:text-accent-400 transition-colors"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                      />
+                    </svg>
+                  )}
+                </div>
+                <p class="text-slate-400 mb-6 leading-relaxed">
+                  {project.description}
+                </p>
+                <div class="flex flex-wrap gap-2">
+                  {project.technologies.map((tech) => (
+                    <span class="px-3 py-1 bg-accent-500/10 text-accent-300 border border-accent-500/20 text-xs font-medium rounded-full">
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </Container>
+          );
+        })
+      }
     </div>
   </div>
-</Layout> 
+</Layout>

@@ -1,0 +1,881 @@
+---
+import Layout from "../../layouts/Layout.astro";
+---
+
+<Layout title="Trip Restaurant Planner">
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin=""
+    />
+
+    <main
+        class="h-screen flex flex-col md:flex-row bg-slate-900 overflow-hidden text-white font-sans"
+    >
+        <!-- Sidebar / Form Area -->
+        <aside
+            class="w-full md:w-1/3 lg:w-1/4 bg-slate-800 flex flex-col shadow-xl z-20 h-1/2 md:h-full overflow-y-auto border-r border-slate-700"
+        >
+            <div class="p-6 flex-grow flex flex-col space-y-6">
+                <div>
+                    <h1
+                        class="text-2xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-accent-400 to-accent-500"
+                    >
+                        Trip Planner
+                    </h1>
+                    <p
+                        class="text-sm text-slate-400 mt-1"
+                        id="user-email-display"
+                    >
+                        Loading...
+                    </p>
+                </div>
+
+                <button
+                    id="logout-btn"
+                    class="text-xs text-slate-400 hover:text-red-400 transition-colors w-max font-medium uppercase tracking-wider"
+                >
+                    Sign out
+                </button>
+
+                <div
+                    class="h-px bg-gradient-to-r from-slate-700 via-slate-600 to-slate-700 w-full"
+                >
+                </div>
+
+                <button
+                    id="find-closest-btn"
+                    class="group relative w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-lg text-sm font-bold text-white bg-accent-600 hover:bg-accent-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-accent-500 transition-all overflow-hidden items-center gap-2"
+                >
+                    <div
+                        class="absolute inset-0 w-full h-full bg-gradient-to-r from-accent-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                    </div>
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="2"
+                        stroke="currentColor"
+                        class="w-5 h-5 relative z-10 transition-transform group-hover:scale-110"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"
+                        ></path>
+                    </svg>
+                    <span class="relative z-10">Find Closest to Me</span>
+                </button>
+
+                <div
+                    class="bg-slate-700/30 rounded-xl p-5 border border-slate-700 backdrop-blur-sm space-y-4"
+                >
+                    <h2
+                        class="text-lg font-semibold text-accent-400 flex items-center gap-2"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="2"
+                            stroke="currentColor"
+                            class="w-5 h-5"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M12 4.5v15m7.5-7.5h-15"></path>
+                        </svg>
+                        Add a Restaurant
+                    </h2>
+                    <form id="add-restaurant-form" class="space-y-4">
+                        <div class="mb-4">
+                            <label
+                                for="google_maps_url"
+                                class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1"
+                                >Google Maps URL</label
+                            >
+                            <input
+                                type="url"
+                                id="google_maps_url"
+                                name="google_maps_url"
+                                class="block w-full px-3 py-2 border border-slate-600 rounded-lg bg-slate-800 text-white sm:text-sm focus:ring-accent-500 focus:border-accent-500 transition-colors placeholder-slate-500"
+                                placeholder="https://www.google.com/maps/place/..."
+                            />
+                        </div>
+
+                        <div>
+                            <label
+                                for="name"
+                                class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1"
+                                >Name</label
+                            >
+                            <input
+                                type="text"
+                                id="name"
+                                name="name"
+                                required
+                                class="block w-full px-3 py-2 border border-slate-600 rounded-lg bg-slate-800 text-white sm:text-sm focus:ring-accent-500 focus:border-accent-500 transition-colors placeholder-slate-500"
+                                placeholder="E.g. Ichiran Shibuya"
+                            />
+                        </div>
+
+                        <input type="hidden" id="lat" name="lat" />
+                        <input type="hidden" id="lng" name="lng" />
+
+                        <div>
+                            <label
+                                for="reservation_status"
+                                class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1"
+                                >Reservation Status</label
+                            >
+                            <select
+                                id="reservation_status"
+                                name="reservation_status"
+                                class="block w-full px-3 py-2 border border-slate-600 rounded-lg bg-slate-800 text-white sm:text-sm focus:ring-accent-500 focus:border-accent-500 transition-colors"
+                            >
+                                <option value="Not Required"
+                                    >Not Required</option
+                                >
+                                <option value="Recommended">Recommended</option>
+                                <option value="Required">Required</option>
+                                <option value="Walk-in Only"
+                                    >Walk-in Only</option
+                                >
+                            </select>
+                        </div>
+
+                        <button
+                            type="submit"
+                            id="submit-btn"
+                            class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-accent-600 hover:bg-accent-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-accent-500 transition-all active:scale-[0.98]"
+                        >
+                            Add Restaurant
+                        </button>
+                    </form>
+
+                    <div class="mt-8 border-t border-slate-700 pt-6">
+                        <h2
+                            class="text-lg font-bold text-white mb-4 flex items-center gap-2"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="2"
+                                stroke="currentColor"
+                                class="w-5 h-5 text-accent-400"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
+                                ></path>
+                            </svg>
+                            Saved Restaurants
+                        </h2>
+                        <ul id="restaurant-list" class="space-y-3 pb-8">
+                            <li class="text-sm text-slate-400 text-center py-4">
+                                Loading restaurants...
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Map Area -->
+        <div
+            id="map"
+            class="w-full md:w-2/3 lg:w-3/4 h-1/2 md:h-full z-10 relative bg-slate-900"
+        >
+            <div
+                id="loading-overlay"
+                class="absolute inset-0 z-[1000] bg-slate-900 flex items-center justify-center transition-opacity duration-300"
+            >
+                <div
+                    class="animate-spin rounded-full h-12 w-12 border-b-2 border-accent-500"
+                >
+                </div>
+            </div>
+        </div>
+    </main>
+</Layout>
+
+<style is:global>
+    /* Customizing Leaflet Popups for Dark Mode */
+    .leaflet-popup-content-wrapper {
+        background-color: #1f2937 !important; /* bg-slate-800 */
+        color: #f3f4f6 !important; /* text-slate-300 */
+        border: 1px solid #374151; /* border-slate-700 */
+        border-radius: 0.75rem !important;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5),
+            0 4px 6px -2px rgba(0, 0, 0, 0.3) !important;
+    }
+    .leaflet-popup-tip {
+        background-color: #1f2937 !important;
+        border: 1px solid #374151;
+    }
+    .leaflet-popup-close-button {
+        color: #9ca3af !important; /* text-gray-400 */
+    }
+    .leaflet-container a.leaflet-popup-close-button:hover {
+        color: #f3f4f6 !important;
+    }
+    .leaflet-control-zoom a {
+        background-color: #1f2937 !important;
+        color: #f3f4f6 !important;
+        border-color: #374151 !important;
+    }
+    .leaflet-control-zoom a:hover {
+        background-color: #374151 !important;
+    }
+</style>
+
+<script
+    is:inline
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+></script>
+<script>
+    import { supabase } from "../../lib/supabase";
+
+    let map;
+    let markers = [];
+    let currentUserId;
+
+    async function checkAuth() {
+        const {
+            data: { session },
+        } = await supabase.auth.getSession();
+        if (!session) {
+            window.location.href = "/trip-planner/login";
+            return;
+        }
+
+        currentUserId = session.user.id;
+        const emailDisplay = document.getElementById("user-email-display");
+        if (emailDisplay) emailDisplay.textContent = session.user.email;
+
+        initMap();
+        fetchRestaurants();
+    }
+
+    document
+        .getElementById("logout-btn")
+        ?.addEventListener("click", async () => {
+            await supabase.auth.signOut();
+            window.location.href = "/trip-planner/login";
+        });
+
+    function initMap() {
+        // Default to Tokyo
+        map = window.L.map("map", {
+            zoomControl: false, // Move zoom to bottom right via JS
+        }).setView([35.6762, 139.6503], 12);
+
+        window.L.control
+            .zoom({
+                position: "bottomright",
+            })
+            .addTo(map);
+
+        // Using a sleek dark tone map style for aesthetics (CartoDB Dark Matter)
+        window.L.tileLayer(
+            "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+            {
+                maxZoom: 19,
+                attribution:
+                    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            }
+        ).addTo(map);
+
+        const loadingOverlay = document.getElementById("loading-overlay");
+        if (loadingOverlay) loadingOverlay.style.opacity = "0";
+        setTimeout(() => {
+            if (loadingOverlay) loadingOverlay.style.display = "none";
+        }, 300);
+
+        // Click to add coordinates to form
+        map.on("click", function (e) {
+            const latInput = document.getElementById("lat");
+            const lngInput = document.getElementById("lng");
+            if (latInput && lngInput) {
+                latInput.value = e.latlng.lat.toFixed(6);
+                lngInput.value = e.latlng.lng.toFixed(6);
+                // Small animation on inputs
+                latInput.classList.add("ring-2", "ring-emerald-500");
+                lngInput.classList.add("ring-2", "ring-emerald-500");
+                setTimeout(() => {
+                    latInput.classList.remove("ring-2", "ring-emerald-500");
+                    lngInput.classList.remove("ring-2", "ring-emerald-500");
+                }, 300);
+            }
+        });
+    }
+
+    // Reservation Badge Color Map
+    const statusColors = {
+        "Not Required": "bg-gray-700 text-slate-200 border-gray-600",
+        Recommended: "bg-blue-900/50 text-blue-300 border-blue-700",
+        Required: "bg-red-900/50 text-red-300 border-red-700",
+        "Walk-in Only": "bg-orange-900/50 text-orange-300 border-orange-700",
+    };
+
+    async function fetchRestaurants() {
+        const { data, error } = await supabase.from("restaurants").select("*");
+
+        if (error) {
+            console.error("Error fetching restaurants", error);
+            return;
+        }
+
+        // Clear existing markers
+        markers.forEach((m) => map.removeLayer(m));
+        markers = [];
+
+        const listContainer = document.getElementById("restaurant-list");
+        if (listContainer) {
+            listContainer.innerHTML = "";
+            if (data.length === 0) {
+                listContainer.innerHTML =
+                    '<li class="text-sm text-slate-400 text-center py-4">No restaurants added yet.</li>';
+            }
+        }
+
+        data.forEach((restaurant) => {
+            const badgeClass =
+                statusColors[restaurant.reservation_status] ||
+                statusColors["Not Required"];
+
+            if (listContainer) {
+                const li = document.createElement("li");
+                li.className =
+                    "p-3 rounded-lg border border-slate-700 bg-slate-800/50 hover:bg-slate-800 transition-colors flex flex-col gap-2";
+                li.innerHTML = `
+                      <div class="flex justify-between items-start">
+                          <div>
+                              <h3 class="font-bold text-white text-sm">${
+                                  restaurant.name
+                              }</h3>
+                              <div id="status-display-${
+                                  restaurant.id
+                              }" class="mt-1 flex items-center gap-2">
+                                  <span class="inline-block px-2 py-0.5 text-[10px] font-semibold rounded border ${badgeClass} shadow-sm">
+                                      ${restaurant.reservation_status}
+                                  </span>
+                              </div>
+                              <div id="status-edit-${
+                                  restaurant.id
+                              }" class="mt-1 hidden flex items-center gap-2">
+                                  <select id="status-select-${
+                                      restaurant.id
+                                  }" class="text-xs bg-slate-700 border border-slate-600 rounded text-white px-2 py-1 focus:ring-accent-500 focus:border-accent-500">
+                                      <option value="Not Required" ${
+                                          restaurant.reservation_status ===
+                                          "Not Required"
+                                              ? "selected"
+                                              : ""
+                                      }>Not Required</option>
+                                      <option value="Recommended" ${
+                                          restaurant.reservation_status ===
+                                          "Recommended"
+                                              ? "selected"
+                                              : ""
+                                      }>Recommended</option>
+                                      <option value="Required" ${
+                                          restaurant.reservation_status ===
+                                          "Required"
+                                              ? "selected"
+                                              : ""
+                                      }>Required</option>
+                                      <option value="Walk-in Only" ${
+                                          restaurant.reservation_status ===
+                                          "Walk-in Only"
+                                              ? "selected"
+                                              : ""
+                                      }>Walk-in Only</option>
+                                  </select>
+                                  <button onclick="window.saveStatus('${
+                                      restaurant.id
+                                  }')" class="text-xs bg-accent-600 hover:bg-accent-500 text-white px-2 py-1 rounded transition-colors">Save</button>
+                                  <button onclick="window.toggleEditStatus('${
+                                      restaurant.id
+                                  }')" class="text-xs text-slate-400 hover:text-slate-300 px-1 py-1 rounded transition-colors">Cancel</button>
+                              </div>
+                          </div>
+                          <div class="flex gap-1 shrink-0 ml-2">
+                              <button onclick="window.toggleEditStatus('${
+                                  restaurant.id
+                              }')" class="text-blue-400 hover:text-blue-300 p-1 rounded hover:bg-slate-700 transition-colors cursor-pointer" title="Edit Status">
+                                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
+                              </button>
+                              <button onclick="window.deleteRestaurant('${
+                                  restaurant.id
+                              }')" class="text-red-400 hover:text-red-300 p-1 rounded hover:bg-slate-700 transition-colors cursor-pointer" title="Delete">
+                                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                              </button>
+                          </div>
+                      </div>
+                      <div class="flex flex-col gap-1 mt-1">
+                          ${
+                              restaurant.google_maps_url
+                                  ? `<a href="${restaurant.google_maps_url}" target="_blank" class="text-xs text-blue-400 hover:text-blue-300 transition-colors w-fit underline decoration-blue-400/30 underline-offset-2">Open in Maps</a>`
+                                  : ""
+                          }
+                          <button onclick="window.panToRestaurant(${
+                              restaurant.lat
+                          }, ${
+                    restaurant.lng
+                })" class="text-xs font-semibold text-accent-400 hover:text-accent-300 text-left w-fit flex items-center gap-1 transition-colors">
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3 h-3"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
+                              Find on Map
+                          </button>
+                      </div>
+                 `;
+                listContainer.appendChild(li);
+            }
+
+            let popupContent = `<div class="font-sans min-w-[200px]">
+        <h3 class="font-bold text-lg mb-2 text-white text-balance leading-tight">${restaurant.name}</h3>
+        <span class="inline-block px-2 py-1 text-xs font-semibold rounded border ${badgeClass} mb-3 shadow-sm">
+            ${restaurant.reservation_status}
+        </span>
+      `;
+
+            if (restaurant.google_maps_url) {
+                popupContent += `<br><a href="${restaurant.google_maps_url}" target="_blank" class="flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors text-sm font-medium mb-3">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+            </svg>
+            Open in Google Maps
+        </a>`;
+            }
+
+            popupContent += `<div class="h-px bg-gray-700 w-full mb-3"></div><button onclick="window.deleteRestaurant('${restaurant.id}')" class="text-xs font-semibold text-red-400 hover:text-white hover:bg-red-600 w-full py-1.5 rounded transition-colors duration-200">Remove</button></div>`;
+
+            // Custom marker icon for better visuals
+            const customIcon = window.L.divIcon({
+                className: "custom-div-icon",
+                html: `<div class="w-4 h-4 rounded-full bg-emerald-500 border-2 border-white shadow-[0_0_10px_rgba(16,185,129,0.8)]"></div>`,
+                iconSize: [20, 20],
+                iconAnchor: [10, 10],
+            });
+
+            const marker = window.L.marker([restaurant.lat, restaurant.lng], {
+                icon: customIcon,
+            })
+                .addTo(map)
+                .bindPopup(popupContent);
+
+            marker.restaurantData = restaurant; // Store data on marker for distance calc
+            markers.push(marker);
+        });
+    }
+
+    // Expose delete to window since popup content is raw HTML
+    window.deleteRestaurant = async (id) => {
+        if (confirm("Are you sure you want to delete this restaurant?")) {
+            const { error } = await supabase
+                .from("restaurants")
+                .delete()
+                .eq("id", id);
+            if (!error) {
+                fetchRestaurants();
+            } else {
+                alert("Failed to delete.");
+            }
+        }
+    };
+
+    // Expose pan logic to window for list view
+    window.panToRestaurant = (lat, lng) => {
+        if (map) {
+            map.flyTo([lat, lng], 16, { duration: 1.5, easeLinearity: 0.25 });
+        }
+    };
+
+    window.toggleEditStatus = (id) => {
+        const displayDiv = document.getElementById(`status-display-${id}`);
+        const editDiv = document.getElementById(`status-edit-${id}`);
+        if (displayDiv && editDiv) {
+            displayDiv.classList.toggle("hidden");
+            editDiv.classList.toggle("hidden");
+        }
+    };
+
+    window.saveStatus = async (id) => {
+        const select = document.getElementById(`status-select-${id}`);
+        if (!select) return;
+        const newStatus = select.value;
+        const { error } = await supabase
+            .from("restaurants")
+            .update({ reservation_status: newStatus })
+            .eq("id", id);
+
+        if (!error) {
+            fetchRestaurants();
+        } else {
+            alert("Failed to update status.");
+        }
+    };
+
+    document
+        .getElementById("add-restaurant-form")
+        ?.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const submitBtn = document.getElementById("submit-btn");
+            if (submitBtn) {
+                submitBtn.setAttribute("disabled", "true");
+                submitBtn.innerHTML =
+                    '<div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>';
+            }
+
+            const formData = new FormData(e.target as HTMLFormElement);
+            let lat = formData.get("lat") as string;
+            let lng = formData.get("lng") as string;
+            const nameStr = formData.get("name") as string;
+
+            if (!lat || !lng) {
+                try {
+                    let searchQuery = nameStr;
+                    if (
+                        !nameStr.toLowerCase().includes("japan") &&
+                        !nameStr.toLowerCase().includes("tokyo")
+                    ) {
+                        searchQuery += ", Japan";
+                    }
+
+                    const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(
+                        searchQuery
+                    )}&limit=1`;
+                    const proxiedUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(
+                        photonUrl
+                    )}`;
+
+                    const response = await fetch(proxiedUrl);
+                    const data = await response.json();
+                    const parsed = JSON.parse(data.contents);
+
+                    if (
+                        parsed &&
+                        parsed.features &&
+                        parsed.features.length > 0
+                    ) {
+                        const coords = parsed.features[0].geometry.coordinates;
+                        lat = coords[1].toString(); // y (lat)
+                        lng = coords[0].toString(); // x (lon)
+                    } else {
+                        alert(
+                            "Could not automatically find coordinates for that name. Try pasting the FULL Google Maps URL (not a shortlink like app.goo.gl) or manually click on the map to set the location instead."
+                        );
+                        submitBtn?.removeAttribute("disabled");
+                        if (submitBtn) submitBtn.textContent = "Add Restaurant";
+                        return;
+                    }
+                } catch (err) {
+                    alert(
+                        "Geocoding service error. Try pasting the FULL Google Maps URL (not a shortlink) or manually click on the map to set the location instead."
+                    );
+                    submitBtn?.removeAttribute("disabled");
+                    if (submitBtn) submitBtn.textContent = "Add Restaurant";
+                    return;
+                }
+            }
+
+            const newRestaurant = {
+                user_id: currentUserId,
+                name: nameStr,
+                google_maps_url: formData.get("google_maps_url"),
+                lat: parseFloat(lat),
+                lng: parseFloat(lng),
+                reservation_status: formData.get("reservation_status"),
+            };
+
+            const { error } = await supabase
+                .from("restaurants")
+                .insert([newRestaurant]);
+
+            if (submitBtn) {
+                submitBtn.removeAttribute("disabled");
+                submitBtn.textContent = "Add Restaurant";
+            }
+
+            if (!error) {
+                e.target.reset();
+                fetchRestaurants();
+            } else {
+                alert("Error adding restaurant: " + error.message);
+            }
+        });
+
+    // Haversine formula
+    function getDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Radius of the earth in km
+        const dLat = ((lat2 - lat1) * Math.PI) / 180;
+        const dLon = ((lon2 - lon1) * Math.PI) / 180;
+        const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos((lat1 * Math.PI) / 180) *
+                Math.cos((lat2 * Math.PI) / 180) *
+                Math.sin(dLon / 2) *
+                Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const d = R * c; // Distance in km
+        return d;
+    }
+
+    let userMarker = null;
+
+    document
+        .getElementById("find-closest-btn")
+        ?.addEventListener("click", () => {
+            if (!navigator.geolocation) {
+                alert("Geolocation is not supported by your browser");
+                return;
+            }
+
+            const btn = document.getElementById("find-closest-btn");
+            const originalText = btn.innerHTML;
+            btn.innerHTML =
+                '<div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div><span class="ml-2">Locating...</span>';
+            btn.disabled = true;
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const userLat = position.coords.latitude;
+                    const userLng = position.coords.longitude;
+
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+
+                    if (userMarker) {
+                        map.removeLayer(userMarker);
+                    }
+
+                    // Draw user with pulse animation effect
+                    const userIcon = window.L.divIcon({
+                        className: "custom-user-icon",
+                        html: `<div class="relative flex h-5 w-5">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-5 w-5 bg-blue-500 border-2 border-white"></span>
+                </div>`,
+                        iconSize: [20, 20],
+                        iconAnchor: [10, 10],
+                    });
+
+                    userMarker = window.L.marker([userLat, userLng], {
+                        icon: userIcon,
+                    })
+                        .addTo(map)
+                        .bindPopup(
+                            "<div class='font-bold p-1'>You are here</div>"
+                        );
+
+                    // Find closest
+                    if (markers.length === 0) {
+                        map.setView([userLat, userLng], 14);
+                        alert("No restaurants added yet.");
+                        return;
+                    }
+
+                    let closestMarker = null;
+                    let minDistance = Infinity;
+
+                    markers.forEach((marker) => {
+                        const restLat = marker.restaurantData.lat;
+                        const restLng = marker.restaurantData.lng;
+                        const dist = getDistance(
+                            userLat,
+                            userLng,
+                            restLat,
+                            restLng
+                        );
+                        if (dist < minDistance) {
+                            minDistance = dist;
+                            closestMarker = marker;
+                        }
+                    });
+
+                    if (closestMarker) {
+                        // Fit bounds to show both user and closest restaurant
+                        const group = new window.L.featureGroup([
+                            userMarker,
+                            closestMarker,
+                        ]);
+                        map.flyToBounds(group.getBounds().pad(0.2), {
+                            duration: 1.5,
+                            easeLinearity: 0.25,
+                        });
+
+                        setTimeout(() => {
+                            closestMarker.openPopup();
+                        }, 1600);
+                    }
+                },
+                (error) => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    alert("Unable to retrieve your location. " + error.message);
+                }
+            );
+        });
+
+    // Google Maps URL Auto-parser
+    document
+        .getElementById("google_maps_url")
+        ?.addEventListener("input", async (e) => {
+            const urlInput = e.target as HTMLInputElement;
+            let url = urlInput.value;
+            const helperText = document.getElementById("url-helper-text");
+
+            if (!url) {
+                if (helperText) helperText.classList.add("hidden");
+                return;
+            }
+
+            if (url.includes("maps.app.goo.gl")) {
+                if (helperText) {
+                    helperText.textContent = "Resolving short link...";
+                    helperText.classList.remove("hidden");
+                }
+                try {
+                    const proxiedUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(
+                        url
+                    )}`;
+                    const res = await fetch(proxiedUrl);
+                    const data = await res.json();
+                    if (data.status && data.status.url) {
+                        url = data.status.url;
+                    }
+                } catch (err) {
+                    console.error("Failed to unshorten Maps URL", err);
+                }
+                if (helperText) {
+                    helperText.classList.add("hidden");
+                    helperText.textContent = "✓ Auto-filled details from URL!";
+                }
+            }
+
+            try {
+                const urlObj = new URL(url);
+                const path = urlObj.pathname;
+                let nameMatch = null;
+                let lat = null;
+                let lng = null;
+
+                // Extract Name
+                const placeMatch = path.match(/\/maps\/place\/([^\/]+)/);
+                if (placeMatch) {
+                    nameMatch = decodeURIComponent(
+                        placeMatch[1].replace(/\+/g, " ")
+                    );
+                } else {
+                    const searchMatch = path.match(/\/maps\/search\/([^\/]+)/);
+                    if (searchMatch) {
+                        nameMatch = decodeURIComponent(
+                            searchMatch[1].replace(/\+/g, " ")
+                        );
+                    }
+                }
+
+                // Extract Coordinates
+                // Look for @lat,lng in the path OR 3d/4d in the data param
+                const dataParamMatch = url.match(
+                    /!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/
+                );
+                if (dataParamMatch) {
+                    lat = dataParamMatch[1];
+                    lng = dataParamMatch[2];
+                } else {
+                    const coordMatch = path.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+                    if (coordMatch) {
+                        lat = coordMatch[1];
+                        lng = coordMatch[2];
+                    } else {
+                        const qMatch = urlObj.searchParams.get("q");
+                        if (qMatch) {
+                            const qCoords = qMatch.match(
+                                /(-?\d+\.\d+),(-?\d+\.\d+)/
+                            );
+                            if (qCoords) {
+                                lat = qCoords[1];
+                                lng = qCoords[2];
+                            }
+                        }
+                    }
+                }
+
+                let filled = false;
+                if (nameMatch) {
+                    const nameInput = document.getElementById(
+                        "name"
+                    ) as HTMLInputElement;
+                    // Try to clean name (e.g. get first part before comma)
+                    const cleanName = nameMatch.split(",")[0].trim();
+                    if (nameInput && !nameInput.value) {
+                        nameInput.value = cleanName;
+                        nameInput.classList.add("ring-2", "ring-accent-500");
+                        setTimeout(
+                            () =>
+                                nameInput.classList.remove(
+                                    "ring-2",
+                                    "ring-accent-500"
+                                ),
+                            500
+                        );
+                        filled = true;
+                    }
+                }
+
+                if (lat && lng) {
+                    const latInput = document.getElementById(
+                        "lat"
+                    ) as HTMLInputElement;
+                    const lngInput = document.getElementById(
+                        "lng"
+                    ) as HTMLInputElement;
+
+                    if (latInput && lngInput) {
+                        latInput.value = parseFloat(lat).toFixed(6);
+                        lngInput.value = parseFloat(lng).toFixed(6);
+
+                        latInput.classList.add("ring-2", "ring-accent-500");
+                        lngInput.classList.add("ring-2", "ring-accent-500");
+                        setTimeout(() => {
+                            latInput.classList.remove(
+                                "ring-2",
+                                "ring-accent-500"
+                            );
+                            lngInput.classList.remove(
+                                "ring-2",
+                                "ring-accent-500"
+                            );
+                        }, 500);
+
+                        if (map) {
+                            map.setView([lat, lng], 14);
+                        }
+                        filled = true;
+                    }
+                }
+
+                if (filled && helperText) {
+                    helperText.classList.remove("hidden");
+                    setTimeout(() => helperText.classList.add("hidden"), 3000);
+                }
+            } catch (e) {
+                // Not a valid URL, ignore
+            }
+        });
+
+    // Start check
+    checkAuth();
+</script>
