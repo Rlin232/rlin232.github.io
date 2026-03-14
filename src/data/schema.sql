@@ -9,6 +9,7 @@ CREATE TABLE restaurants (
     lat DOUBLE PRECISION NOT NULL,
     lng DOUBLE PRECISION NOT NULL,
     reservation_status TEXT CHECK (reservation_status IN ('Required', 'Recommended', 'Not Required', 'Walk-in Only')),
+    is_favorite BOOLEAN DEFAULT false NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
