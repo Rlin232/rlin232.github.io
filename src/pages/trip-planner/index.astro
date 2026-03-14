@@ -15,7 +15,7 @@ import Layout from "../../layouts/Layout.astro";
     >
         <!-- Sidebar / Form Area -->
         <aside
-            class="w-full md:w-1/3 lg:w-1/4 bg-slate-800 flex flex-col shadow-xl z-20 h-1/2 md:h-full overflow-y-auto border-r border-slate-700"
+            class="w-full md:w-1/3 lg:w-1/4 bg-slate-800 flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.5)] md:shadow-xl z-20 h-auto md:h-full max-h-[60vh] md:max-h-full overflow-y-auto border-b md:border-b-0 md:border-r border-slate-700 relative"
         >
             <div class="p-6 flex-grow flex flex-col space-y-6">
                 <div>
@@ -69,131 +69,189 @@ import Layout from "../../layouts/Layout.astro";
                             stroke-linejoin="round"
                             d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"
                         ></path>
-                    </svg>
-                    <span class="relative z-10">Find Closest to Me</span>
+                    </svg><span class="relative z-10">Find Closest to Me</span>
                 </button>
 
-                <div
-                    class="bg-slate-700/30 rounded-xl p-5 border border-slate-700 backdrop-blur-sm space-y-4"
+                <!-- Mobile Wraparound Dropdown -->
+                <details
+                    id="mobile-manage-collapse"
+                    class="group flex-grow flex flex-col min-h-0 [&_summary::-webkit-details-marker]:hidden"
                 >
-                    <h2
-                        class="text-lg font-semibold text-accent-400 flex items-center gap-2"
+                    <summary
+                        class="md:hidden bg-slate-700/50 hover:bg-slate-700 rounded-xl p-4 text-center font-bold text-white cursor-pointer select-none transition-colors border border-slate-600 shadow-md flex items-center justify-center gap-2"
                     >
+                        <span>Manage Restaurants</span>
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke-width="2"
                             stroke="currentColor"
-                            class="w-5 h-5"
+                            class="w-5 h-5 transition-transform group-open:rotate-180"
                         >
                             <path
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
-                                d="M12 4.5v15m7.5-7.5h-15"></path>
+                                d="M19.5 8.25l-7.5 7.5-7.5-7.5"></path>
                         </svg>
-                        Add a Restaurant
-                    </h2>
-                    <form id="add-restaurant-form" class="space-y-4">
-                        <div class="mb-4">
-                            <label
-                                for="google_maps_url"
-                                class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1"
-                                >Google Maps URL</label
-                            >
-                            <input
-                                type="url"
-                                id="google_maps_url"
-                                name="google_maps_url"
-                                class="block w-full px-3 py-2 border border-slate-600 rounded-lg bg-slate-800 text-white sm:text-sm focus:ring-accent-500 focus:border-accent-500 transition-colors placeholder-slate-500"
-                                placeholder="https://www.google.com/maps/place/..."
-                            />
-                        </div>
-
-                        <div>
-                            <label
-                                for="name"
-                                class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1"
-                                >Name</label
-                            >
-                            <input
-                                type="text"
-                                id="name"
-                                name="name"
-                                required
-                                class="block w-full px-3 py-2 border border-slate-600 rounded-lg bg-slate-800 text-white sm:text-sm focus:ring-accent-500 focus:border-accent-500 transition-colors placeholder-slate-500"
-                                placeholder="E.g. Ichiran Shibuya"
-                            />
-                        </div>
-
-                        <input type="hidden" id="lat" name="lat" />
-                        <input type="hidden" id="lng" name="lng" />
-
-                        <div>
-                            <label
-                                for="reservation_status"
-                                class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1"
-                                >Reservation Status</label
-                            >
-                            <select
-                                id="reservation_status"
-                                name="reservation_status"
-                                class="block w-full px-3 py-2 border border-slate-600 rounded-lg bg-slate-800 text-white sm:text-sm focus:ring-accent-500 focus:border-accent-500 transition-colors"
-                            >
-                                <option value="Not Required"
-                                    >Not Required</option
-                                >
-                                <option value="Recommended">Recommended</option>
-                                <option value="Required">Required</option>
-                                <option value="Walk-in Only"
-                                    >Walk-in Only</option
-                                >
-                            </select>
-                        </div>
-
-                        <button
-                            type="submit"
-                            id="submit-btn"
-                            class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-accent-600 hover:bg-accent-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-accent-500 transition-all active:scale-[0.98]"
+                    </summary>
+                    <div
+                        class="pt-4 md:pt-0 flex flex-col space-y-6 flex-grow min-h-0 h-full"
+                    >
+                        <details
+                            id="add-restaurant-collapse"
+                            class="group bg-slate-700/30 rounded-xl border border-slate-700 backdrop-blur-sm [&_summary::-webkit-details-marker]:hidden"
                         >
-                            Add Restaurant
-                        </button>
-                    </form>
-
-                    <div class="mt-8 border-t border-slate-700 pt-6">
-                        <h2
-                            class="text-lg font-bold text-white mb-4 flex items-center gap-2"
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke-width="2"
-                                stroke="currentColor"
-                                class="w-5 h-5 text-accent-400"
+                            <summary
+                                class="p-5 text-lg font-semibold text-accent-400 flex items-center justify-between cursor-pointer select-none"
                             >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
-                                ></path>
-                            </svg>
-                            Saved Restaurants
-                        </h2>
-                        <ul id="restaurant-list" class="space-y-3 pb-8">
-                            <li class="text-sm text-slate-400 text-center py-4">
-                                Loading restaurants...
-                            </li>
-                        </ul>
+                                <div class="flex items-center gap-2">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke-width="2"
+                                        stroke="currentColor"
+                                        class="w-5 h-5"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            d="M12 4.5v15m7.5-7.5h-15"></path>
+                                    </svg>
+                                    Add a Restaurant
+                                </div>
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="2"
+                                    stroke="currentColor"
+                                    class="w-5 h-5 text-slate-400 transition-transform group-open:rotate-180"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M19.5 8.25l-7.5 7.5-7.5-7.5"></path>
+                                </svg>
+                            </summary>
+                            <div class="px-5 pb-5 pt-1">
+                                <form
+                                    id="add-restaurant-form"
+                                    class="space-y-4"
+                                >
+                                    <div class="mb-4">
+                                        <label
+                                            for="google_maps_url"
+                                            class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1"
+                                            >Google Maps URL</label
+                                        >
+                                        <input
+                                            type="url"
+                                            id="google_maps_url"
+                                            name="google_maps_url"
+                                            class="block w-full px-3 py-2 border border-slate-600 rounded-lg bg-slate-800 text-white sm:text-sm focus:ring-accent-500 focus:border-accent-500 transition-colors placeholder-slate-500"
+                                            placeholder="https://www.google.com/maps/place/..."
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label
+                                            for="name"
+                                            class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1"
+                                            >Name</label
+                                        >
+                                        <input
+                                            type="text"
+                                            id="name"
+                                            name="name"
+                                            required
+                                            class="block w-full px-3 py-2 border border-slate-600 rounded-lg bg-slate-800 text-white sm:text-sm focus:ring-accent-500 focus:border-accent-500 transition-colors placeholder-slate-500"
+                                            placeholder="E.g. Ichiran Shibuya"
+                                        />
+                                    </div>
+
+                                    <input type="hidden" id="lat" name="lat" />
+                                    <input type="hidden" id="lng" name="lng" />
+
+                                    <div>
+                                        <label
+                                            for="reservation_status"
+                                            class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1"
+                                            >Reservation Status</label
+                                        >
+                                        <select
+                                            id="reservation_status"
+                                            name="reservation_status"
+                                            class="block w-full px-3 py-2 border border-slate-600 rounded-lg bg-slate-800 text-white sm:text-sm focus:ring-accent-500 focus:border-accent-500 transition-colors"
+                                        >
+                                            <option value="Not Required"
+                                                >Not Required</option
+                                            >
+                                            <option value="Recommended"
+                                                >Recommended</option
+                                            >
+                                            <option value="Required"
+                                                >Required</option
+                                            >
+                                            <option value="Walk-in Only"
+                                                >Walk-in Only</option
+                                            >
+                                        </select>
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        id="submit-btn"
+                                        class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-accent-600 hover:bg-accent-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-accent-500 transition-all active:scale-[0.98]"
+                                    >
+                                        Add Restaurant
+                                    </button>
+                                </form>
+                            </div>
+                        </details>
+
+                        <div
+                            class="bg-slate-700/30 rounded-xl p-5 border border-slate-700 backdrop-blur-sm flex-grow flex flex-col min-h-[300px]"
+                        >
+                            <h2
+                                class="text-lg font-bold text-white mb-4 flex items-center gap-2 shrink-0"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="2"
+                                    stroke="currentColor"
+                                    class="w-5 h-5 text-accent-400"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
+                                    ></path>
+                                </svg>
+                                Saved Restaurants
+                            </h2>
+                            <div class="overflow-y-auto pr-1 -mr-1 flex-grow">
+                                <ul id="restaurant-list" class="space-y-3 pb-2">
+                                    <li
+                                        class="text-sm text-slate-400 text-center py-4"
+                                    >
+                                        Loading restaurants...
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                </details>
             </div>
         </aside>
 
         <!-- Map Area -->
         <div
             id="map"
-            class="w-full md:w-2/3 lg:w-3/4 h-1/2 md:h-full z-10 relative bg-slate-900"
+            class="w-full md:w-2/3 lg:w-3/4 flex-grow md:h-full z-10 relative bg-slate-900 min-h-[50vh]"
         >
             <div
                 id="loading-overlay"
@@ -250,6 +308,46 @@ import Layout from "../../layouts/Layout.astro";
     let map;
     let markers = [];
     let currentUserId;
+
+    // Automatically open the form on non-mobile devices
+    function handleResize() {
+        if (window.innerWidth >= 768) {
+            const addFormEl = document.getElementById(
+                "add-restaurant-collapse"
+            );
+            const manageMenuEl = document.getElementById(
+                "mobile-manage-collapse"
+            );
+            if (addFormEl) addFormEl.setAttribute("open", "");
+            if (manageMenuEl) manageMenuEl.setAttribute("open", "");
+
+            // Ensure map and aside are reset to desktop mode if resized with menu open
+            document.getElementById("map").classList.remove("hidden");
+            document
+                .querySelector("aside")
+                .classList.replace("max-h-full", "max-h-[60vh]");
+            document.querySelector("aside").classList.remove("h-full", "z-50");
+        }
+    }
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    const mobileManageBtn = document.getElementById("mobile-manage-collapse");
+    mobileManageBtn?.addEventListener("toggle", (e) => {
+        if (window.innerWidth < 768) {
+            const mapEl = document.getElementById("map");
+            const asideEl = document.querySelector("aside");
+            if (e.target.open) {
+                mapEl.classList.add("hidden");
+                asideEl.classList.replace("max-h-[60vh]", "max-h-full");
+                asideEl.classList.add("h-full", "z-50");
+            } else {
+                mapEl.classList.remove("hidden");
+                asideEl.classList.replace("max-h-full", "max-h-[60vh]");
+                asideEl.classList.remove("h-full", "z-50");
+            }
+        }
+    });
 
     async function checkAuth() {
         const {
@@ -530,6 +628,12 @@ import Layout from "../../layouts/Layout.astro";
 
     // Expose pan logic to window for list view
     window.panToRestaurant = (lat, lng) => {
+        if (window.innerWidth < 768) {
+            const mobileManage = document.getElementById(
+                "mobile-manage-collapse"
+            );
+            if (mobileManage) mobileManage.removeAttribute("open");
+        }
         if (map) {
             map.flyTo([lat, lng], 16, { duration: 1.5, easeLinearity: 0.25 });
         }
@@ -667,6 +771,41 @@ import Layout from "../../layouts/Layout.astro";
 
     let userMarker = null;
 
+    function renderUserMarker(userLat, userLng) {
+        if (userMarker) {
+            map.removeLayer(userMarker);
+        }
+
+        // Draw user with pulse animation effect
+        const userIcon = window.L.divIcon({
+            className: "custom-user-icon",
+            html: `<div class="relative flex h-5 w-5">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-5 w-5 bg-blue-500 border-2 border-white"></span>
+            </div>`,
+            iconSize: [20, 20],
+            iconAnchor: [10, 10],
+        });
+
+        userMarker = window.L.marker([userLat, userLng], {
+            icon: userIcon,
+        })
+            .addTo(map)
+            .bindPopup("<div class='font-bold p-1'>You are here</div>");
+    }
+
+    // Attempt to automatically pin user location on load
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) =>
+                renderUserMarker(
+                    position.coords.latitude,
+                    position.coords.longitude
+                ),
+            (err) => console.log("Geolocation permission denied initially")
+        );
+    }
+
     document
         .getElementById("find-closest-btn")
         ?.addEventListener("click", () => {
@@ -689,28 +828,7 @@ import Layout from "../../layouts/Layout.astro";
                     btn.innerHTML = originalText;
                     btn.disabled = false;
 
-                    if (userMarker) {
-                        map.removeLayer(userMarker);
-                    }
-
-                    // Draw user with pulse animation effect
-                    const userIcon = window.L.divIcon({
-                        className: "custom-user-icon",
-                        html: `<div class="relative flex h-5 w-5">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                  <span class="relative inline-flex rounded-full h-5 w-5 bg-blue-500 border-2 border-white"></span>
-                </div>`,
-                        iconSize: [20, 20],
-                        iconAnchor: [10, 10],
-                    });
-
-                    userMarker = window.L.marker([userLat, userLng], {
-                        icon: userIcon,
-                    })
-                        .addTo(map)
-                        .bindPopup(
-                            "<div class='font-bold p-1'>You are here</div>"
-                        );
+                    renderUserMarker(userLat, userLng);
 
                     // Find closest
                     if (markers.length === 0) {
