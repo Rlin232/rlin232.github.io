@@ -2,7 +2,7 @@
 import Layout from "../../layouts/Layout.astro";
 ---
 
-<Layout title="Trip Restaurant Planner">
+<Layout title="Trip Restaurant Planner" hideFooter={true}>
     <link
         rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -11,11 +11,11 @@ import Layout from "../../layouts/Layout.astro";
     />
 
     <main
-        class="h-screen flex flex-col md:flex-row bg-slate-900 overflow-hidden text-white font-sans"
+        class="h-[calc(100dvh-5rem)] flex flex-col md:flex-row bg-slate-900 overflow-hidden text-white font-sans"
     >
         <!-- Sidebar / Form Area -->
         <aside
-            class="w-full md:w-1/3 lg:w-1/4 bg-slate-800 flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.5)] md:shadow-xl z-20 h-auto md:h-full max-h-[60vh] md:max-h-full overflow-y-auto border-b md:border-b-0 md:border-r border-slate-700 relative"
+            class="w-full md:w-1/3 lg:w-1/4 bg-slate-800 flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.5)] md:shadow-xl z-20 h-auto md:h-full max-h-[60vh] md:max-h-full overflow-y-auto border-b md:border-b-0 md:border-r border-slate-700 relative shrink-0"
         >
             <div class="p-6 flex-grow flex flex-col space-y-6">
                 <div>
@@ -24,20 +24,21 @@ import Layout from "../../layouts/Layout.astro";
                     >
                         Trip Planner
                     </h1>
-                    <p
-                        class="text-sm text-slate-400 mt-1"
-                        id="user-email-display"
-                    >
-                        Loading...
-                    </p>
+                    <div class="flex items-center justify-between mt-1">
+                        <p
+                            class="text-sm text-slate-400"
+                            id="user-email-display"
+                        >
+                            Loading...
+                        </p>
+                        <button
+                            id="logout-btn"
+                            class="text-xs text-slate-400 hover:text-red-400 transition-colors font-medium uppercase tracking-wider"
+                        >
+                            Sign out
+                        </button>
+                    </div>
                 </div>
-
-                <button
-                    id="logout-btn"
-                    class="text-xs text-slate-400 hover:text-red-400 transition-colors w-max font-medium uppercase tracking-wider"
-                >
-                    Sign out
-                </button>
 
                 <div
                     class="h-px bg-gradient-to-r from-slate-700 via-slate-600 to-slate-700 w-full"
@@ -78,7 +79,7 @@ import Layout from "../../layouts/Layout.astro";
                     class="group flex-grow flex flex-col min-h-0 [&_summary::-webkit-details-marker]:hidden"
                 >
                     <summary
-                        class="md:hidden bg-slate-700/50 hover:bg-slate-700 rounded-xl p-4 text-center font-bold text-white cursor-pointer select-none transition-colors border border-slate-600 shadow-md flex items-center justify-center gap-2"
+                        class="md:hidden bg-slate-700/50 hover:bg-slate-700 rounded-lg py-2.5 px-3 text-sm text-center font-bold text-white cursor-pointer select-none transition-colors border border-slate-600 shadow-md flex items-center justify-center gap-2"
                     >
                         <span>Manage Restaurants</span>
                         <svg
@@ -87,7 +88,7 @@ import Layout from "../../layouts/Layout.astro";
                             viewBox="0 0 24 24"
                             stroke-width="2"
                             stroke="currentColor"
-                            class="w-5 h-5 transition-transform group-open:rotate-180"
+                            class="w-4 h-4 transition-transform group-open:rotate-180"
                         >
                             <path
                                 stroke-linecap="round"
@@ -251,7 +252,7 @@ import Layout from "../../layouts/Layout.astro";
         <!-- Map Area -->
         <div
             id="map"
-            class="w-full md:w-2/3 lg:w-3/4 flex-grow md:h-full z-10 relative bg-slate-900 min-h-[50vh]"
+            class="w-full md:w-2/3 lg:w-3/4 flex-grow md:h-full z-10 relative bg-slate-900 min-h-0"
         >
             <div
                 id="loading-overlay"
