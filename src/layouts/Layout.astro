@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import ThreeBackground from '../components/ThreeBackground.astro';
 
 interface Props {
 	title: string;
@@ -39,7 +40,7 @@ const { title, description = "Ryan Lin – AI/ML researcher, developer, and Calt
 		</script>
 	</head>
 	<body class="min-h-full bg-slate-950 text-slate-100 font-inter selection:bg-accent-500 selection:text-white overflow-x-hidden">
-		<div id="tsparticles" class="fixed inset-0 w-full h-full pointer-events-none z-0"></div>
+		<ThreeBackground />
 		
 		<!-- Background Gradient Mesh -->
 		<div class="fixed inset-0 z-0 opacity-30 pointer-events-none bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-accent-900/40 via-slate-950 to-slate-950"></div>
@@ -117,7 +118,6 @@ const { title, description = "Ryan Lin – AI/ML researcher, developer, and Calt
 		</div>
 
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.8/cdn.min.js" defer></script>
-		<script is:inline src="https://cdn.jsdelivr.net/npm/tsparticles-slim@2.0.6/tsparticles.slim.bundle.min.js"></script>
 		<script is:inline src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 		
 		<script is:inline>
@@ -127,66 +127,6 @@ const { title, description = "Ryan Lin – AI/ML researcher, developer, and Calt
 				once: true,
 				offset: 10,
 				easing: 'ease-out-cubic',
-			});
-
-			// Particles configuration
-			document.addEventListener('DOMContentLoaded', async function() {
-				try {
-					await tsParticles.load("tsparticles", {
-						fullScreen: { enable: false },
-						background: { color: { value: "transparent" } },
-						fpsLimit: 60,
-						particles: {
-							number: {
-								value: 40,
-								density: { enable: true, value_area: 800 }
-							},
-							color: { value: "#ffffff" },
-							shape: { type: "circle" },
-							opacity: {
-								value: 0.5,
-								random: true,
-								anim: { enable: true, speed: 0.5, opacity_min: 0.2, sync: false }
-							},
-							size: {
-								value: 2,
-								random: true,
-								anim: { enable: true, speed: 2, size_min: 0.1, sync: false }
-							},
-							links: {
-								enable: true,
-								distance: 150,
-								color: "#ffffff",
-								opacity: 0.2,
-								width: 1
-							},
-							move: {
-								enable: true,
-								speed: 0.8,
-								direction: "none",
-								random: false,
-								straight: false,
-								out_mode: "out",
-								bounce: false,
-							}
-						},
-						interactivity: {
-							detect_on: "canvas",
-							events: {
-								onHover: { enable: true, mode: "grab" },
-								onClick: { enable: true, mode: "push" },
-								resize: true
-							},
-							modes: {
-								grab: { distance: 140, links: { opacity: 0.3 } },
-								push: { particles_nb: 4 }
-							}
-						},
-						detectRetina: true
-					});
-				} catch (error) {
-					console.error("Error initializing particles:", error);
-				}
 			});
 		</script>
 	</body>

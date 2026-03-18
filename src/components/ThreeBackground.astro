@@ -1,0 +1,264 @@
+---
+---
+
+<canvas
+    id="bg-canvas"
+    class="fixed inset-0 w-full h-full pointer-events-none z-0 opacity-80"
+></canvas>
+
+<script>
+    import * as THREE from "three";
+
+    // Scene setup
+    const canvas = document.querySelector("#bg-canvas");
+    const scene = new THREE.Scene();
+
+    // Settings
+    const particleCount = window.innerWidth < 768 ? 150 : 350;
+    const maxDistance = 40;
+
+    // Camera setup
+    const camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+    );
+    camera.position.z = 100;
+
+    // Renderer setup
+    const renderer = new THREE.WebGLRenderer({
+        canvas: canvas,
+        alpha: true,
+        antialias: true,
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    // Particles
+    const particles = new THREE.BufferGeometry();
+    const particlePositions = new Float32Array(particleCount * 3);
+    const particleVelocities = [];
+
+    for (let i = 0; i < particleCount; i++) {
+        // Random positions between -100 and 100
+        const x = (Math.random() - 0.5) * 200;
+        const y = (Math.random() - 0.5) * 200;
+        const z = (Math.random() - 0.5) * 150; // Less depth to keep mostly flat-ish
+
+        particlePositions[i * 3] = x;
+        particlePositions[i * 3 + 1] = y;
+        particlePositions[i * 3 + 2] = z;
+
+        // Random velocity
+        particleVelocities.push({
+            x: (Math.random() - 0.5) * 0.1,
+            y: (Math.random() - 0.5) * 0.1,
+            z: (Math.random() - 0.5) * 0.05,
+        });
+    }
+
+    particles.setAttribute(
+        "position",
+        new THREE.BufferAttribute(particlePositions, 3)
+    );
+
+    // Create circular texture for particles
+    const circleCanvas = document.createElement("canvas");
+    circleCanvas.width = 32;
+    circleCanvas.height = 32;
+    const ctx = circleCanvas.getContext("2d");
+    if (ctx) {
+        ctx.beginPath();
+        ctx.arc(16, 16, 16, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
+    }
+    const circleTexture = new THREE.CanvasTexture(circleCanvas);
+
+    // Particle Material - glowing dots
+    const pMaterial = new THREE.PointsMaterial({
+        color: 0x38bdf8, // Accent color
+        size: 0.8, // Reduced size
+        transparent: true,
+        opacity: 0.8,
+        sizeAttenuation: true,
+        map: circleTexture,
+        alphaTest: 0.01,
+    });
+
+    const particleSystem = new THREE.Points(particles, pMaterial);
+    scene.add(particleSystem);
+
+    // Lines
+    const linesGeometry = new THREE.BufferGeometry();
+    const linesMaterial = new THREE.LineBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.15,
+        linewidth: 1,
+    });
+
+    // Calculate maximum total lines possible: n*(n-1)/2, though mostly won't be filled
+    // We'll use a dynamic buffer size for performance but cap it
+    const maxLines = particleCount * particleCount;
+    const linePositions = new Float32Array(maxLines * 6);
+    const lineOpacities = new Float32Array(maxLines * 2);
+
+    linesGeometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(linePositions, 3)
+    );
+    linesGeometry.setAttribute(
+        "color",
+        new THREE.BufferAttribute(lineOpacities, 3)
+    );
+
+    // Actually line colors need VertexColors to fade out based on distance
+    linesMaterial.vertexColors = true;
+
+    const lineSystem = new THREE.LineSegments(linesGeometry, linesMaterial);
+    scene.add(lineSystem);
+
+    // Mouse interaction
+    let mouse = { x: 0, y: 0, moved: false };
+    let targetRotation = { x: 0, y: 0 };
+    let mouseWorldPos = new THREE.Vector3();
+
+    document.addEventListener("mousemove", (event) => {
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        mouse.moved = true;
+
+        // Slight scene rotation based on mouse
+        targetRotation.x = mouse.y * 0.1;
+        targetRotation.y = mouse.x * 0.1;
+    });
+
+    // Handle Resize
+    window.addEventListener("resize", () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // Animation Loop
+    const colorBase = new THREE.Color(0x38bdf8); // accent-400
+    const colorHighlight = new THREE.Color(0xffffff);
+
+    let time = 0;
+
+    function animate() {
+        requestAnimationFrame(animate);
+
+        time += 0.002;
+
+        const positions = particleSystem.geometry.attributes.position.array;
+
+        // Update particle positions
+        for (let i = 0; i < particleCount; i++) {
+            positions[i * 3] += particleVelocities[i].x;
+            positions[i * 3 + 1] += particleVelocities[i].y;
+            positions[i * 3 + 2] += particleVelocities[i].z;
+
+            // Bounce off walls
+            if (positions[i * 3] > 100 || positions[i * 3] < -100)
+                particleVelocities[i].x *= -1;
+            if (positions[i * 3 + 1] > 100 || positions[i * 3 + 1] < -100)
+                particleVelocities[i].y *= -1;
+            if (positions[i * 3 + 2] > 75 || positions[i * 3 + 2] < -75)
+                particleVelocities[i].z *= -1;
+        }
+
+        // Project mouse to world for interactions
+        if (mouse.moved) {
+            let vec = new THREE.Vector3(mouse.x, mouse.y, 0.5);
+            vec.unproject(camera);
+            let dir = vec.sub(camera.position).normalize();
+            let distance = -camera.position.z / dir.z;
+            mouseWorldPos
+                .copy(camera.position)
+                .add(dir.multiplyScalar(distance));
+        }
+
+        // Connect close particles
+        let vertexpos = 0;
+        let colorpos = 0;
+        let vertexCount = 0;
+
+        const maxLineDistSq = maxDistance * maxDistance;
+
+        for (let i = 0; i < particleCount; i++) {
+            for (let j = i + 1; j < particleCount; j++) {
+                const dx = positions[i * 3] - positions[j * 3];
+                const dy = positions[i * 3 + 1] - positions[j * 3 + 1];
+                const dz = positions[i * 3 + 2] - positions[j * 3 + 2];
+                const distSq = dx * dx + dy * dy + dz * dz;
+
+                if (distSq < maxLineDistSq) {
+                    // Determine opacity based on distance
+                    const alpha = 1.0 - Math.sqrt(distSq) / maxDistance;
+
+                    // Mouse interaction highlight
+                    let mouseDistSq = Infinity;
+                    if (mouse.moved) {
+                        const midX = (positions[i * 3] + positions[j * 3]) / 2;
+                        const midY =
+                            (positions[i * 3 + 1] + positions[j * 3 + 1]) / 2;
+                        const mdx = midX - mouseWorldPos.x;
+                        const mdy = midY - mouseWorldPos.y;
+                        mouseDistSq = mdx * mdx + mdy * mdy;
+                    }
+
+                    // Color mixing based on mouse proximity
+                    let c = colorBase;
+                    let finalAlpha = alpha * 0.4; // Base line opacity
+
+                    if (mouseDistSq < 900) {
+                        c = colorHighlight;
+                        finalAlpha = Math.max(
+                            finalAlpha,
+                            0.8 - mouseDistSq / 900
+                        );
+                    }
+
+                    linePositions[vertexpos++] = positions[i * 3];
+                    linePositions[vertexpos++] = positions[i * 3 + 1];
+                    linePositions[vertexpos++] = positions[i * 3 + 2];
+
+                    linePositions[vertexpos++] = positions[j * 3];
+                    linePositions[vertexpos++] = positions[j * 3 + 1];
+                    linePositions[vertexpos++] = positions[j * 3 + 2];
+
+                    lineOpacities[colorpos++] = c.r * finalAlpha;
+                    lineOpacities[colorpos++] = c.g * finalAlpha;
+                    lineOpacities[colorpos++] = c.b * finalAlpha;
+
+                    lineOpacities[colorpos++] = c.r * finalAlpha;
+                    lineOpacities[colorpos++] = c.g * finalAlpha;
+                    lineOpacities[colorpos++] = c.b * finalAlpha;
+
+                    vertexCount += 2;
+                }
+            }
+        }
+
+        particleSystem.geometry.attributes.position.needsUpdate = true;
+
+        lineSystem.geometry.attributes.position.needsUpdate = true;
+        lineSystem.geometry.attributes.color.needsUpdate = true;
+        lineSystem.geometry.setDrawRange(0, vertexCount);
+
+        // Smooth scene rotation
+        scene.rotation.x += (targetRotation.x - scene.rotation.x) * 0.05;
+        scene.rotation.y += (targetRotation.y - scene.rotation.y) * 0.05;
+
+        // Slow autospin
+        scene.rotation.y += 0.001;
+        scene.rotation.z = Math.sin(time) * 0.05;
+
+        renderer.render(scene, camera);
+    }
+
+    animate();
+</script>
