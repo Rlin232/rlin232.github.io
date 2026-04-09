@@ -12,13 +12,14 @@ const venueColors = {
 
 type VenueKey = keyof typeof venueColors;
 
-function getVenueBadge(venue: string): string | null {
+function getVenueBadge(venue: string, highlight?: boolean): string | null {
   const match = (Object.keys(venueColors) as VenueKey[]).find((v) =>
     venue.includes(v)
   );
   if (!match) return null;
 
-  return `<span class="inline-block px-2 py-0.5 rounded-full font-medium text-xs ${venueColors[match]}">${match}</span>`;
+  const text = highlight ? `<span class="mr-1">🏆</span>${match} Highlight` : match;
+  return `<span class="inline-flex items-center px-2 py-0.5 rounded-full font-medium text-xs ${venueColors[match]}">${text}</span>`;
 }
 ---
 
@@ -28,7 +29,7 @@ function getVenueBadge(venue: string): string | null {
     
     <div class="space-y-8">
       {publications.map((pub, index) => {
-        const badge = getVenueBadge(pub.venue);
+        const badge = getVenueBadge(pub.venue, pub.highlight);
         return (
           <div class="glass-card rounded-2xl p-8 flex flex-col md:flex-row md:items-start md:space-x-8 transition-all duration-300 hover:bg-white/5 animate-fade-in-up" 
                style={`animation-delay: ${index * 50}ms`}>
