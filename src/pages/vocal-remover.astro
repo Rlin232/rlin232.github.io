@@ -1,0 +1,508 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout
+    title="Vocal Remover | Ryan Y. Lin"
+    description="Strip out vocals from any audio or video file directly in your browser."
+>
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+        <div class="flex items-center justify-between mb-8 animate-fade-in-up">
+            <h1 class="text-4xl font-bold text-white">Vocal Remover</h1>
+        </div>
+
+        <section
+            class="mb-8 glass-card rounded-2xl p-8 animate-fade-in-up md:p-12 border border-white/10 shadow-2xl"
+        >
+            <div class="max-w-2xl mx-auto">
+                <div class="text-center mb-8">
+                    <p class="text-slate-300 text-lg">
+                        Upload an audio or video file to instantly strip out the
+                        vocals and extract the backtrack.
+                    </p>
+                </div>
+
+                <!-- Dropzone -->
+                <div
+                    id="dropzone"
+                    class="border-2 border-dashed border-white/20 rounded-2xl p-12 text-center hover:border-accent-500 hover:bg-white/5 transition-all duration-300 cursor-pointer mb-8 relative group"
+                >
+                    <div
+                        class="absolute inset-0 bg-accent-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                    </div>
+                    <svg
+                        class="mx-auto h-16 w-16 text-slate-400 group-hover:text-accent-400 transition-colors mb-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="1.5"
+                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                        ></path>
+                    </svg>
+                    <p class="text-white text-xl font-medium mb-2">
+                        Drag and drop file here
+                    </p>
+                    <p class="text-slate-400 text-sm">
+                        Or click to browse (supports MP3, WAV, MP4, WebM)
+                    </p>
+                    <input
+                        type="file"
+                        id="fileInput"
+                        class="hidden"
+                        accept="audio/*,video/*"
+                    />
+                </div>
+
+                <!-- Processing State -->
+                <div
+                    id="processingState"
+                    class="hidden py-16 flex-col items-center justify-center space-y-4"
+                >
+                    <div class="relative w-20 h-20">
+                        <!-- Outer spinning ring -->
+                        <div
+                            class="absolute inset-0 rounded-full border-[3px] border-white/10"
+                        >
+                        </div>
+                        <div
+                            class="absolute inset-0 rounded-full border-[3px] border-accent-500 border-t-transparent animate-spin"
+                        >
+                        </div>
+                        <!-- Inner pulsing dot -->
+                        <div
+                            class="absolute inset-0 m-auto w-4 h-4 bg-accent-400 rounded-full animate-ping"
+                        >
+                        </div>
+                    </div>
+                    <p class="text-xl font-medium text-white" id="statusText">
+                        Reading file...
+                    </p>
+                    <p class="text-sm text-slate-400">
+                        Large files may take a moment to decode.
+                    </p>
+                </div>
+
+                <!-- Player Section -->
+                <div
+                    id="playerSection"
+                    class="hidden bg-white/5 rounded-2xl p-6 md:p-8 border border-white/10"
+                >
+                    <h2
+                        class="text-2xl font-bold text-white mb-8 border-b border-white/10 pb-4"
+                    >
+                        Extraction Results
+                    </h2>
+
+                    <div class="space-y-8">
+                        <!-- Original Track -->
+                        <div>
+                            <div class="flex items-center space-x-3 mb-4">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center"
+                                >
+                                    <svg
+                                        class="w-4 h-4 text-slate-300"
+                                        fill="currentColor"
+                                        viewBox="0 0 20 20"
+                                    >
+                                        <path
+                                            fill-rule="evenodd"
+                                            d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z"
+                                            clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                                <span class="text-slate-200 font-medium text-lg"
+                                    >Original Track</span
+                                >
+                            </div>
+                            <audio
+                                id="originalPlayer"
+                                controls
+                                class="w-full h-12 rounded-lg opacity-80 hover:opacity-100 transition-opacity"
+                            ></audio>
+                        </div>
+
+                        <!-- Processed Track -->
+                        <div class="relative">
+                            <div
+                                class="absolute -inset-4 bg-accent-500/5 rounded-xl blur-lg -z-10"
+                            >
+                            </div>
+                            <div class="flex items-center space-x-3 mb-4">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-accent-500/20 flex items-center justify-center"
+                                >
+                                    <svg
+                                        class="w-4 h-4 text-accent-400"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                                        ></path>
+                                        <!-- Striker line -->
+                                        <line
+                                            x1="3"
+                                            y1="3"
+                                            x2="21"
+                                            y2="21"
+                                            stroke-width="2"
+                                            stroke="currentColor"></line>
+                                    </svg>
+                                </div>
+                                <span class="text-accent-400 font-bold text-lg"
+                                    >Vocals Removed</span
+                                >
+                            </div>
+                            <audio
+                                id="processedPlayer"
+                                controls
+                                class="w-full h-12 rounded-lg custom-audio"
+                            ></audio>
+                        </div>
+
+                        <!-- Download -->
+                        <div
+                            class="pt-6 mt-4 flex flex-col sm:flex-row justify-between items-center border-t border-white/5"
+                        >
+                            <button
+                                id="resetBtn"
+                                class="px-4 py-2 text-slate-400 hover:text-white transition-colors mb-4 sm:mb-0"
+                            >
+                                Process another file
+                            </button>
+
+                            <button
+                                id="downloadBtn"
+                                class="px-6 py-3 bg-accent-600 hover:bg-accent-500 text-white rounded-xl shadow-lg shadow-accent-600/20 transition-all hover:scale-105 font-medium flex items-center group"
+                            >
+                                <svg
+                                    class="w-5 h-5 mr-3 group-hover:-translate-y-0.5 transition-transform"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                                    ></path>
+                                </svg>
+                                Download Backtrack (.wav)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- End Player Section -->
+            </div>
+        </section>
+    </div>
+</Layout>
+
+<style>
+    /* Customization for the native audio player to make it blend better with dark mode */
+    audio {
+        filter: invert(0.9) hue-rotate(180deg) contrast(1.1);
+    }
+</style>
+
+<script type="module">
+    import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const dropzone = document.getElementById("dropzone");
+        const fileInput = document.getElementById("fileInput");
+        const processingState = document.getElementById("processingState");
+        const playerSection = document.getElementById("playerSection");
+        const originalPlayer = document.getElementById("originalPlayer");
+        const processedPlayer = document.getElementById("processedPlayer");
+        const downloadBtn = document.getElementById("downloadBtn");
+        const resetBtn = document.getElementById("resetBtn");
+        const statusText = document.getElementById("statusText");
+
+        if (!dropzone || !fileInput || !processingState || !playerSection)
+            return;
+
+        let processedBlobUrl = null;
+        let originalBlobUrl = null;
+
+        dropzone.addEventListener("click", () => fileInput.click());
+
+        dropzone.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropzone.classList.add("border-accent-500", "bg-white/5");
+        });
+
+        dropzone.addEventListener("dragleave", () => {
+            dropzone.classList.remove("border-accent-500", "bg-white/5");
+        });
+
+        dropzone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropzone.classList.remove("border-accent-500", "bg-white/5");
+            if (e.dataTransfer && e.dataTransfer.files.length > 0) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        fileInput.addEventListener("change", (e) => {
+            const target = e.target;
+            if (target.files && target.files.length > 0) {
+                handleFile(target.files[0]);
+            }
+        });
+
+        resetBtn?.addEventListener("click", () => {
+            resetUI();
+            fileInput.value = "";
+        });
+
+        async function handleFile(file) {
+            if (!file) return;
+
+            if (originalBlobUrl) URL.revokeObjectURL(originalBlobUrl);
+            originalBlobUrl = URL.createObjectURL(file);
+            originalPlayer.src = originalBlobUrl;
+
+            // Update UI state
+            dropzone?.classList.add("hidden");
+            playerSection?.classList.add("hidden");
+            processingState?.classList.remove("hidden");
+            processingState?.classList.add("flex");
+            if (statusText)
+                statusText.textContent = "Connecting to AI GPU Backend...";
+
+            try {
+                // Initialize Gradio API Client
+                const app = await Client.connect("Largest/demucs-separator");
+
+                if (statusText)
+                    statusText.textContent =
+                        "Uploading audio & separating stems (This can take 1-3 minutes depending on queue)...";
+
+                // Predict on the public Space
+                const result = await app.predict("/separate_with_htdemucs", [
+                    file,
+                ]);
+
+                // The result.data array corresponds to:
+                // [0] Drums, [1] Bass, [2] Other, [3] Vocals, [4] BPM, [5] Status
+                const stems = {
+                    drums: result.data[0]?.url,
+                    bass: result.data[1]?.url,
+                    other: result.data[2]?.url,
+                    vocals: result.data[3]?.url,
+                };
+
+                if (!stems.drums || !stems.bass || !stems.other) {
+                    throw new Error(
+                        "Failed to retrieve isolated track URLs from the AI model."
+                    );
+                }
+
+                if (statusText)
+                    statusText.textContent =
+                        "Recombining instrument stems into a backtrack...";
+
+                // Download the Drums, Bass, and Other to recombine them into the final track.
+                const combinedBuffer = await combineAudioStems([
+                    stems.drums,
+                    stems.bass,
+                    stems.other,
+                ]);
+
+                if (statusText)
+                    statusText.textContent =
+                        "Encoding final high-quality WAV...";
+
+                setTimeout(() => {
+                    try {
+                        const wavBlob = audioBufferToWav(combinedBuffer);
+
+                        if (processedBlobUrl)
+                            URL.revokeObjectURL(processedBlobUrl);
+                        processedBlobUrl = URL.createObjectURL(wavBlob);
+
+                        processedPlayer.src = processedBlobUrl;
+
+                        processingState?.classList.add("hidden");
+                        processingState?.classList.remove("flex");
+                        playerSection?.classList.remove("hidden");
+                    } catch (err) {
+                        console.error(err);
+                        alert("Error during final audio encoding.");
+                        resetUI();
+                    }
+                }, 100);
+            } catch (error) {
+                console.error("Error processing audio:", error);
+                alert(
+                    "An error occurred while calling the AI model. The server might be busy or the file was rejected."
+                );
+                resetUI();
+            }
+        }
+
+        function resetUI() {
+            dropzone?.classList.remove("hidden");
+            processingState?.classList.add("hidden");
+            processingState?.classList.remove("flex");
+            playerSection?.classList.add("hidden");
+        }
+
+        async function combineAudioStems(urls) {
+            const AudioContextClass =
+                window.AudioContext || window.webkitAudioContext;
+            const audioCtx = new AudioContextClass();
+            const buffers = [];
+
+            if (statusText)
+                statusText.textContent = "Downloading isolated stems...";
+
+            // Download and decode each stem
+            for (const url of urls) {
+                const response = await fetch(url);
+                const arrayBuffer = await response.arrayBuffer();
+                const buffer = await audioCtx.decodeAudioData(arrayBuffer);
+                buffers.push(buffer);
+            }
+
+            // Assume all stems from Demucs have same sampleRate and length
+            const sampleRate = buffers[0].sampleRate;
+            let maxLength = 0;
+            buffers.forEach((b) => {
+                if (b.length > maxLength) maxLength = b.length;
+            });
+
+            const offlineCtx = new OfflineAudioContext(
+                2,
+                maxLength,
+                sampleRate
+            );
+
+            // --- Mastering EQ Chain for Phone Recordings ---
+            // 1. Remove the "boxy" / "muddy" frequencies typical of phone mics
+            const boxyCutFilter = offlineCtx.createBiquadFilter();
+            boxyCutFilter.type = "peaking";
+            boxyCutFilter.frequency.value = 400; // Center frequency of boxiness
+            boxyCutFilter.Q.value = 0.7; // Gentle, wide curve
+            boxyCutFilter.gain.value = -4; // Reduce by 4 dB
+
+            // 2. Add "air" and clarity back to the high end
+            const highShelfFilter = offlineCtx.createBiquadFilter();
+            highShelfFilter.type = "highshelf";
+            highShelfFilter.frequency.value = 5000;
+            highShelfFilter.gain.value = 3; // Boost highs by 3 dB
+
+            // Connect the chain
+            boxyCutFilter.connect(highShelfFilter);
+            highShelfFilter.connect(offlineCtx.destination);
+            // -----------------------------------------------
+
+            if (statusText)
+                statusText.textContent =
+                    "Recombining stems and applying mastering EQ...";
+
+            // Play each buffer into the offline context to sum them together
+            for (const buffer of buffers) {
+                const source = offlineCtx.createBufferSource();
+                source.buffer = buffer;
+                source.connect(boxyCutFilter); // Route through EQ instead of directly to destination
+                source.start(0);
+            }
+
+            return await offlineCtx.startRendering();
+        }
+
+        function audioBufferToWav(buffer) {
+            const numChannels = buffer.numberOfChannels;
+            const sampleRate = buffer.sampleRate;
+            const format = 1; // PCM
+            const bitDepth = 16;
+            let samples;
+            if (numChannels === 2) {
+                samples = interleave(
+                    buffer.getChannelData(0),
+                    buffer.getChannelData(1)
+                );
+            } else {
+                samples = buffer.getChannelData(0);
+            }
+            return encodeWAV(
+                samples,
+                format,
+                sampleRate,
+                numChannels,
+                bitDepth
+            );
+        }
+
+        function interleave(channelL, channelR) {
+            const length = channelL.length + channelR.length;
+            const result = new Float32Array(length);
+            let index = 0,
+                inputIndex = 0;
+            while (index < length) {
+                result[index++] = channelL[inputIndex];
+                result[index++] = channelR[inputIndex];
+                inputIndex++;
+            }
+            return result;
+        }
+
+        function encodeWAV(samples, format, sampleRate, numChannels, bitDepth) {
+            const bytesPerSample = bitDepth / 8;
+            const blockAlign = numChannels * bytesPerSample;
+            const buffer = new ArrayBuffer(
+                44 + samples.length * bytesPerSample
+            );
+            const view = new DataView(buffer);
+            writeString(view, 0, "RIFF");
+            view.setUint32(4, 36 + samples.length * bytesPerSample, true);
+            writeString(view, 8, "WAVE");
+            writeString(view, 12, "fmt ");
+            view.setUint32(16, 16, true);
+            view.setUint16(20, format, true);
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * blockAlign, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, bitDepth, true);
+            writeString(view, 36, "data");
+            view.setUint32(40, samples.length * bytesPerSample, true);
+            floatTo16BitPCM(view, 44, samples);
+            return new Blob([view], { type: "audio/wav" });
+        }
+
+        function floatTo16BitPCM(output, offset, input) {
+            for (let i = 0; i < input.length; i++, offset += 2) {
+                let s = Math.max(-1, Math.min(1, input[i]));
+                output.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+            }
+        }
+
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+
+        downloadBtn?.addEventListener("click", () => {
+            if (!processedBlobUrl) return;
+            const a = document.createElement("a");
+            a.href = processedBlobUrl;
+            a.download = "backtrack.wav";
+            a.click();
+        });
+    });
+</script>
