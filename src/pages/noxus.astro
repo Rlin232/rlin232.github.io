@@ -1,0 +1,552 @@
+---
+// Noxus Escape Room Terminal
+// Isolated sub-page designed for Fullscreen (F11) 1080p viewing.
+---
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Noxian High Command // Trifarix Secure Terminal</title>
+        <!-- Google Fonts: Teko for headers, Courier Prime for monospace hashes -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Teko:wght@500;700&display=swap"
+            rel="stylesheet"
+        />
+        <!-- Using Native Web Crypto API for SHA-256 hashing -->
+
+        <style is:global>
+            :root {
+                --bg-color: #111111;
+                --noxus-red: #8b0000;
+                --noxus-red-glow: #ff1e1e;
+                --noxus-gold: #c8aa6e;
+                --noxus-gold-glow: #ffe2a4;
+                --text-dark: #1a1a1a;
+                --text-light: #e0e0e0;
+            }
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body,
+            html {
+                width: 100%;
+                height: 100%;
+                background-color: var(--bg-color);
+                /* ASSET: Dark, gritty stone wall or dark metal plating texture. 1920x1080. */
+                background-image: linear-gradient(
+                        rgba(17, 17, 17, 0.85),
+                        rgba(17, 17, 17, 0.95)
+                    ),
+                    url("assets/img/background.jpeg");
+                background-size: cover;
+                background-position: center;
+                font-family: "Teko", sans-serif;
+                color: var(--text-light);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+                transition: background 1s ease-in-out;
+            }
+
+            body.success {
+                background-image: none;
+                background-color: var(--noxus-red);
+                animation: pulse-bg 2s infinite alternate;
+            }
+
+            @keyframes pulse-bg {
+                0% {
+                    background-color: #5a0000;
+                }
+                100% {
+                    background-color: #8b0000;
+                }
+            }
+
+            .container {
+                width: 100%;
+                max-width: 900px;
+                padding: 40px;
+                text-align: center;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 30px;
+                z-index: 10;
+            }
+
+            .header {
+                border-bottom: 2px solid var(--noxus-red);
+                padding-bottom: 15px;
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            h1 {
+                font-size: 3.5rem;
+                letter-spacing: 2px;
+                color: var(--noxus-red);
+                text-shadow: 0 0 15px rgba(139, 0, 0, 0.6);
+                margin: 0;
+                line-height: 1.1;
+                text-transform: uppercase;
+            }
+
+            .emblem-placeholder {
+                width: 150px;
+                height: auto;
+                margin: 0 auto;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .emblem-placeholder img {
+                width: 100%;
+                height: auto;
+                filter: drop-shadow(0 0 10px rgba(200, 170, 110, 0.4));
+            }
+
+            .hash-box {
+                border: 2px solid var(--noxus-gold);
+                background: rgba(0, 0, 0, 0.75);
+                padding: 25px;
+                width: 100%;
+                position: relative;
+                box-shadow: inset 0 0 20px rgba(0, 0, 0, 1);
+            }
+
+            .hash-box::before {
+                content: "";
+                position: absolute;
+                top: -3px;
+                left: -3px;
+                right: -3px;
+                bottom: -3px;
+                border: 1px solid var(--noxus-gold);
+                opacity: 0.4;
+                pointer-events: none;
+                z-index: -1;
+            }
+
+            .hash-label {
+                font-size: 1.8rem;
+                color: var(--noxus-gold);
+                letter-spacing: 2px;
+                margin-bottom: 15px;
+            }
+
+            .hash-value {
+                font-family: "Courier Prime", monospace;
+                font-size: 1.4rem;
+                word-break: break-all;
+                color: #ffffff;
+                text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+                letter-spacing: 1.5px;
+            }
+
+            .input-area {
+                width: 100%;
+                margin-top: 20px;
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+                transition: opacity 0.5s ease;
+            }
+
+            input[type="text"] {
+                width: 100%;
+                background: rgba(20, 20, 20, 0.9);
+                border: 2px solid #444;
+                color: #fff;
+                font-family: "Courier Prime", monospace;
+                font-size: 1.8rem;
+                padding: 20px 25px;
+                text-align: center;
+                outline: none;
+                transition: all 0.3s ease;
+            }
+
+            input[type="text"]:focus {
+                border-color: var(--noxus-red);
+                box-shadow: 0 0 25px rgba(139, 0, 0, 0.9);
+            }
+
+            input[type="text"]::placeholder {
+                color: #555;
+                font-family: "Teko", sans-serif;
+                letter-spacing: 2px;
+                text-transform: uppercase;
+            }
+
+            .live-hash-container {
+                transition: opacity 0.5s ease;
+            }
+
+            .live-hash-label {
+                font-size: 1.4rem;
+                color: #888;
+                margin-bottom: 8px;
+                letter-spacing: 1px;
+            }
+
+            .live-hash-value {
+                font-family: "Courier Prime", monospace;
+                font-size: 1.2rem;
+                color: #bbb;
+                word-break: break-all;
+                min-height: 1.8rem;
+            }
+
+            .hint-container {
+                margin-top: 15px;
+                font-family: "Courier Prime", monospace;
+                font-size: 1.1rem;
+                color: var(--noxus-red-glow);
+                text-shadow: 0 0 10px rgba(255, 30, 30, 0.4);
+                letter-spacing: 1px;
+                min-height: 1.5rem;
+                opacity: 0;
+                transition: opacity 0.5s ease;
+            }
+
+            .success-state {
+                display: none;
+                flex-direction: column;
+                align-items: center;
+                gap: 30px;
+                animation: fade-in 1s forwards;
+            }
+
+            @keyframes fade-in {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .success-message {
+                font-size: 5rem;
+                color: var(--noxus-gold);
+                text-shadow: 0 0 25px var(--noxus-gold-glow),
+                    0 0 50px var(--noxus-gold);
+                line-height: 1;
+                margin-bottom: 20px;
+            }
+
+            .vault-code {
+                font-family: "Courier Prime", monospace;
+                font-size: 3rem;
+                color: #fff;
+                background: rgba(0, 0, 0, 0.7);
+                padding: 25px 50px;
+                border: 2px solid var(--noxus-gold);
+                box-shadow: 0 0 20px rgba(200, 170, 110, 0.6);
+                letter-spacing: 5px;
+            }
+
+            /* Trifarix Background Overlay Watermark */
+            .watermark-overlay {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-51.5%, -50%);
+                width: 85vmin;
+                height: 85vmin;
+                background-image: url("/assets/img/trifarix_watermark.png"); /* ASSET: Trifarix Emblem Watermark */
+                background-size: contain;
+                background-repeat: no-repeat;
+                background-position: center;
+                opacity: 0.5; /* Very faint */
+                pointer-events: none;
+                z-index: 1;
+                filter: grayscale(100%) brightness(1.5);
+                mix-blend-mode: overlay;
+            }
+
+            /* Scanline effect over the whole page */
+            .scanlines {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(
+                    to bottom,
+                    rgba(255, 255, 255, 0),
+                    rgba(255, 255, 255, 0) 50%,
+                    rgba(0, 0, 0, 0.15) 50%,
+                    rgba(0, 0, 0, 0.15)
+                );
+                background-size: 100% 4px;
+                pointer-events: none;
+                z-index: 100;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="watermark-overlay"></div>
+        <div class="scanlines"></div>
+        <div class="container" id="main-container">
+            <!-- Asset Placeholder 1 -->
+            <div class="emblem-placeholder">
+                <img
+                    src="/assets/img/Noxus_Crest.webp"
+                    alt="Noxus Crest"
+                    id="emblem-img"
+                />
+            </div>
+
+            <div class="header">
+                <h1>NOXIAN HIGH COMMAND</h1>
+                <h2>TRIFARIX SECURE TERMINAL</h2>
+            </div>
+
+            <div class="hash-box">
+                <div class="hash-label">TARGET HASH IDENTIFIER</div>
+                <!-- Hardcoded SHA-256 for STRENGTH_DECEPTION_6 -->
+                <div class="hash-value" id="target-hash">
+                    be734170ea4e4fd6f6a6fa8cdcc8e0dd9d1cec085b1e3e889217417937373ec1
+                </div>
+            </div>
+
+            <div class="input-area" id="input-area">
+                <input
+                    type="text"
+                    id="permutation-key"
+                    placeholder="ENTER PERMUTATION KEY..."
+                    autocomplete="off"
+                    spellcheck="false"
+                />
+            </div>
+
+            <div class="live-hash-container" id="live-hash-container">
+                <div class="live-hash-label">CURRENT HASH</div>
+                <div class="live-hash-value" id="live-hash"></div>
+            </div>
+
+            <div class="hint-container" id="hint-container"></div>
+
+            <div class="success-state" id="success-state">
+                <div class="success-message">
+                    ACCESS GRANTED.<br />TRIFARIX PROTOCOL ACCEPTED.
+                </div>
+                <div class="vault-code">PHYSICAL VAULT CODE: 8 - 2 - 4 - 9</div>
+            </div>
+        </div>
+
+        <script>
+            const inputField = document.getElementById("permutation-key");
+            const liveHashDisplay = document.getElementById("live-hash");
+            const targetHash = document
+                .getElementById("target-hash")
+                .textContent.trim();
+            const inputArea = document.getElementById("input-area");
+            const liveHashContainer = document.getElementById(
+                "live-hash-container"
+            );
+            const successState = document.getElementById("success-state");
+            const emblemPlaceholder = document.querySelector(
+                ".emblem-placeholder"
+            );
+            const header = document.querySelector(".header");
+            const hashBox = document.querySelector(".hash-box");
+            const hintContainer = document.getElementById("hint-container");
+
+            if (inputField) {
+                inputField.addEventListener("input", async (e) => {
+                    const currentVal = e.target.value;
+
+                    if (currentVal.length === 0) {
+                        liveHashDisplay.textContent = "";
+                        return;
+                    }
+
+                    // Native SHA-256 hashing
+                    const encoder = new TextEncoder();
+                    const data = encoder.encode(currentVal);
+                    const hashBuffer = await crypto.subtle.digest(
+                        "SHA-256",
+                        data
+                    );
+                    const hashArray = Array.from(new Uint8Array(hashBuffer));
+                    const hash = hashArray
+                        .map((b) => b.toString(16).padStart(2, "0"))
+                        .join("");
+
+                    liveHashDisplay.textContent = hash;
+
+                    // Update Hints
+                    const upperVal = currentVal.toUpperCase();
+                    const hasStrength = upperVal.includes("STRENGTH");
+                    const hasDeception = upperVal.includes("DECEPTION");
+
+                    if (hash === targetHash) {
+                        hintContainer.style.opacity = "0";
+                    } else if (hasStrength && hasDeception) {
+                        hintContainer.style.opacity = "1";
+                        hintContainer.textContent =
+                            "TRIFARIX DOCTRINE INCOMPLETE. HOW MANY RAVENS WATCH OVER THE GRAND GENERAL?";
+                    } else if (hasStrength || hasDeception) {
+                        hintContainer.style.opacity = "1";
+                        hintContainer.textContent =
+                            "SEPARATION REQUIRED: BIND WITH UNDERSCORES.";
+                    } else {
+                        hintContainer.style.opacity = "0";
+                    }
+                });
+
+                // Auto-focus input on load
+                inputField.focus();
+
+                // Refocus if user clicks outside, keeping it heavily interactive
+                document.addEventListener("click", () => {
+                    if (
+                        document.activeElement !== inputField &&
+                        !inputField.disabled
+                    ) {
+                        inputField.focus();
+                    }
+                });
+            }
+
+            function triggerSuccessState() {
+                inputField.disabled = true;
+                inputArea.style.opacity = "0";
+                liveHashContainer.style.opacity = "0";
+                hintContainer.style.opacity = "0";
+
+                setTimeout(() => {
+                    inputArea.style.display = "none";
+                    liveHashContainer.style.display = "none";
+                    hintContainer.style.display = "none";
+                    hashBox.style.display = "none";
+                    emblemPlaceholder.style.display = "none";
+                    header.style.display = "none";
+
+                    document.body.classList.add("success");
+                    successState.style.display = "flex";
+                }, 500);
+            }
+
+            // Security: Prevent Right Click
+            document.addEventListener("contextmenu", (e) => e.preventDefault());
+
+            // Security: Prevent common Developer Tools keyboard shortcuts
+            document.addEventListener("keydown", (e) => {
+                // F12
+                if (e.key === "F12") e.preventDefault();
+
+                // Check modifiers: Windows (Ctrl+Shift) or Mac (Cmd+Option)
+                const isModifier =
+                    (e.ctrlKey || e.metaKey) && (e.shiftKey || e.altKey);
+
+                // Inspect (I), Element Select (C), Console (J)
+                if (
+                    isModifier &&
+                    (e.key === "I" || e.key === "i" || e.code === "KeyI")
+                )
+                    e.preventDefault();
+                if (
+                    isModifier &&
+                    (e.key === "C" || e.key === "c" || e.code === "KeyC")
+                )
+                    e.preventDefault();
+                if (
+                    isModifier &&
+                    (e.key === "J" || e.key === "j" || e.code === "KeyJ")
+                )
+                    e.preventDefault();
+
+                // View Source (Ctrl+U / Cmd+Option+U / Cmd+U)
+                if (
+                    (e.ctrlKey || e.metaKey) &&
+                    (e.key === "U" || e.key === "u" || e.code === "KeyU")
+                )
+                    e.preventDefault();
+            });
+
+            // Voice Recognition System
+            const SpeechRecognition =
+                window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                const recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = "en-US";
+
+                recognition.onresult = (event) => {
+                    let transcript = "";
+                    for (let i = 0; i < event.results.length; i++) {
+                        transcript += event.results[i][0].transcript + " ";
+                    }
+
+                    const spoken = transcript.toUpperCase();
+                    // Match: STRENGTH, DECEPTION, 6/SIX
+                    if (
+                        spoken.includes("STRENGTH") &&
+                        spoken.includes("DECEPTION") &&
+                        (spoken.includes("6") || spoken.includes("SIX"))
+                    ) {
+                        const currentHash =
+                            document.getElementById("live-hash").textContent;
+                        const expectedHash = document
+                            .getElementById("target-hash")
+                            .textContent.trim();
+                        if (currentHash === expectedHash) {
+                            triggerSuccessState();
+                            recognition.stop();
+                        }
+                    }
+                };
+
+                recognition.onend = () => {
+                    // Constantly listen, unless success state was reached
+                    if (!document.body.classList.contains("success")) {
+                        try {
+                            recognition.start();
+                        } catch (e) {}
+                    }
+                };
+
+                // Browsers often block auto-start of audio features without user interaction.
+                // We'll try immediately, but also attach it to the first click/keypress just in case.
+                const startListening = () => {
+                    if (!document.body.classList.contains("success")) {
+                        try {
+                            recognition.start();
+                        } catch (e) {}
+                    }
+                };
+
+                try {
+                    recognition.start();
+                } catch (e) {}
+                document.addEventListener("click", startListening, {
+                    once: true,
+                });
+                document.addEventListener("keydown", startListening, {
+                    once: true,
+                });
+            } else {
+                console.warn(
+                    "Speech Recognition API not supported in this browser."
+                );
+            }
+        </script>
+    </body>
+</html>
