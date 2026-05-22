@@ -1,0 +1,1946 @@
+---
+// JAYCE Signal Analyzer - Standalone Web App
+// A self-contained Interactive Signal Graph Viewer featuring a Piltover Hextech clean laboratory aesthetic.
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>JAYCE // Hextech Signal Diagnostics</title>
+
+        <!-- Google Fonts: Teko for high-tech HUD titles, Share Tech Mono / Courier Prime for numeric data -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Teko:wght@500;700&family=Share+Tech+Mono&display=swap"
+            rel="stylesheet"
+        />
+
+        <style is:global>
+            :root {
+                --bg-color: #0b0e14;
+                --hextech-gold: #c8aa6e;
+                --hextech-gold-glow: rgba(200, 170, 110, 0.4);
+                --hextech-blue: #00e5ff;
+                --hextech-blue-glow: rgba(0, 229, 255, 0.4);
+                --hextech-dark-blue: #0e2135;
+                --hextech-navy-border: #1a385c;
+                --panel-bg: rgba(13, 20, 30, 0.9);
+                --border-color: rgba(200, 170, 110, 0.2);
+                --border-color-active: rgba(0, 229, 255, 0.5);
+                --text-light: #e2e8f0;
+                --text-muted: #64748b;
+                --rose-accent: #ff3366;
+                --rose-accent-glow: rgba(255, 51, 102, 0.3);
+            }
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body,
+            html {
+                width: 100%;
+                height: 100%;
+                background-color: var(--bg-color);
+                font-family: "Share Tech Mono", monospace;
+                color: var(--text-light);
+                overflow: hidden;
+            }
+
+            /* Container Grid Layout */
+            .app-container {
+                display: grid;
+                grid-template-columns: 320px 1fr;
+                width: 100vw;
+                height: 100vh;
+                position: relative;
+                z-index: 10;
+            }
+
+            /* Sidebar Design - Polished Hextech Brass & Dark Slate */
+            .sidebar {
+                background: #080c12;
+                border-right: 1px solid var(--hextech-navy-border);
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+                overflow: hidden;
+                box-shadow: 5px 0 25px rgba(0, 0, 0, 0.6);
+                z-index: 15;
+            }
+
+            .sidebar-header {
+                padding: 20px;
+                border-bottom: 1px solid var(--hextech-navy-border);
+                background: linear-gradient(
+                    180deg,
+                    rgba(200, 170, 110, 0.05),
+                    transparent
+                );
+            }
+
+            .sidebar-title-container {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 5px;
+            }
+
+            .sidebar-title {
+                font-family: "Teko", sans-serif;
+                font-size: 2.2rem;
+                font-weight: 700;
+                letter-spacing: 2px;
+                color: var(--hextech-gold);
+                text-shadow: 0 0 10px var(--hextech-gold-glow);
+                text-transform: uppercase;
+                margin: 0;
+            }
+
+            .sidebar-subtitle {
+                font-size: 0.75rem;
+                color: var(--text-muted);
+                letter-spacing: 1px;
+                text-transform: uppercase;
+            }
+
+            /* Search Filter */
+            .controls-panel {
+                padding: 15px 20px;
+                border-bottom: 1px solid var(--hextech-navy-border);
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .search-box {
+                width: 100%;
+                background: rgba(14, 21, 32, 0.8);
+                border: 1px solid var(--hextech-navy-border);
+                color: var(--text-light);
+                padding: 10px 12px;
+                font-family: "Share Tech Mono", monospace;
+                font-size: 0.85rem;
+                outline: none;
+                transition: all 0.3s ease;
+            }
+
+            .search-box:focus {
+                border-color: var(--hextech-blue);
+                box-shadow: 0 0 8px rgba(0, 229, 255, 0.3);
+            }
+
+            /* Scrollable File List */
+            .file-list-container {
+                flex: 1;
+                overflow-y: auto;
+                padding: 15px 10px;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            /* Custom Scrollbar for Sidebar */
+            .file-list-container::-webkit-scrollbar {
+                width: 6px;
+            }
+            .file-list-container::-webkit-scrollbar-track {
+                background: rgba(0, 0, 0, 0.2);
+            }
+            .file-list-container::-webkit-scrollbar-thumb {
+                background: rgba(200, 170, 110, 0.2);
+                border-radius: 3px;
+            }
+            .file-list-container::-webkit-scrollbar-thumb:hover {
+                background: var(--hextech-gold);
+            }
+
+            .file-item {
+                background: rgba(22, 33, 49, 0.4);
+                border: 1px solid rgba(200, 170, 110, 0.1);
+                padding: 12px;
+                cursor: pointer;
+                transition: all 0.25s ease;
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .file-item:hover {
+                background: rgba(200, 170, 110, 0.05);
+                border-color: rgba(200, 170, 110, 0.3);
+            }
+
+            .file-item.active {
+                background: rgba(0, 229, 255, 0.05);
+                border-color: var(--hextech-blue);
+                box-shadow: inset 0 0 10px rgba(0, 229, 255, 0.1);
+            }
+
+            .file-item-name {
+                font-size: 0.85rem;
+                font-weight: bold;
+                word-break: break-all;
+                color: var(--text-light);
+            }
+
+            .file-item.active .file-item-name {
+                color: var(--hextech-blue);
+                text-shadow: 0 0 8px var(--hextech-blue-glow);
+            }
+
+            .file-item-meta {
+                display: flex;
+                justify-content: space-between;
+                font-size: 0.7rem;
+                color: var(--text-muted);
+            }
+
+            .file-item.active .file-item-meta {
+                color: rgba(0, 229, 255, 0.7);
+            }
+
+            .sidebar-footer {
+                padding: 15px 20px;
+                border-top: 1px solid var(--hextech-navy-border);
+                font-size: 0.65rem;
+                color: var(--text-muted);
+                background: rgba(8, 12, 18, 0.8);
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+            }
+
+            /* Main Graph Area Layout */
+            .main-content {
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+                overflow: hidden;
+                background: radial-gradient(
+                    circle at center,
+                    rgba(14, 25, 41, 0.4) 0%,
+                    rgba(11, 14, 20, 0.95) 100%
+                );
+                position: relative;
+            }
+
+            /* Top HUD Panel */
+            .hud-header {
+                padding: 15px 25px;
+                background: rgba(8, 12, 18, 0.85);
+                border-bottom: 1px solid var(--hextech-navy-border);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                z-index: 12;
+            }
+
+            .active-file-info {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+            }
+
+            .active-file-title {
+                font-family: "Teko", sans-serif;
+                font-size: 1.8rem;
+                letter-spacing: 1px;
+                color: #ffffff;
+                text-transform: uppercase;
+            }
+
+            .active-file-stats {
+                display: flex;
+                gap: 15px;
+                font-size: 0.75rem;
+                color: var(--text-muted);
+            }
+
+            .stat-highlight {
+                color: var(--hextech-blue);
+            }
+
+            .stat-highlight-gold {
+                color: var(--hextech-gold);
+                text-shadow: 0 0 5px var(--hextech-gold-glow);
+            }
+
+            /* Toolbar Actions */
+            .toolbar {
+                display: flex;
+                gap: 10px;
+                align-items: center;
+            }
+
+            .tool-group {
+                display: flex;
+                border: 1px solid var(--hextech-navy-border);
+                background: rgba(0, 0, 0, 0.25);
+                padding: 2px;
+            }
+
+            .tool-btn {
+                background: transparent;
+                border: none;
+                color: var(--text-muted);
+                padding: 6px 12px;
+                font-family: "Share Tech Mono", monospace;
+                font-size: 0.75rem;
+                text-transform: uppercase;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .tool-btn:hover {
+                color: var(--text-light);
+                background: rgba(255, 255, 255, 0.05);
+            }
+
+            .tool-btn.active {
+                background: var(--hextech-blue);
+                color: #000;
+                font-weight: bold;
+                text-shadow: none;
+            }
+
+            .tool-btn.active-gold {
+                background: var(--hextech-gold);
+                color: #000;
+                font-weight: bold;
+                text-shadow: none;
+            }
+
+            /* Terminal Command Line Interface (CLI) Area */
+            .terminal-section {
+                background: rgba(5, 8, 12, 0.96);
+                border-top: 1px solid var(--hextech-navy-border);
+                display: flex;
+                flex-direction: column;
+                padding: 0;
+                z-index: 11;
+                box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.5);
+            }
+
+            .terminal-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                background: rgba(14, 33, 53, 0.6);
+                border-bottom: 1px solid rgba(200, 170, 110, 0.2);
+                padding: 8px 20px;
+                font-size: 0.7rem;
+                letter-spacing: 1.5px;
+                color: var(--hextech-gold);
+                font-weight: bold;
+                text-transform: uppercase;
+            }
+
+            .terminal-dots {
+                display: flex;
+                gap: 6px;
+            }
+
+            .terminal-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: var(--hextech-navy-border);
+            }
+
+            .terminal-dot.cyan {
+                background: var(--hextech-blue);
+                box-shadow: 0 0 6px var(--hextech-blue);
+            }
+
+            .terminal-dot.gold {
+                background: var(--hextech-gold);
+                box-shadow: 0 0 6px var(--hextech-gold);
+            }
+
+            .terminal-dot.brass {
+                background: #8c7853;
+            }
+
+            .terminal-title {
+                flex: 1;
+                text-align: center;
+                font-family: "Share Tech Mono", monospace;
+                opacity: 0.9;
+                text-shadow: 0 0 5px rgba(200, 170, 110, 0.3);
+            }
+
+            .terminal-status {
+                color: var(--hextech-blue);
+                font-size: 0.65rem;
+                letter-spacing: 1px;
+                text-shadow: 0 0 5px rgba(0, 229, 255, 0.4);
+            }
+
+            .terminal-log {
+                height: 180px;
+                overflow-y: auto;
+                font-family: "Courier Prime", monospace;
+                font-size: 0.8rem;
+                color: var(--hextech-blue);
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                margin-bottom: 6px;
+                padding: 10px 20px 0 20px;
+            }
+
+            .terminal-log::-webkit-scrollbar {
+                width: 4px;
+            }
+            .terminal-log::-webkit-scrollbar-thumb {
+                background: rgba(0, 229, 255, 0.2);
+                border-radius: 2px;
+            }
+
+            .terminal-log-line {
+                line-height: 1.3;
+                white-space: pre-wrap;
+                word-break: break-all;
+            }
+
+            .terminal-log-line.system {
+                color: var(--text-muted);
+            }
+
+            .terminal-log-line.error {
+                color: var(--rose-accent);
+            }
+
+            .terminal-log-line.success {
+                color: var(--hextech-gold);
+            }
+
+            .terminal-log-line.input {
+                color: #ffffff;
+            }
+
+            .terminal-input-row {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-family: "Courier Prime", monospace;
+                font-size: 0.85rem;
+                border-top: 1px solid rgba(26, 56, 92, 0.3);
+                padding: 8px 20px;
+                cursor: text;
+            }
+
+            .terminal-prompt {
+                color: var(--hextech-gold);
+                font-weight: bold;
+                white-space: nowrap;
+            }
+
+            .terminal-input {
+                flex: 1;
+                background: transparent;
+                border: none;
+                outline: none;
+                color: #ffffff;
+                font-family: inherit;
+                font-size: inherit;
+                caret-color: var(--hextech-blue);
+                width: 100%;
+            }
+
+            /* Graph Canvas Workspace */
+            .canvas-container {
+                flex: 1;
+                position: relative;
+                overflow: hidden;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background: rgba(0, 0, 0, 0.3);
+                z-index: 10;
+            }
+
+            canvas {
+                display: block;
+                width: 100%;
+                height: 100%;
+                cursor: grab;
+            }
+
+            canvas:active {
+                cursor: grabbing;
+            }
+
+            /* Overlays */
+            .hud-overlay {
+                position: absolute;
+                background: rgba(8, 12, 18, 0.95);
+                border: 1px solid var(--hextech-navy-border);
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+                pointer-events: none;
+                z-index: 20;
+                padding: 12px;
+                font-size: 0.75rem;
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+            }
+
+            .hud-overlay::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 2px;
+                background: var(--hextech-gold);
+            }
+
+            .hud-coordinates {
+                top: 20px;
+                right: 20px;
+                min-width: 190px;
+                border-left: 2px solid var(--hextech-gold);
+            }
+
+            .hud-row {
+                display: flex;
+                justify-content: space-between;
+            }
+
+            .hud-label {
+                color: var(--text-muted);
+                text-transform: uppercase;
+                margin-right: 15px;
+            }
+
+            .hud-val {
+                color: #ffffff;
+                font-weight: bold;
+            }
+
+            .hud-val.blue {
+                color: var(--hextech-blue);
+                text-shadow: 0 0 5px var(--hextech-blue-glow);
+            }
+
+            .hud-val.gold {
+                color: var(--hextech-gold);
+                text-shadow: 0 0 5px var(--hextech-gold-glow);
+            }
+
+            canvas.crosshair-mode {
+                cursor: crosshair;
+            }
+
+            /* Help Panel */
+            .hud-help {
+                bottom: 20px;
+                right: 20px;
+                background: rgba(8, 12, 18, 0.85);
+                border: 1px solid rgba(200, 170, 110, 0.08);
+                color: var(--text-muted);
+                padding: 8px 12px;
+                font-size: 0.65rem;
+                border-radius: 2px;
+                pointer-events: none;
+                z-index: 12;
+            }
+
+            /* Watermark */
+            .watermark {
+                display: none;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-family: "Teko", sans-serif;
+                font-size: 13vw;
+                font-weight: bold;
+                color: rgba(200, 170, 110, 0.015);
+                letter-spacing: 12px;
+                text-transform: uppercase;
+                pointer-events: none;
+                z-index: 1;
+                user-select: none;
+            }
+
+            /* Scanlines Overlay */
+            .scanlines {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(
+                    to bottom,
+                    rgba(255, 255, 255, 0),
+                    rgba(255, 255, 255, 0) 50%,
+                    rgba(0, 0, 0, 0.1) 50%,
+                    rgba(0, 0, 0, 0.1)
+                );
+                background-size: 100% 4px;
+                pointer-events: none;
+                z-index: 100;
+            }
+
+            /* Bottom Status Bar */
+            .status-bar {
+                background: rgba(6, 10, 16, 0.95);
+                border-top: 1px solid var(--hextech-navy-border);
+                padding: 6px 20px;
+                font-size: 0.7rem;
+                color: var(--text-muted);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                z-index: 12;
+            }
+
+            .status-left {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .pulse-indicator {
+                width: 6px;
+                height: 6px;
+                background-color: var(--hextech-blue);
+                border-radius: 50%;
+                box-shadow: 0 0 8px var(--hextech-blue);
+                animation: pulse-blue 1.8s infinite alternate;
+            }
+
+            @keyframes pulse-blue {
+                0% {
+                    opacity: 0.4;
+                    box-shadow: 0 0 2px var(--hextech-blue);
+                }
+                100% {
+                    opacity: 1;
+                    box-shadow: 0 0 10px var(--hextech-blue);
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="scanlines"></div>
+        <div class="app-container">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <div class="sidebar-title-container">
+                        <h1 class="sidebar-title">JAYCE</h1>
+                        <span class="pulse-indicator" title="Capacitor Online"
+                        ></span>
+                    </div>
+                    <div class="sidebar-subtitle">Hextech Signal Analyzer</div>
+                </div>
+
+                <div class="controls-panel">
+                    <input
+                        type="text"
+                        class="search-box"
+                        id="search-box"
+                        placeholder="FILTER SIGNALS..."
+                        autocomplete="off"
+                        spellcheck="false"
+                    />
+                </div>
+
+                <!-- Scrollable Scan Files List -->
+                <div class="file-list-container" id="file-list">
+                    <!-- File items inserted dynamically by JS -->
+                </div>
+
+                <div class="sidebar-footer">
+                    <div>GATEWAY COUPLING: CONNECTED</div>
+                    <div>ENERGY EFFICIENCY: 99.8%</div>
+                </div>
+            </div>
+
+            <!-- Main Workstation -->
+            <div class="main-content">
+                <!-- Top Header -->
+                <div class="hud-header">
+                    <div class="active-file-info">
+                        <div class="active-file-title" id="active-file-title">
+                            NO HEXTECH SIGNAL LOADED
+                        </div>
+                        <div class="active-file-stats" id="active-file-stats">
+                            <span
+                                >Points: <span
+                                    class="stat-highlight"
+                                    id="stat-points">0</span
+                                ></span
+                            >
+                            <span
+                                >Domain: <span
+                                    class="stat-highlight-gold"
+                                    id="stat-domain">PHYSICAL (SPATIAL)</span
+                                ></span
+                            >
+                            <span
+                                >Resonant Peak: <span
+                                    class="stat-highlight"
+                                    id="stat-peak">-</span
+                                ></span
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Toolbar actions -->
+                    <div class="toolbar">
+                        <div class="tool-group">
+                            <button
+                                class="tool-btn active-gold"
+                                id="zoom-axis-both">Zoom XY</button
+                            >
+                            <button class="tool-btn" id="zoom-axis-x"
+                                >Zoom X</button
+                            >
+                            <button class="tool-btn" id="zoom-axis-y"
+                                >Zoom Y</button
+                            >
+                        </div>
+
+                        <!-- Domain Toggle (Only visible once unlocked via CLI) -->
+                        <div
+                            class="tool-group"
+                            id="domain-toggle-group"
+                            style="display: none; margin-left: 10px;"
+                        >
+                            <button
+                                class="tool-btn active"
+                                id="btn-domain-physical">Physical</button
+                            >
+                            <button class="tool-btn" id="btn-domain-coupled"
+                                >Coupled</button
+                            >
+                        </div>
+
+                        <button
+                            class="tool-btn"
+                            id="reset-view-btn"
+                            style="border: 1px solid rgba(255, 51, 102, 0.4); color: var(--rose-accent); margin-left: auto;"
+                        >
+                            Reset View
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Interactive Graph Canvas Workspace -->
+                <div class="canvas-container" id="canvas-container">
+                    <div class="watermark" id="watermark-bg">HEXTECH</div>
+                    <canvas id="signal-canvas"></canvas>
+
+                    <!-- Real-Time Cursor Readings Overlay -->
+                    <div class="hud-overlay hud-coordinates" id="hud-coords">
+                        <div class="hud-row">
+                            <span class="hud-label" id="label-x">Position:</span
+                            >
+                            <span class="hud-val" id="cursor-x">-</span>
+                        </div>
+                        <div class="hud-row">
+                            <span class="hud-label" id="label-y"
+                                >Amplitude:</span
+                            >
+                            <span class="hud-val blue" id="cursor-y">-</span>
+                        </div>
+                    </div>
+
+                    <!-- Hover Help Tooltip -->
+                    <div class="hud-help" style="position: absolute;">
+                        Scroll = Zoom | Left-Drag = Pan | Double Click = Reset |
+                        Terminal CLI = Resonance Coupling
+                    </div>
+                </div>
+
+                <!-- Command Line Interface Terminal (CLI) -->
+                <div class="terminal-section" id="terminal-section">
+                    <div class="terminal-header">
+                        <div class="terminal-dots">
+                            <span class="terminal-dot cyan"></span>
+                            <span class="terminal-dot gold"></span>
+                            <span class="terminal-dot brass"></span>
+                        </div>
+                        <div class="terminal-title">
+                            HEX_RESONATOR_CLI // SECURE CORE INTERFACE
+                        </div>
+                        <div class="terminal-status">ONLINE</div>
+                    </div>
+                    <div class="terminal-log" id="terminal-log">
+                        <!-- CLI command log will print here -->
+                    </div>
+                    <div class="terminal-input-row">
+                        <span class="terminal-prompt"
+                            >JAYCE@PILTOVER-HIGH-LAB:~$</span
+                        >
+                        <input
+                            type="text"
+                            class="terminal-input"
+                            id="terminal-input"
+                            placeholder="Enter hextech command..."
+                            autocomplete="off"
+                            spellcheck="false"
+                        />
+                    </div>
+                </div>
+
+                <!-- Bottom Status Bar -->
+                <div class="status-bar">
+                    <div class="status-left">
+                        <span>HEX_STATUS: STABLE</span>
+                        <span style="color: rgba(255,255,255,0.06)">|</span>
+                        <span id="system-message"
+                            >Calibration profiles loaded successfully.</span
+                        >
+                    </div>
+                    <div>
+                        <span>GATEWAY RESONATOR v2.5</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Data storage
+            let loadedFiles = [];
+            let activeFileIndex = -1;
+            let searchFilter = "";
+            let zoomMode = "both"; // "both", "x", "y"
+            let viewDomain = "physical"; // "physical" or "coupled"
+            let hoverPoint = null; // { x, y, px, py } for current mouse position
+
+            let hasUnlockedCoupledMode = false;
+
+            // Graph limits & viewport limits
+            let limits = { xMin: 0, xMax: 100, yMin: -10, yMax: 10 };
+            let viewLimits = { xMin: 0, xMax: 100, yMin: -10, yMax: 10 };
+
+            // Canvas & Drawing contexts
+            const canvas = document.getElementById("signal-canvas");
+            const ctx = canvas.getContext("2d");
+            const canvasContainer = document.getElementById("canvas-container");
+            const terminalLog = document.getElementById("terminal-log");
+            const terminalInput = document.getElementById("terminal-input");
+
+            // Cooley-Tukey Radix-2 transformation logic
+            // yValues length must be a power of 2
+            function runCouplingAlgorithm(yValues) {
+                const N = yValues.length;
+                const re = new Float64Array(yValues);
+                const im = new Float64Array(N);
+
+                // 1. Bit-reversal permutation
+                let j = 0;
+                for (let i = 0; i < N; i++) {
+                    if (i < j) {
+                        const temp_re = re[i];
+                        re[i] = re[j];
+                        re[j] = temp_re;
+                        const temp_im = im[i];
+                        im[i] = im[j];
+                        im[j] = temp_im;
+                    }
+                    let bit = N >> 1;
+                    while (bit > 0 && j >= bit) {
+                        j -= bit;
+                        bit >>= 1;
+                    }
+                    j += bit;
+                }
+
+                // 2. Cooley-Tukey decimation-in-time
+                for (let len = 2; len <= N; len <<= 1) {
+                    const angle = (-2 * Math.PI) / len;
+                    const wlen_re = Math.cos(angle);
+                    const wlen_im = Math.sin(angle);
+                    for (let i = 0; i < N; i += len) {
+                        let w_re = 1;
+                        let w_im = 0;
+                        for (let k = 0; k < len / 2; k++) {
+                            const u_re = re[i + k];
+                            const u_im = im[i + k];
+
+                            const target_re = re[i + k + len / 2];
+                            const target_im = im[i + k + len / 2];
+
+                            const v_re = target_re * w_re - target_im * w_im;
+                            const v_im = target_re * w_im + target_im * w_re;
+
+                            re[i + k] = u_re + v_re;
+                            im[i + k] = u_im + v_im;
+                            re[i + k + len / 2] = u_re - v_re;
+                            im[i + k + len / 2] = u_im - v_im;
+
+                            const next_w_re = w_re * wlen_re - w_im * wlen_im;
+                            const next_w_im = w_re * wlen_im + w_im * wlen_re;
+                            w_re = next_w_re;
+                            w_im = next_w_im;
+                        }
+                    }
+                }
+
+                // Magnitudes calculation (single-sided spectrum scaling)
+                const magnitudes = new Float64Array(N / 2);
+                magnitudes[0] = Math.sqrt(re[0] * re[0] + im[0] * im[0]) / N;
+                for (let k = 1; k < N / 2; k++) {
+                    magnitudes[k] =
+                        (2 * Math.sqrt(re[k] * re[k] + im[k] * im[k])) / N;
+                }
+
+                return magnitudes;
+            }
+
+            // CSV Parsing Logic
+            function parseCSV(text, filename) {
+                const lines = text.split(/\r?\n/);
+                const data = [];
+                let hasHeader = false;
+
+                if (lines.length > 0) {
+                    const firstLine = lines[0].trim();
+                    if (
+                        firstLine.toLowerCase().includes("position") ||
+                        firstLine.toLowerCase().includes("amplitude")
+                    ) {
+                        hasHeader = true;
+                    }
+                }
+
+                const startIndex = hasHeader ? 1 : 0;
+
+                for (let i = startIndex; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+
+                    const cols = line.split(/[,;\t]/).map((s) => s.trim());
+                    if (cols.length >= 2) {
+                        const x = parseFloat(cols[0]);
+                        const y = parseFloat(cols[1]);
+
+                        if (!isNaN(x) && !isNaN(y)) {
+                            data.push({ x, y });
+                        }
+                    }
+                }
+
+                if (data.length === 0) return null;
+
+                data.sort((a, b) => a.x - b.x);
+
+                // Compute transform
+                const yValues = data.map((pt) => pt.y);
+                const startT = performance.now();
+                const coupledMagnitudes = runCouplingAlgorithm(yValues);
+                const transformTime = (performance.now() - startT).toFixed(2);
+
+                const coupledDataList = [];
+                const N = yValues.length;
+                const dx = data[1].x - data[0].x;
+                const T = N * dx;
+
+                // k=1 and onwards (Skip offset at index 0)
+                for (let k = 1; k < N / 2; k++) {
+                    const res = k / T;
+                    const intensity = coupledMagnitudes[k];
+                    coupledDataList.push({ x: res, y: intensity });
+                }
+
+                // Find highest peak
+                let peakPt = coupledDataList[0];
+                for (let i = 1; i < coupledDataList.length; i++) {
+                    if (coupledDataList[i].y > peakPt.y) {
+                        peakPt = coupledDataList[i];
+                    }
+                }
+
+                return {
+                    name: filename,
+                    physicalData: data,
+                    coupledData: coupledDataList,
+                    peakResonance: peakPt,
+                    pointsCount: data.length,
+                    transformTimeMs: transformTime,
+                };
+            }
+
+            // Print to terminal console
+            function logTerminal(text, type = "system") {
+                const line = document.createElement("div");
+                line.className = `terminal-log-line ${type}`;
+                line.textContent = text;
+                terminalLog.appendChild(line);
+                terminalLog.scrollTop = terminalLog.scrollHeight;
+            }
+
+            // Load CSVs from assets directory
+            async function loadStaticSignals() {
+                logTerminal(
+                    "Initializing Hextech Terminal connection...",
+                    "system",
+                );
+                const scans = [
+                    {
+                        name: "hextech reading 1",
+                        path: "/data/jayce_1.csv",
+                    },
+                    {
+                        name: "hextech reading 2",
+                        path: "/data/jayce_2.csv",
+                    },
+                ];
+
+                for (let i = 0; i < scans.length; i++) {
+                    const scan = scans[i];
+                    try {
+                        const response = await fetch(scan.path);
+                        if (!response.ok)
+                            throw new Error(`HTTP error ${response.status}`);
+                        const text = await response.text();
+                        const result = parseCSV(text, scan.name);
+                        if (result) {
+                            loadedFiles.push(result);
+                        }
+                    } catch (err) {
+                        console.error(`Failed to load ${scan.name}:`, err);
+                    }
+                }
+
+                if (loadedFiles.length > 0) {
+                    activeFileIndex = 0;
+                    renderFileList();
+                    selectFile(0);
+                    logTerminal(
+                        "Gateway coupling verified. Data profiles loaded successfully.",
+                        "success",
+                    );
+                    logTerminal(
+                        "Type resonance coupling code to isolate signal components.",
+                        "system",
+                    );
+                } else {
+                    logTerminal(
+                        "ERROR: Failed to establish data link to profile storage.",
+                        "error",
+                    );
+                }
+            }
+
+            // Render Files in Sidebar list
+            function renderFileList() {
+                const list = document.getElementById("file-list");
+                list.innerHTML = "";
+
+                const filtered = loadedFiles.filter((file) =>
+                    file.name
+                        .toUpperCase()
+                        .includes(searchFilter.toUpperCase()),
+                );
+
+                filtered.forEach((file) => {
+                    const isGlobalActive =
+                        loadedFiles[activeFileIndex] === file;
+                    const item = document.createElement("div");
+                    item.className = `file-item ${isGlobalActive ? "active" : ""}`;
+                    item.onclick = () => {
+                        const originalIdx = loadedFiles.indexOf(file);
+                        selectFile(originalIdx);
+                    };
+
+                    item.innerHTML = `
+                        <span class="file-item-name">${file.name}</span>
+                        <div class="file-item-meta">
+                            <span>Points: ${file.pointsCount}</span>
+                            <span>Noise: High</span>
+                        </div>
+                    `;
+                    list.appendChild(item);
+                });
+            }
+
+            // Select active file
+            function selectFile(index) {
+                activeFileIndex = index;
+                renderFileList();
+
+                const file = loadedFiles[activeFileIndex];
+                if (file) {
+                    document.getElementById("active-file-title").textContent =
+                        file.name;
+                    document.getElementById("stat-points").textContent =
+                        file.pointsCount;
+                    logTerminal(
+                        `DATA LINK ESTABLISHED: ${file.name} loaded.`,
+                        "system",
+                    );
+
+                    // Set Domain to physical space on file switch so they must type the command again
+                    setDomain("physical");
+                }
+            }
+
+            // Toggle view domains
+            function setDomain(domain) {
+                viewDomain = domain;
+
+                const file = loadedFiles[activeFileIndex];
+                if (!file) return;
+
+                const watermark = document.getElementById("watermark-bg");
+
+                if (viewDomain === "coupled") {
+                    hasUnlockedCoupledMode = true;
+                }
+
+                if (hasUnlockedCoupledMode) {
+                    const toggleGroup = document.getElementById(
+                        "domain-toggle-group",
+                    );
+                    if (toggleGroup) {
+                        toggleGroup.style.display = "flex";
+                        const btnPhysical = document.getElementById(
+                            "btn-domain-physical",
+                        );
+                        const btnCoupled =
+                            document.getElementById("btn-domain-coupled");
+                        if (viewDomain === "physical") {
+                            btnPhysical.classList.add("active");
+                            btnPhysical.classList.remove("active-gold");
+                            btnCoupled.classList.remove(
+                                "active",
+                                "active-gold",
+                            );
+                        } else {
+                            btnPhysical.classList.remove(
+                                "active",
+                                "active-gold",
+                            );
+                            btnCoupled.classList.add("active-gold");
+                            btnCoupled.classList.remove("active");
+                        }
+                    }
+                }
+
+                if (viewDomain === "physical") {
+                    document.getElementById("stat-domain").textContent =
+                        "PHYSICAL (SPATIAL)";
+                    document.getElementById("stat-domain").className =
+                        "stat-highlight-gold";
+                    document.getElementById("stat-peak").textContent = "-";
+                    if (watermark) watermark.textContent = "PHYSICAL";
+
+                    document.getElementById("label-x").textContent =
+                        "Position:";
+                    document.getElementById("label-y").textContent =
+                        "Amplitude:";
+
+                    // Compute Limits
+                    const xVals = file.physicalData.map((pt) => pt.x);
+                    const yVals = file.physicalData.map((pt) => pt.y);
+                    limits.xMin = xVals[0];
+                    limits.xMax = xVals[xVals.length - 1];
+                    const yMin = Math.min(...yVals);
+                    const yMax = Math.max(...yVals);
+                    const padY = (yMax - yMin) * 0.1;
+                    limits.yMin = yMin - padY;
+                    limits.yMax = yMax + padY;
+                } else {
+                    document.getElementById("stat-domain").textContent =
+                        "RESONANT DOMAIN";
+                    document.getElementById("stat-domain").className =
+                        "stat-highlight";
+                    document.getElementById("stat-peak").textContent =
+                        `${file.peakResonance.x.toFixed(2)} rev/s (Int: ${file.peakResonance.y.toFixed(1)})`;
+                    if (watermark) watermark.textContent = "COUPLED";
+
+                    document.getElementById("label-x").textContent =
+                        "Resonance:";
+                    document.getElementById("label-y").textContent =
+                        "Intensity:";
+
+                    // Compute Limits
+                    const xVals = file.coupledData.map((pt) => pt.x);
+                    const yVals = file.coupledData.map((pt) => pt.y);
+                    limits.xMin = 0;
+                    limits.xMax = xVals[xVals.length - 1]; // Show full range of frequencies
+                    const yMax = Math.max(...yVals);
+                    limits.yMin = 0;
+                    limits.yMax = yMax * 1.15;
+                }
+
+                resetView();
+            }
+
+            // Command console prompt processing
+            function executeCommand(inputLine) {
+                const cmd = inputLine.trim();
+                if (!cmd) return;
+
+                logTerminal(`JAYCE@PILTOVER-HIGH-LAB:~$ ${cmd}`, "input");
+
+                const cleanCmd = cmd.toLowerCase();
+
+                if (cleanCmd === "fourier transform") {
+                    const file = loadedFiles[activeFileIndex];
+                    if (!file) {
+                        logTerminal("ERROR: No active signal loaded.", "error");
+                        return;
+                    }
+                    logTerminal(
+                        `Initiating resonance coupling sequence...`,
+                        "system",
+                    );
+                    setDomain("coupled");
+                    logTerminal(
+                        `SUCCESS: Coupled in ${file.transformTimeMs}ms. Peak resonance isolated at ${file.peakResonance.x.toFixed(2)} rev/s.`,
+                        "success",
+                    );
+                } else if (
+                    cleanCmd === "physical space" ||
+                    cleanCmd === "physical" ||
+                    cleanCmd === "amplitude"
+                ) {
+                    logTerminal(
+                        "Restoring physical signal representation.",
+                        "system",
+                    );
+                    setDomain("physical");
+                } else if (cleanCmd === "reset" || cleanCmd === "reset view") {
+                    resetView();
+                    logTerminal(
+                        "Graph viewport resets to default calibrated bounds.",
+                        "system",
+                    );
+                } else if (cleanCmd === "clear") {
+                    terminalLog.innerHTML = "";
+                } else if (cleanCmd === "help") {
+                    logTerminal("AVAILABLE LABORATORY COMMANDS:", "success");
+                    if (hasUnlockedCoupledMode) {
+                        logTerminal(
+                            "  fourier transform             - Switch graph to coupled resonance spectrum",
+                            "system",
+                        );
+                    } else {
+                        logTerminal(
+                            "  [LOCKED COMMAND]                - Requires resonance coupling authorization code",
+                            "system",
+                        );
+                    }
+                    logTerminal(
+                        "  physical space                  - Restore standard noisy wave representation",
+                        "system",
+                    );
+                    logTerminal(
+                        "  reset                           - Reset zoom/pan back to default boundaries",
+                        "system",
+                    );
+                    logTerminal(
+                        "  system status                   - Query current analyzer system heuristics",
+                        "system",
+                    );
+                    logTerminal(
+                        "  clear                           - Clear the console log screen",
+                        "system",
+                    );
+                } else if (cleanCmd === "system status") {
+                    const file = loadedFiles[activeFileIndex];
+                    logTerminal(
+                        "--- HEXTECH RESONANCE DIAGNOSTICS STATS ---",
+                        "success",
+                    );
+                    logTerminal(
+                        `ACTIVE PROFILE  : ${file ? file.name : "NONE"}`,
+                        "system",
+                    );
+                    logTerminal(
+                        `DATA SAMPLES    : ${file ? file.pointsCount : 0} points`,
+                        "system",
+                    );
+                    logTerminal(
+                        `WINDOW BOUNDS   : ${file ? file.physicalData[file.physicalData.length - 1].x.toFixed(2) + " physical units" : "N/A"}`,
+                        "system",
+                    );
+                    logTerminal(
+                        `COUPLED BINS    : ${file ? file.coupledData.length : 0} channels`,
+                        "system",
+                    );
+                    const capFreq = file
+                        ? (
+                              1 /
+                              (2 *
+                                  (file.physicalData[1].x -
+                                      file.physicalData[0].x))
+                          ).toFixed(2)
+                        : "500.00";
+                    logTerminal(`RESOLUTION CAP  : ${capFreq} rev/s`, "system");
+                    logTerminal(`GATEWAY STAT    : CONNECTED`, "system");
+                } else {
+                    // Check if they typed a file name
+                    const matchedFileIdx = loadedFiles.findIndex((f) =>
+                        f.name.toLowerCase().startsWith(cleanCmd),
+                    );
+                    if (matchedFileIdx !== -1) {
+                        selectFile(matchedFileIdx);
+                    } else {
+                        logTerminal(
+                            `ERROR: Command '${cmd}' unrecognized. Type 'help' for diagnostics.`,
+                            "error",
+                        );
+                    }
+                }
+            }
+
+            // Command input key listener
+            terminalInput.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    const val = terminalInput.value;
+                    executeCommand(val);
+                    terminalInput.value = "";
+                }
+            });
+
+            // Graph Canvas Coordinates Mappings & Dimensions
+            let canvasMargin = { left: 60, right: 25, top: 25, bottom: 45 };
+
+            function getPlotDimensions() {
+                const dpr = window.devicePixelRatio || 1;
+                const padLeft = canvasMargin.left * dpr;
+                const padRight = canvasMargin.right * dpr;
+                const padTop = canvasMargin.top * dpr;
+                const padBottom = canvasMargin.bottom * dpr;
+
+                const plotWidth = canvas.width - padLeft - padRight;
+                const plotHeight = canvas.height - padTop - padBottom;
+
+                return {
+                    padLeft,
+                    padRight,
+                    padTop,
+                    padBottom,
+                    plotWidth,
+                    plotHeight,
+                };
+            }
+
+            function dataToPixel(x, y) {
+                const { padLeft, padBottom, plotWidth, plotHeight } =
+                    getPlotDimensions();
+
+                const px =
+                    padLeft +
+                    ((x - viewLimits.xMin) /
+                        (viewLimits.xMax - viewLimits.xMin)) *
+                        plotWidth;
+                const py =
+                    canvas.height -
+                    padBottom -
+                    ((y - viewLimits.yMin) /
+                        (viewLimits.yMax - viewLimits.yMin)) *
+                        plotHeight;
+
+                return { x: px, y: py };
+            }
+
+            function pixelToData(px, py) {
+                const { padLeft, padBottom, plotWidth, plotHeight } =
+                    getPlotDimensions();
+
+                const dx =
+                    viewLimits.xMin +
+                    ((px - padLeft) / plotWidth) *
+                        (viewLimits.xMax - viewLimits.xMin);
+                const dy =
+                    viewLimits.yMin +
+                    ((canvas.height - padBottom - py) / plotHeight) *
+                        (viewLimits.yMax - viewLimits.yMin);
+
+                return { x: dx, y: dy };
+            }
+
+            // Canvas Redrawing loop
+            let isRedrawPending = false;
+            function requestRedraw() {
+                if (!isRedrawPending) {
+                    isRedrawPending = true;
+                    requestAnimationFrame(drawGraph);
+                }
+            }
+
+            function resetView() {
+                viewLimits = { ...limits };
+                requestRedraw();
+            }
+
+            // Handle Resize using ResizeObserver (to match ekko's robustness)
+            function resizeCanvas() {
+                const rect = canvasContainer.getBoundingClientRect();
+                const dpr = window.devicePixelRatio || 1;
+
+                if (rect.width > 0 && rect.height > 0) {
+                    canvas.width = rect.width * dpr;
+                    canvas.height = rect.height * dpr;
+                    requestRedraw();
+                }
+            }
+
+            const resizeObserver = new ResizeObserver(() => {
+                resizeCanvas();
+            });
+            resizeObserver.observe(canvasContainer);
+
+            function drawGraph() {
+                isRedrawPending = false;
+                if (canvas.width === 0 || canvas.height === 0) return;
+
+                const dpr = window.devicePixelRatio || 1;
+
+                // Clear
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                const file = loadedFiles[activeFileIndex];
+                if (!file) {
+                    // Empty UI State
+                    ctx.fillStyle = "var(--text-muted)";
+                    ctx.font = `${18 * dpr}px "Teko", sans-serif`;
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(
+                        "WAITING FOR HEXTECH CORRELATOR CONNECTION...",
+                        canvas.width / 2,
+                        canvas.height / 2,
+                    );
+                    return;
+                }
+
+                const data =
+                    viewDomain === "physical"
+                        ? file.physicalData
+                        : file.coupledData;
+                const plotColor =
+                    viewDomain === "physical" ? "#00e5ff" : "#c8aa6e";
+                const glowColor =
+                    viewDomain === "physical"
+                        ? "rgba(0, 229, 255, 0.4)"
+                        : "rgba(200, 170, 110, 0.4)";
+
+                const {
+                    padLeft,
+                    padRight,
+                    padTop,
+                    padBottom,
+                    plotWidth,
+                    plotHeight,
+                } = getPlotDimensions();
+                const plotW = plotWidth;
+                const plotH = plotHeight;
+
+                // 1. Draw Grid ticks & guides
+                ctx.strokeStyle = "rgba(26, 56, 92, 0.25)";
+                ctx.lineWidth = 1 * dpr;
+                ctx.font = `${8.5 * dpr}px "Share Tech Mono", monospace`;
+                ctx.fillStyle = "var(--text-muted)";
+
+                // Verticals (X Ticks)
+                const xTickCount = 10;
+                ctx.textAlign = "center";
+                ctx.textBaseline = "top";
+                for (let i = 0; i <= xTickCount; i++) {
+                    const frac = i / xTickCount;
+                    const dataX =
+                        viewLimits.xMin +
+                        frac * (viewLimits.xMax - viewLimits.xMin);
+                    const pixelCoords = dataToPixel(dataX, 0);
+
+                    if (
+                        pixelCoords.x >= padLeft &&
+                        pixelCoords.x <= canvas.width - padRight
+                    ) {
+                        ctx.beginPath();
+                        ctx.moveTo(pixelCoords.x, padTop);
+                        ctx.lineTo(pixelCoords.x, canvas.height - padBottom);
+                        ctx.stroke();
+
+                        // Label
+                        const labelText =
+                            viewDomain === "physical"
+                                ? dataX.toFixed(1)
+                                : dataX.toFixed(2) + " rev/s";
+                        ctx.fillText(
+                            labelText,
+                            pixelCoords.x,
+                            canvas.height - padBottom + 8 * dpr,
+                        );
+                    }
+                }
+
+                // Horizontals (Y Ticks)
+                const yTickCount = 8;
+                ctx.textAlign = "right";
+                ctx.textBaseline = "middle";
+                for (let i = 0; i <= yTickCount; i++) {
+                    const frac = i / yTickCount;
+                    const dataY =
+                        viewLimits.yMin +
+                        frac * (viewLimits.yMax - viewLimits.yMin);
+                    const pixelCoords = dataToPixel(0, dataY);
+
+                    if (
+                        pixelCoords.y >= padTop &&
+                        pixelCoords.y <= canvas.height - padBottom
+                    ) {
+                        ctx.beginPath();
+                        ctx.moveTo(padLeft, pixelCoords.y);
+                        ctx.lineTo(canvas.width - padRight, pixelCoords.y);
+                        ctx.stroke();
+
+                        // Label
+                        const labelText = dataY.toFixed(1);
+                        ctx.fillText(
+                            labelText,
+                            padLeft - 8 * dpr,
+                            pixelCoords.y,
+                        );
+                    }
+                }
+
+                // Axes Boundaries
+                ctx.strokeStyle = "var(--hextech-navy-border)";
+                ctx.lineWidth = 1.5 * dpr;
+                ctx.beginPath();
+                ctx.moveTo(padLeft, padTop);
+                ctx.lineTo(padLeft, canvas.height - padBottom);
+                ctx.lineTo(canvas.width - padRight, canvas.height - padBottom);
+                ctx.stroke();
+
+                // 2. Draw Data Signal Line
+                ctx.save();
+                // Clipping Region
+                ctx.beginPath();
+                ctx.rect(padLeft, padTop, plotW, plotH);
+                ctx.clip();
+
+                ctx.strokeStyle = plotColor;
+                ctx.lineWidth = 1.5 * dpr;
+                ctx.shadowColor = glowColor;
+                ctx.shadowBlur = 6 * dpr;
+
+                ctx.beginPath();
+                let isFirst = true;
+                for (let i = 0; i < data.length; i++) {
+                    const pt = data[i];
+                    const pxCoords = dataToPixel(pt.x, pt.y);
+
+                    if (isFirst) {
+                        ctx.moveTo(pxCoords.x, pxCoords.y);
+                        isFirst = false;
+                    } else {
+                        ctx.lineTo(pxCoords.x, pxCoords.y);
+                    }
+                }
+                ctx.stroke();
+                ctx.restore();
+
+                // 3. Draw Peak Indicator (Only in Resonant Domain)
+                if (viewDomain === "coupled" && file.peakResonance) {
+                    const peak = file.peakResonance;
+                    const peakPt = dataToPixel(peak.x, peak.y);
+
+                    if (
+                        peakPt.x >= padLeft &&
+                        peakPt.x <= canvas.width - padRight &&
+                        peakPt.y >= padTop &&
+                        peakPt.y <= canvas.height - padBottom
+                    ) {
+                        const pulse =
+                            4 * dpr +
+                            (Math.sin(Date.now() / 150) + 1.0) * 4 * dpr;
+
+                        // Core Dot
+                        ctx.beginPath();
+                        ctx.arc(peakPt.x, peakPt.y, 4 * dpr, 0, Math.PI * 2);
+                        ctx.fillStyle = "var(--hextech-gold)";
+                        ctx.fill();
+
+                        // Pulsing Halo
+                        ctx.beginPath();
+                        ctx.arc(peakPt.x, peakPt.y, pulse, 0, Math.PI * 2);
+                        ctx.strokeStyle = "rgba(200, 170, 110, 0.4)";
+                        ctx.lineWidth = 1.5 * dpr;
+                        ctx.stroke();
+
+                        // Pointer line
+                        ctx.strokeStyle = "var(--hextech-gold)";
+                        ctx.lineWidth = 1 * dpr;
+                        ctx.setLineDash([2 * dpr, 2 * dpr]);
+                        ctx.beginPath();
+                        ctx.moveTo(peakPt.x, peakPt.y);
+                        ctx.lineTo(peakPt.x, peakPt.y - 30 * dpr);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+
+                        // Bubble text
+                        const txt = `RESONANCE: ${peak.x.toFixed(2)} rev/s (Int: ${peak.y.toFixed(2)})`;
+                        ctx.font = `bold ${9 * dpr}px "Share Tech Mono", monospace`;
+                        const txtW = ctx.measureText(txt).width;
+                        const bubbleW = txtW + 12 * dpr;
+                        const bubbleH = 18 * dpr;
+                        const bx = peakPt.x - bubbleW / 2;
+                        const by = peakPt.y - 30 * dpr - bubbleH;
+
+                        ctx.fillStyle = "rgba(8, 12, 18, 0.95)";
+                        ctx.strokeStyle = "var(--hextech-gold)";
+                        ctx.lineWidth = 1 * dpr;
+                        ctx.beginPath();
+                        ctx.roundRect(bx, by, bubbleW, bubbleH, 3 * dpr);
+                        ctx.fill();
+                        ctx.stroke();
+
+                        ctx.fillStyle = "var(--hextech-gold)";
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "middle";
+                        ctx.fillText(txt, peakPt.x, by + bubbleH / 2);
+                    }
+                }
+
+                // Render Interactive Delta Ruler
+
+                // Render Hover Cursor Crosshairs
+                if (hoverPoint && !isDragging && activeFileIndex !== -1) {
+                    const mousePixel = dataToPixel(hoverPoint.x, hoverPoint.y);
+
+                    if (
+                        mousePixel.x >= padLeft &&
+                        mousePixel.x <= canvas.width - padRight &&
+                        mousePixel.y >= padTop &&
+                        mousePixel.y <= canvas.height - padBottom
+                    ) {
+                        ctx.strokeStyle = "rgba(0, 229, 255, 0.25)";
+                        ctx.lineWidth = 1 * dpr;
+                        ctx.setLineDash([3 * dpr, 3 * dpr]);
+
+                        // Vertical crosshair
+                        ctx.beginPath();
+                        ctx.moveTo(mousePixel.x, padTop);
+                        ctx.lineTo(mousePixel.x, canvas.height - padBottom);
+                        ctx.stroke();
+
+                        // Horizontal crosshair
+                        ctx.beginPath();
+                        ctx.moveTo(padLeft, mousePixel.y);
+                        ctx.lineTo(canvas.width - padRight, mousePixel.y);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                    }
+                }
+            }
+
+            // Interactive Panning & Zooming events
+            let isDragging = false;
+            let dragStartPos = { x: 0, y: 0 };
+            let dragStartLimits = { xMin: 0, xMax: 100, yMin: 0, yMax: 100 };
+
+            function getMouseCoords(e) {
+                const rect = canvas.getBoundingClientRect();
+                const dpr = window.devicePixelRatio || 1;
+                const px = (e.clientX - rect.left) * dpr;
+                const py = (e.clientY - rect.top) * dpr;
+                return { px, py };
+            }
+
+            canvas.addEventListener("mousedown", (e) => {
+                if (activeFileIndex === -1) return;
+
+                const { px, py } = getMouseCoords(e);
+                isDragging = true;
+                dragStartPos = { x: px, y: py };
+                dragStartLimits = { ...viewLimits };
+            });
+
+            canvas.addEventListener("mousemove", (e) => {
+                if (activeFileIndex === -1) return;
+
+                const { px, py } = getMouseCoords(e);
+                const mouseData = pixelToData(px, py);
+
+                // Update Realtime Readings Panel
+                const { padLeft, padRight, padTop, padBottom } =
+                    getPlotDimensions();
+                if (
+                    px >= padLeft &&
+                    px <= canvas.width - padRight &&
+                    py >= padTop &&
+                    py <= canvas.height - padBottom
+                ) {
+                    document.getElementById("hud-coords").style.display =
+                        "flex";
+
+                    const snapPt = snapToNearestPoint(mouseData.x);
+                    if (snapPt) {
+                        const unitX = viewDomain === "physical" ? "" : " rev/s";
+                        const unitY =
+                            viewDomain === "physical" ? " a.u." : " mag";
+                        document.getElementById("cursor-x").textContent =
+                            snapPt.x.toFixed(2) + unitX;
+                        document.getElementById("cursor-y").textContent =
+                            snapPt.y.toFixed(2) + unitY;
+                        hoverPoint = { x: snapPt.x, y: snapPt.y, px, py };
+                    } else {
+                        hoverPoint = null;
+                    }
+                } else {
+                    document.getElementById("hud-coords").style.display =
+                        "none";
+                    hoverPoint = null;
+                }
+
+                // Handle Drag Panning
+                if (isDragging) {
+                    hoverPoint = null;
+                    const dxPixels = px - dragStartPos.x;
+                    const dyPixels = py - dragStartPos.y;
+
+                    const { plotWidth, plotHeight } = getPlotDimensions();
+
+                    const viewRangeX =
+                        dragStartLimits.xMax - dragStartLimits.xMin;
+                    const viewRangeY =
+                        dragStartLimits.yMax - dragStartLimits.yMin;
+
+                    const deltaDataX = (dxPixels / plotWidth) * viewRangeX;
+                    const deltaDataY = (dyPixels / plotHeight) * viewRangeY;
+
+                    if (zoomMode === "both" || zoomMode === "x") {
+                        viewLimits.xMin = dragStartLimits.xMin - deltaDataX;
+                        viewLimits.xMax = dragStartLimits.xMax - deltaDataX;
+                    }
+                    if (zoomMode === "both" || zoomMode === "y") {
+                        viewLimits.yMin = dragStartLimits.yMin + deltaDataY;
+                        viewLimits.yMax = dragStartLimits.yMax + deltaDataY;
+                    }
+
+                    requestRedraw();
+                } else {
+                    requestRedraw();
+                }
+            });
+
+            canvas.addEventListener("mouseleave", () => {
+                hoverPoint = null;
+                const hudCoords = document.getElementById("hud-coords");
+                if (hudCoords) {
+                    hudCoords.style.display = "none";
+                }
+                requestRedraw();
+            });
+
+            // Snap mouse position to nearest data X value
+            function snapToNearestPoint(dataX) {
+                const file = loadedFiles[activeFileIndex];
+                if (!file) return null;
+
+                const data =
+                    viewDomain === "physical"
+                        ? file.physicalData
+                        : file.coupledData;
+                if (data.length === 0) return null;
+
+                // Binary search along sorted X values
+                let low = 0;
+                let high = data.length - 1;
+
+                while (low < high) {
+                    const mid = Math.floor((low + high) / 2);
+                    if (data[mid].x < dataX) {
+                        low = mid + 1;
+                    } else {
+                        high = mid;
+                    }
+                }
+
+                // Compare with neighbor
+                let idx = low;
+                if (
+                    idx > 0 &&
+                    Math.abs(data[idx - 1].x - dataX) <
+                        Math.abs(data[idx].x - dataX)
+                ) {
+                    idx = idx - 1;
+                }
+
+                return data[idx];
+            }
+
+            window.addEventListener("mouseup", () => {
+                isDragging = false;
+            });
+
+            // Double Click to Reset Viewport
+            canvas.addEventListener("dblclick", () => {
+                resetView();
+                logTerminal(
+                    "Graph viewport resets to default calibrated bounds.",
+                    "system",
+                );
+            });
+
+            // Mouse wheel Zoom logic
+            canvas.addEventListener("wheel", (e) => {
+                if (activeFileIndex === -1) return;
+                e.preventDefault();
+
+                const { px, py } = getMouseCoords(e);
+                const mouseData = pixelToData(px, py);
+
+                const zoomFactor = e.deltaY < 0 ? 0.88 : 1.12;
+
+                const rangeX = viewLimits.xMax - viewLimits.xMin;
+                const rangeY = viewLimits.yMax - viewLimits.yMin;
+
+                if (zoomMode === "both" || zoomMode === "x") {
+                    viewLimits.xMin =
+                        mouseData.x -
+                        (mouseData.x - viewLimits.xMin) * zoomFactor;
+                    viewLimits.xMax = viewLimits.xMin + rangeX * zoomFactor;
+                }
+                if (zoomMode === "both" || zoomMode === "y") {
+                    viewLimits.yMin =
+                        mouseData.y -
+                        (mouseData.y - viewLimits.yMin) * zoomFactor;
+                    viewLimits.yMax = viewLimits.yMin + rangeY * zoomFactor;
+                }
+
+                requestRedraw();
+            });
+
+            // Domain toggle buttons
+            document.getElementById("btn-domain-physical").onclick = () => {
+                setDomain("physical");
+                logTerminal(
+                    "Switched representation: physical space.",
+                    "system",
+                );
+            };
+            document.getElementById("btn-domain-coupled").onclick = () => {
+                setDomain("coupled");
+                logTerminal(
+                    "Switched representation: coupled domain.",
+                    "system",
+                );
+            };
+
+            // Zoom lock buttons
+            document.getElementById("zoom-axis-both").onclick = (e) => {
+                zoomMode = "both";
+                updateZoomLockUI("zoom-axis-both");
+            };
+            document.getElementById("zoom-axis-x").onclick = (e) => {
+                zoomMode = "x";
+                updateZoomLockUI("zoom-axis-x");
+            };
+            document.getElementById("zoom-axis-y").onclick = (e) => {
+                zoomMode = "y";
+                updateZoomLockUI("zoom-axis-y");
+            };
+
+            function updateZoomLockUI(activeId) {
+                ["zoom-axis-both", "zoom-axis-x", "zoom-axis-y"].forEach(
+                    (id) => {
+                        const btn = document.getElementById(id);
+                        if (id === activeId) {
+                            btn.classList.add("active-gold");
+                        } else {
+                            btn.classList.remove("active-gold");
+                        }
+                    },
+                );
+            }
+
+            // Sidebar search box
+            document
+                .getElementById("search-box")
+                .addEventListener("input", (e) => {
+                    searchFilter = e.target.value;
+                    renderFileList();
+                });
+
+            // Auto-focus terminal input on section click
+            document
+                .getElementById("terminal-section")
+                .addEventListener("click", () => {
+                    document.getElementById("terminal-input").focus();
+                });
+
+            // System Logger helper
+            function logSystem(msg) {
+                const sysMsg = document.getElementById("system-message");
+                if (sysMsg) {
+                    sysMsg.textContent = `HEX_SYS: ${msg}`;
+                }
+                logTerminal(msg, "system");
+            }
+
+            // Update Delta Info HUD Panel overlay
+
+            // Button reset view
+            document.getElementById("reset-view-btn").onclick = () => {
+                executeCommand("reset");
+            };
+
+            // Security: Prevent Right Click
+            document.addEventListener("contextmenu", (e) => e.preventDefault());
+
+            // Security: Prevent common Developer Tools keyboard shortcuts
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "F12") e.preventDefault();
+
+                const isModifier =
+                    (e.ctrlKey || e.metaKey) && (e.shiftKey || e.altKey);
+
+                if (
+                    isModifier &&
+                    (e.key === "I" || e.key === "i" || e.code === "KeyI")
+                )
+                    e.preventDefault();
+                if (
+                    isModifier &&
+                    (e.key === "C" || e.key === "c" || e.code === "KeyC")
+                )
+                    e.preventDefault();
+                if (
+                    isModifier &&
+                    (e.key === "J" || e.key === "j" || e.code === "KeyJ")
+                )
+                    e.preventDefault();
+
+                if (
+                    (e.ctrlKey || e.metaKey) &&
+                    (e.key === "U" || e.key === "u" || e.code === "KeyU")
+                )
+                    e.preventDefault();
+            });
+
+            // On initialization
+            loadStaticSignals();
+
+            // Auto-render loop for pulsing peak indicator
+            setInterval(() => {
+                if (viewDomain === "coupled") {
+                    requestRedraw();
+                }
+            }, 30);
+        </script>
+    </body>
+</html>

@@ -1,0 +1,1934 @@
+---
+// EKKO XRD Analyzer - Standalone Web App
+// A self-contained XRD Interactive Graph Viewer featuring a Zaunite Hextech / Chemtech industrial aesthetic.
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>EKKO // Z-Drive Temporal XRD Spectrograph</title>
+
+        <!-- Google Fonts: Teko for high-tech HUD titles, Share Tech Mono / Courier Prime for numeric data -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Teko:wght@500;700&family=Share+Tech+Mono&display=swap"
+            rel="stylesheet"
+        />
+
+        <style is:global>
+            :root {
+                --bg-color: #0c0e12;
+                --zaun-green: #0df06d;
+                --zaun-green-glow: rgba(13, 240, 109, 0.4);
+                --zaun-cyan: #00e5ff;
+                --zaun-cyan-glow: rgba(0, 229, 255, 0.4);
+                --hextech-gold: #c8aa6e;
+                --hextech-gold-glow: rgba(200, 170, 110, 0.4);
+                --rose-accent: #ff3366;
+                --rose-accent-glow: rgba(255, 51, 102, 0.3);
+                --panel-bg: rgba(18, 22, 28, 0.85);
+                --border-color: rgba(0, 229, 255, 0.15);
+                --border-color-active: rgba(13, 240, 109, 0.5);
+                --text-light: #e0e6ed;
+                --text-muted: #7b8896;
+            }
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body,
+            html {
+                width: 100%;
+                height: 100%;
+                background-color: var(--bg-color);
+                font-family: "Share Tech Mono", monospace;
+                color: var(--text-light);
+                overflow: hidden;
+            }
+
+            /* Container Grid Layout */
+            .app-container {
+                display: grid;
+                grid-template-columns: 320px 1fr;
+                width: 100vw;
+                height: 100vh;
+                position: relative;
+                z-index: 10;
+            }
+
+            /* Sidebar Design */
+            .sidebar {
+                background: rgba(13, 16, 21, 0.95);
+                border-right: 1px solid var(--border-color);
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+                overflow: hidden;
+                box-shadow: 5px 0 25px rgba(0, 0, 0, 0.5);
+                z-index: 15;
+            }
+
+            .sidebar-header {
+                padding: 20px;
+                border-bottom: 1px solid var(--border-color);
+                background: linear-gradient(
+                    180deg,
+                    rgba(0, 229, 255, 0.05),
+                    transparent
+                );
+            }
+
+            .sidebar-title-container {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 5px;
+            }
+
+            .sidebar-title {
+                font-family: "Teko", sans-serif;
+                font-size: 2.2rem;
+                font-weight: 700;
+                letter-spacing: 2px;
+                color: var(--zaun-cyan);
+                text-shadow: 0 0 10px var(--zaun-cyan-glow);
+                text-transform: uppercase;
+                margin: 0;
+            }
+
+            .sidebar-subtitle {
+                font-size: 0.75rem;
+                color: var(--text-muted);
+                letter-spacing: 1px;
+                text-transform: uppercase;
+            }
+
+            /* Controls & Upload in Sidebar */
+            .controls-panel {
+                padding: 15px 20px;
+                border-bottom: 1px solid var(--border-color);
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .upload-btn-wrapper {
+                position: relative;
+                overflow: hidden;
+                display: inline-block;
+                width: 100%;
+            }
+
+            .btn {
+                background: rgba(0, 229, 255, 0.05);
+                border: 1px solid var(--zaun-cyan);
+                color: var(--zaun-cyan);
+                padding: 10px 15px;
+                font-family: "Share Tech Mono", monospace;
+                font-size: 0.85rem;
+                font-weight: bold;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                cursor: pointer;
+                width: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                transition: all 0.3s ease;
+                box-shadow: inset 0 0 10px rgba(0, 229, 255, 0.1);
+            }
+
+            .btn:hover {
+                background: var(--zaun-cyan);
+                color: #000;
+                box-shadow: 0 0 15px var(--zaun-cyan-glow);
+            }
+
+            .btn-green {
+                border-color: var(--zaun-green);
+                color: var(--zaun-green);
+                box-shadow: inset 0 0 10px rgba(13, 240, 109, 0.1);
+            }
+
+            .btn-green:hover {
+                background: var(--zaun-green);
+                color: #000;
+                box-shadow: 0 0 15px var(--zaun-green-glow);
+            }
+
+            .btn-rose {
+                border-color: var(--rose-accent);
+                color: var(--rose-accent);
+                box-shadow: inset 0 0 10px rgba(255, 51, 102, 0.1);
+            }
+
+            .btn-rose:hover {
+                background: var(--rose-accent);
+                color: #fff;
+                box-shadow: 0 0 15px var(--rose-accent-glow);
+            }
+
+            .upload-btn-wrapper input[type="file"] {
+                font-size: 100px;
+                position: absolute;
+                left: 0;
+                top: 0;
+                opacity: 0;
+                cursor: pointer;
+                width: 100%;
+                height: 100%;
+            }
+
+            /* Search Filter */
+            .search-box {
+                width: 100%;
+                background: rgba(12, 14, 18, 0.8);
+                border: 1px solid var(--border-color);
+                color: var(--text-light);
+                padding: 10px 12px;
+                font-family: "Share Tech Mono", monospace;
+                font-size: 0.85rem;
+                outline: none;
+                transition: all 0.3s ease;
+            }
+
+            .search-box:focus {
+                border-color: var(--zaun-cyan);
+                box-shadow: 0 0 8px rgba(0, 229, 255, 0.3);
+            }
+
+            /* Scrollable File List */
+            .file-list-container {
+                flex: 1;
+                overflow-y: auto;
+                padding: 15px 10px;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            /* Custom Scrollbar for Sidebar */
+            .file-list-container::-webkit-scrollbar {
+                width: 6px;
+            }
+            .file-list-container::-webkit-scrollbar-track {
+                background: rgba(0, 0, 0, 0.2);
+            }
+            .file-list-container::-webkit-scrollbar-thumb {
+                background: rgba(0, 229, 255, 0.2);
+                border-radius: 3px;
+            }
+            .file-list-container::-webkit-scrollbar-thumb:hover {
+                background: var(--zaun-cyan);
+            }
+
+            .file-item {
+                background: rgba(22, 27, 34, 0.6);
+                border: 1px solid rgba(255, 255, 255, 0.05);
+                padding: 12px;
+                cursor: pointer;
+                transition: all 0.25s ease;
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .file-item:hover {
+                background: rgba(0, 229, 255, 0.05);
+                border-color: rgba(0, 229, 255, 0.3);
+            }
+
+            .file-item.active {
+                background: rgba(13, 240, 109, 0.08);
+                border-color: var(--zaun-green);
+                box-shadow: inset 0 0 10px rgba(13, 240, 109, 0.1);
+            }
+
+            .file-item-name {
+                font-size: 0.85rem;
+                font-weight: bold;
+                word-break: break-all;
+                color: var(--text-light);
+            }
+
+            .file-item.active .file-item-name {
+                color: var(--zaun-green);
+            }
+
+            .file-item-meta {
+                display: flex;
+                justify-content: space-between;
+                font-size: 0.7rem;
+                color: var(--text-muted);
+            }
+
+            .file-item.active .file-item-meta {
+                color: rgba(13, 240, 109, 0.7);
+            }
+
+            .file-remove-btn {
+                position: absolute;
+                top: 8px;
+                right: 8px;
+                background: none;
+                border: none;
+                color: var(--text-muted);
+                cursor: pointer;
+                font-size: 0.8rem;
+                display: none;
+                line-height: 1;
+            }
+
+            .file-item:hover .file-remove-btn {
+                display: block;
+            }
+
+            .file-remove-btn:hover {
+                color: var(--rose-accent);
+            }
+
+            .sidebar-footer {
+                padding: 15px 20px;
+                border-top: 1px solid var(--border-color);
+                font-size: 0.65rem;
+                color: var(--text-muted);
+                background: rgba(10, 12, 16, 0.8);
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+            }
+
+            /* Main Graph Area Layout */
+            .main-content {
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+                overflow: hidden;
+                background: radial-gradient(
+                    circle at center,
+                    rgba(16, 21, 29, 0.3) 0%,
+                    rgba(12, 14, 18, 0.9) 100%
+                );
+                position: relative;
+            }
+
+            /* Top HUD Panel */
+            .hud-header {
+                padding: 15px 25px;
+                background: rgba(13, 16, 21, 0.85);
+                border-bottom: 1px solid var(--border-color);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                z-index: 12;
+            }
+
+            .active-file-info {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+            }
+
+            .active-file-title {
+                font-family: "Teko", sans-serif;
+                font-size: 1.8rem;
+                letter-spacing: 1px;
+                color: #ffffff;
+                text-transform: uppercase;
+            }
+
+            .active-file-stats {
+                display: flex;
+                gap: 15px;
+                font-size: 0.75rem;
+                color: var(--text-muted);
+            }
+
+            .stat-highlight {
+                color: var(--zaun-cyan);
+            }
+
+            .stat-highlight-green {
+                color: var(--zaun-green);
+            }
+
+            /* Toolbar Actions */
+            .toolbar {
+                display: flex;
+                gap: 10px;
+                align-items: center;
+            }
+
+            .tool-group {
+                display: flex;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                background: rgba(0, 0, 0, 0.25);
+                padding: 2px;
+            }
+
+            .tool-btn {
+                background: transparent;
+                border: none;
+                color: var(--text-muted);
+                padding: 6px 12px;
+                font-family: "Share Tech Mono", monospace;
+                font-size: 0.75rem;
+                text-transform: uppercase;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .tool-btn:hover {
+                color: var(--text-light);
+                background: rgba(255, 255, 255, 0.05);
+            }
+
+            .tool-btn.active {
+                background: var(--zaun-green);
+                color: #000;
+                font-weight: bold;
+                text-shadow: none;
+            }
+
+            .tool-btn.active-cyan {
+                background: var(--zaun-cyan);
+                color: #000;
+                font-weight: bold;
+                text-shadow: none;
+            }
+
+            /* Graph Canvas Workspace */
+            .canvas-container {
+                flex: 1;
+                position: relative;
+                overflow: hidden;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background: rgba(0, 0, 0, 0.3);
+                z-index: 10;
+            }
+
+            canvas {
+                display: block;
+                width: 100%;
+                height: 100%;
+                cursor: grab;
+            }
+
+            canvas:active {
+                cursor: grabbing;
+            }
+
+            canvas.crosshair-mode {
+                cursor: crosshair;
+            }
+
+            /* Overlay HUD Panels on Graph */
+            .hud-overlay {
+                position: absolute;
+                background: rgba(13, 16, 21, 0.9);
+                border: 1px solid var(--border-color);
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+                pointer-events: none;
+                z-index: 20;
+                padding: 12px;
+                font-size: 0.75rem;
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+            }
+
+            .hud-overlay::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 2px;
+                background: var(--zaun-cyan);
+            }
+
+            .hud-coordinates {
+                top: 20px;
+                right: 20px;
+                min-width: 180px;
+                border-left: 2px solid var(--zaun-cyan);
+            }
+
+            .hud-delta {
+                bottom: 20px;
+                left: 20px;
+                min-width: 250px;
+                border-left: 2px solid var(--rose-accent);
+                display: none; /* Shown dynamically when points set */
+            }
+
+            .hud-overlay::before.delta-header {
+                background: var(--rose-accent);
+            }
+
+            .hud-row {
+                display: flex;
+                justify-content: space-between;
+            }
+
+            .hud-label {
+                color: var(--text-muted);
+                text-transform: uppercase;
+                margin-right: 15px;
+            }
+
+            .hud-val {
+                color: #ffffff;
+                font-weight: bold;
+            }
+
+            .hud-val.green {
+                color: var(--zaun-green);
+                text-shadow: 0 0 5px var(--zaun-green-glow);
+            }
+
+            .hud-val.rose {
+                color: var(--rose-accent);
+                text-shadow: 0 0 5px var(--rose-accent-glow);
+            }
+
+            /* Instructions / Help box in bottom right */
+            .hud-help {
+                bottom: 20px;
+                right: 20px;
+                background: rgba(13, 16, 21, 0.8);
+                border: 1px solid rgba(255, 255, 255, 0.05);
+                color: var(--text-muted);
+                padding: 8px 12px;
+                font-size: 0.65rem;
+                border-radius: 2px;
+                pointer-events: none;
+                z-index: 12;
+            }
+
+            /* Watermark Overlay */
+            .watermark {
+                display: none;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-family: "Teko", sans-serif;
+                font-size: 14vw;
+                font-weight: bold;
+                color: rgba(0, 229, 255, 0.02);
+                letter-spacing: 10px;
+                text-transform: uppercase;
+                pointer-events: none;
+                z-index: 1;
+                user-select: none;
+            }
+
+            /* Scanlines Overlay */
+            .scanlines {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(
+                    to bottom,
+                    rgba(255, 255, 255, 0),
+                    rgba(255, 255, 255, 0) 50%,
+                    rgba(0, 0, 0, 0.12) 50%,
+                    rgba(0, 0, 0, 0.12)
+                );
+                background-size: 100% 4px;
+                pointer-events: none;
+                z-index: 100;
+            }
+
+            /* Drag/Drop Zone overlay */
+            .dropzone-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(12, 14, 18, 0.95);
+                border: 2px dashed var(--zaun-cyan);
+                z-index: 50;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                flex-direction: column;
+                gap: 15px;
+                backdrop-filter: blur(5px);
+            }
+
+            .dropzone-text {
+                font-family: "Teko", sans-serif;
+                font-size: 3rem;
+                color: var(--zaun-cyan);
+                text-shadow: 0 0 15px var(--zaun-cyan-glow);
+                letter-spacing: 2px;
+                text-transform: uppercase;
+            }
+
+            .dropzone-subtext {
+                font-size: 1rem;
+                color: var(--text-muted);
+            }
+
+            /* Quick Status Indicator bottom bar */
+            .status-bar {
+                background: rgba(10, 12, 16, 0.95);
+                border-top: 1px solid var(--border-color);
+                padding: 6px 20px;
+                font-size: 0.7rem;
+                color: var(--text-muted);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                z-index: 12;
+            }
+
+            .status-left {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .pulse-indicator {
+                width: 6px;
+                height: 6px;
+                background-color: var(--zaun-green);
+                border-radius: 50%;
+                box-shadow: 0 0 8px var(--zaun-green);
+                animation: pulse 1.5s infinite alternate;
+            }
+
+            @keyframes pulse {
+                0% {
+                    opacity: 0.4;
+                    box-shadow: 0 0 2px var(--zaun-green);
+                }
+                100% {
+                    opacity: 1;
+                    box-shadow: 0 0 10px var(--zaun-green);
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="scanlines"></div>
+        <div class="app-container">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <div class="sidebar-title-container">
+                        <h1 class="sidebar-title">EKKO // XRD</h1>
+                        <span class="pulse-indicator" title="System Operational"
+                        ></span>
+                    </div>
+                    <div class="sidebar-subtitle">Z-Drive Spectrograph</div>
+                </div>
+
+                <div class="controls-panel">
+                    <input
+                        type="text"
+                        class="search-box"
+                        id="search-box"
+                        placeholder="FILTER SCANS..."
+                        autocomplete="off"
+                        spellcheck="false"
+                    />
+                </div>
+
+                <!-- Scrollable Scan Files List -->
+                <div class="file-list-container" id="file-list">
+                    <!-- File items will be inserted dynamically by JS -->
+                </div>
+
+                <div class="sidebar-footer">
+                    <div>CALIBRATION: STABLE</div>
+                    <div>COGNITIVE LATENCY: 0.04s</div>
+                </div>
+            </div>
+
+            <!-- Main Workstation -->
+            <div class="main-content" id="drop-zone">
+                <!-- Top Header -->
+                <div class="hud-header">
+                    <div class="active-file-info">
+                        <div class="active-file-title" id="active-file-title">
+                            NO SPECTROGRAPH LOADED
+                        </div>
+                        <div class="active-file-stats" id="active-file-stats">
+                            <span
+                                >Points: <span
+                                    class="stat-highlight"
+                                    id="stat-points">0</span
+                                ></span
+                            >
+                            <span
+                                >Highest Peak (2θ): <span
+                                    class="stat-highlight-green"
+                                    id="stat-peak-2theta">-</span
+                                ></span
+                            >
+                            <span
+                                >Max Intensity: <span
+                                    class="stat-highlight-green"
+                                    id="stat-peak-intensity">-</span
+                                ></span
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Toolbar actions -->
+                    <div class="toolbar">
+                        <div class="tool-group">
+                            <button
+                                class="tool-btn active-cyan"
+                                id="zoom-axis-both">Zoom XY</button
+                            >
+                            <button class="tool-btn" id="zoom-axis-x"
+                                >Zoom X</button
+                            >
+                            <button class="tool-btn" id="zoom-axis-y"
+                                >Zoom Y</button
+                            >
+                        </div>
+
+                        <div class="tool-group">
+                            <button class="tool-btn" id="delta-tool-btn">
+                                <svg
+                                    width="12"
+                                    height="12"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2.5"
+                                    ><path
+                                        d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"
+                                    ></path></svg
+                                >
+                                Delta Ruler
+                            </button>
+                        </div>
+
+                        <button
+                            class="btn btn-rose"
+                            id="reset-view-btn"
+                            style="padding: 6px 12px; width: auto; font-size: 0.75rem;"
+                        >
+                            Reset View
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Interactive Graph Canvas Container -->
+                <div class="canvas-container" id="canvas-container">
+                    <canvas id="xrd-canvas"></canvas>
+
+                    <!-- Real-Time Cursor Readings Overlay -->
+                    <div class="hud-overlay hud-coordinates" id="hud-coords">
+                        <div class="hud-row">
+                            <span class="hud-label">Cursor 2θ:</span>
+                            <span class="hud-val" id="cursor-x">-</span>
+                        </div>
+                        <div class="hud-row">
+                            <span class="hud-label">Intensity:</span>
+                            <span class="hud-val green" id="cursor-y">-</span>
+                        </div>
+                        <div class="hud-row">
+                            <span class="hud-label">d-spacing:</span>
+                            <span class="hud-val" id="cursor-d">-</span>
+                        </div>
+                    </div>
+
+                    <!-- Delta Measurement Readings Overlay -->
+                    <div class="hud-overlay hud-delta" id="hud-delta-panel">
+                        <div
+                            style="font-family:'Teko'; font-size: 1.1rem; color: var(--rose-accent); border-bottom: 1px solid rgba(255, 51, 102, 0.2); padding-bottom: 3px; margin-bottom: 6px; letter-spacing: 1px;"
+                        >
+                            DIFFERENTIAL ANALYSIS
+                        </div>
+                        <div class="hud-row">
+                            <span class="hud-label">Point A (2θ, I):</span>
+                            <span class="hud-val" id="delta-a">-</span>
+                        </div>
+                        <div class="hud-row">
+                            <span class="hud-label">Point B (2θ, I):</span>
+                            <span class="hud-val" id="delta-b">-</span>
+                        </div>
+                        <div
+                            class="hud-row"
+                            style="border-top: 1px dashed rgba(255, 51, 102, 0.2); margin-top: 4px; padding-top: 4px;"
+                        >
+                            <span class="hud-label">Δ2-Theta (ΔX):</span>
+                            <span class="hud-val rose" id="delta-dx">-</span>
+                        </div>
+                        <div class="hud-row">
+                            <span class="hud-label">ΔIntensity (ΔY):</span>
+                            <span class="hud-val rose" id="delta-dy">-</span>
+                        </div>
+                    </div>
+
+                    <!-- Hover Help Tooltip -->
+                    <div class="hud-help" style="position: absolute;">
+                        Scroll = Zoom | Left-Drag = Pan | Double Click = Reset |
+                        Delta Tool = Measure
+                    </div>
+                </div>
+
+                <!-- Bottom Status Bar -->
+                <div class="status-bar">
+                    <div class="status-left">
+                        <span>SYS_STATUS: ACTIVE</span>
+                        <span style="color: rgba(255,255,255,0.1)">|</span>
+                        <span id="system-message"
+                            >Calibration profiles loaded successfully.</span
+                        >
+                    </div>
+                    <div>
+                        <span>WAVELENGTH (λ): 1.5406 Å (Cu-Kα)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Data storage
+            let loadedFiles = [];
+            let activeFileIndex = -1;
+            let searchFilter = "";
+            let zoomMode = "both"; // "both", "x", "y"
+            let measurementMode = false;
+            let pointA = null; // { x, y, px, py } in data coords and pixels
+            let pointB = null; // { x, y, px, py }
+            let hoverPoint = null; // { x, y, px, py } for current mouse position
+
+            // Graph limits & viewport limits
+            let limits = { xMin: 0, xMax: 100, yMin: 0, yMax: 100 };
+            let viewLimits = { xMin: 0, xMax: 100, yMin: 0, yMax: 100 };
+
+            // Canvas & Drawing contexts
+            const canvas = document.getElementById("xrd-canvas");
+            const ctx = canvas.getContext("2d");
+            const canvasContainer = document.getElementById("canvas-container");
+
+            // Load CSVs from public data directory on initialization
+            async function loadStaticScans() {
+                loadedFiles = [];
+                logSystem(
+                    "Initializing spectrograph scanner... Loading data profiles.",
+                );
+
+                const scans = [
+                    { name: "crystal scan 1", path: "/data/ekko_1.csv" },
+                    { name: "crystal scan 2", path: "/data/ekko_2.csv" },
+                    { name: "crystal scan 3", path: "/data/ekko_3.csv" },
+                    { name: "crystal scan 4", path: "/data/ekko_4.csv" },
+                ];
+
+                let loadedCount = 0;
+
+                for (let i = 0; i < scans.length; i++) {
+                    const scan = scans[i];
+                    try {
+                        const response = await fetch(scan.path);
+                        if (!response.ok)
+                            throw new Error(`HTTP error ${response.status}`);
+                        const text = await response.text();
+                        const result = parseCSV(text, scan.name);
+                        if (result) {
+                            loadedFiles.push(result);
+                            loadedCount++;
+                        }
+                    } catch (err) {
+                        console.error(`Failed to load ${scan.name}:`, err);
+                    }
+                }
+
+                if (loadedFiles.length > 0) {
+                    activeFileIndex = 0;
+                    renderFileList();
+                    selectFile(0);
+                    logSystem(
+                        "Spectrograph profiles loaded from calibration storage.",
+                    );
+                } else {
+                    logSystem(
+                        "Failed to load calibration profiles. Check server connection.",
+                    );
+                }
+            }
+
+            // CSV Parsing Logic
+            function parseCSV(text, filename) {
+                const lines = text.split(/\r?\n/);
+                const data = [];
+                let hasHeader = false;
+
+                // Let's analyze the first few non-empty lines to detect headers
+                let sampledLines = [];
+                for (
+                    let i = 0;
+                    i < lines.length && sampledLines.length < 5;
+                    i++
+                ) {
+                    const line = lines[i].trim();
+                    if (line) {
+                        sampledLines.push(line);
+                    }
+                }
+
+                if (sampledLines.length === 0) return null;
+
+                // Check if the first line is non-numeric (has headers)
+                const firstLine = sampledLines[0];
+                const parts = firstLine.split(/[,;\t]/);
+                const isFirstColNumeric = !isNaN(parseFloat(parts[0]));
+                const isSecondColNumeric = !isNaN(parseFloat(parts[1]));
+
+                // If either column name in the first row is NOT a number, treat as header
+                if (!isFirstColNumeric || !isSecondColNumeric) {
+                    hasHeader = true;
+                }
+
+                const startIndex = hasHeader ? 1 : 0;
+
+                for (let i = 0; i < lines.length; i++) {
+                    if (i === 0 && hasHeader) continue;
+
+                    const line = lines[i].trim();
+                    if (!line) continue;
+
+                    // Support commas, semicolons, tabs, or spaces as delimiters
+                    const cols = line
+                        .split(/[,;\t]/)
+                        .map((s) => s.trim())
+                        .filter((s) => s !== "");
+                    if (cols.length >= 2) {
+                        const x = parseFloat(cols[0]);
+                        const y = parseFloat(cols[1]);
+
+                        if (!isNaN(x) && !isNaN(y)) {
+                            data.push({ x, y });
+                        }
+                    }
+                }
+
+                if (data.length === 0) return null;
+
+                // Ensure data is sorted by X-axis (2-Theta) so canvas line connects in sequence
+                data.sort((a, b) => a.x - b.x);
+
+                // Find highest peak
+                let maxPt = data[0];
+                for (const pt of data) {
+                    if (pt.y > maxPt.y) {
+                        maxPt = pt;
+                    }
+                }
+
+                return {
+                    name: filename,
+                    data: data,
+                    pointsCount: data.length,
+                    highestPeak: maxPt,
+                };
+            }
+
+            // UI Actions: Rendering Files List
+            function renderFileList() {
+                const list = document.getElementById("file-list");
+                list.innerHTML = "";
+
+                const filtered = loadedFiles.filter((file) =>
+                    file.name
+                        .toLowerCase()
+                        .includes(searchFilter.toLowerCase()),
+                );
+
+                if (filtered.length === 0) {
+                    list.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 20px;">No matching scans found</div>`;
+                    return;
+                }
+
+                filtered.forEach((file) => {
+                    const realIndex = loadedFiles.indexOf(file);
+                    const item = document.createElement("div");
+                    item.className = `file-item ${realIndex === activeFileIndex ? "active" : ""}`;
+                    item.onclick = () => selectFile(realIndex);
+
+                    item.innerHTML = `
+                        <div class="file-item-name">${file.name.replace(".csv", "").replace(/_/g, " ")}</div>
+                        <div class="file-item-meta">
+                            <span>Points: ${file.pointsCount}</span>
+                            <span>Max: ${Math.round(file.highestPeak.y)}</span>
+                        </div>
+                    `;
+                    list.appendChild(item);
+                });
+            }
+
+            // Search Box filter
+            document
+                .getElementById("search-box")
+                .addEventListener("input", (e) => {
+                    searchFilter = e.target.value;
+                    renderFileList();
+                });
+
+            // Select File
+            function selectFile(index) {
+                if (index < 0 || index >= loadedFiles.length) return;
+                activeFileIndex = index;
+
+                const file = loadedFiles[index];
+
+                // Update active file UI details
+                document.getElementById("active-file-title").textContent =
+                    file.name.replace(".csv", "").toUpperCase();
+                document.getElementById("stat-points").textContent =
+                    file.pointsCount;
+                document.getElementById("stat-peak-2theta").textContent =
+                    file.highestPeak.x.toFixed(2) + "°";
+                document.getElementById("stat-peak-intensity").textContent =
+                    Math.round(file.highestPeak.y) + " a.u.";
+
+                // Calculate range limits of dataset
+                let xMin = Infinity,
+                    xMax = -Infinity;
+                let yMin = Infinity,
+                    yMax = -Infinity;
+
+                for (const pt of file.data) {
+                    if (pt.x < xMin) xMin = pt.x;
+                    if (pt.x > xMax) xMax = pt.x;
+                    if (pt.y < yMin) yMin = pt.y;
+                    if (pt.y > yMax) yMax = pt.y;
+                }
+
+                // Add nice default margins around coordinates
+                const padX = (xMax - xMin) * 0.05 || 1;
+                const padY = (yMax - yMin) * 0.05 || 100;
+
+                limits = {
+                    xMin: xMin,
+                    xMax: xMax,
+                    yMin: Math.max(0, yMin - padY), // don't go below 0 for XRD baseline normally
+                    yMax: yMax,
+                };
+
+                // Reset viewport to display full dataset
+                resetViewport();
+
+                // Clear measurement ruler points
+                pointA = null;
+                pointB = null;
+                updateDeltaHUD();
+
+                // Highlight correct element in list
+                const items = document.querySelectorAll(".file-item");
+                items.forEach((item, idx) => {
+                    const fileObj = loadedFiles[idx];
+                    const realIdx = loadedFiles.indexOf(fileObj);
+                    if (realIdx === activeFileIndex) {
+                        item.classList.add("active");
+                    } else {
+                        item.classList.remove("active");
+                    }
+                });
+
+                logSystem(
+                    `Active scan: ${file.name}. Baseline calibration ready.`,
+                );
+                requestRedraw();
+            }
+
+            function unloadActiveFile() {
+                document.getElementById("active-file-title").textContent =
+                    "NO SPECTROGRAPH LOADED";
+                document.getElementById("stat-points").textContent = "0";
+                document.getElementById("stat-peak-2theta").textContent = "-";
+                document.getElementById("stat-peak-intensity").textContent =
+                    "-";
+
+                pointA = null;
+                pointB = null;
+                updateDeltaHUD();
+                requestRedraw();
+            }
+
+            // Viewport operations
+            function resetViewport() {
+                const padX = (limits.xMax - limits.xMin) * 0.05 || 1;
+                const padY = (limits.yMax - limits.yMin) * 0.05 || 100;
+
+                viewLimits = {
+                    xMin: limits.xMin - padX,
+                    xMax: limits.xMax + padX,
+                    yMin: Math.max(0, limits.yMin),
+                    yMax: limits.yMax + padY,
+                };
+                requestRedraw();
+            }
+
+            document
+                .getElementById("reset-view-btn")
+                .addEventListener("click", () => {
+                    if (activeFileIndex !== -1) {
+                        resetViewport();
+                        logSystem(
+                            "Graph workspace limits reset to full spectrum.",
+                        );
+                    }
+                });
+
+            // Toggle Zoom Axes Configuration
+            const zoomBothBtn = document.getElementById("zoom-axis-both");
+            const zoomXBtn = document.getElementById("zoom-axis-x");
+            const zoomYBtn = document.getElementById("zoom-axis-y");
+
+            function updateZoomAxisUI() {
+                zoomBothBtn.classList.remove("active-cyan");
+                zoomXBtn.classList.remove("active-cyan");
+                zoomYBtn.classList.remove("active-cyan");
+
+                if (zoomMode === "both")
+                    zoomBothBtn.classList.add("active-cyan");
+                if (zoomMode === "x") zoomXBtn.classList.add("active-cyan");
+                if (zoomMode === "y") zoomYBtn.classList.add("active-cyan");
+            }
+
+            zoomBothBtn.addEventListener("click", () => {
+                zoomMode = "both";
+                updateZoomAxisUI();
+                logSystem("Zoom configured: Synchronous Dual-Axis (X & Y)");
+            });
+            zoomXBtn.addEventListener("click", () => {
+                zoomMode = "x";
+                updateZoomAxisUI();
+                logSystem("Zoom configured: 2-Theta Axis locked (X-Only)");
+            });
+            zoomYBtn.addEventListener("click", () => {
+                zoomMode = "y";
+                updateZoomAxisUI();
+                logSystem("Zoom configured: Intensity Axis locked (Y-Only)");
+            });
+
+            // Toggle Delta Measurement Tool
+            const deltaBtn = document.getElementById("delta-tool-btn");
+            deltaBtn.addEventListener("click", () => {
+                measurementMode = !measurementMode;
+                if (measurementMode) {
+                    deltaBtn.classList.add("active");
+                    canvas.classList.add("crosshair-mode");
+                    logSystem(
+                        "Differential Analyzer active: Click 2 points on the canvas to inspect difference.",
+                    );
+                } else {
+                    deltaBtn.classList.remove("active");
+                    canvas.classList.remove("crosshair-mode");
+                    pointA = null;
+                    pointB = null;
+                    updateDeltaHUD();
+                    logSystem("Differential Analyzer deactivated.");
+                }
+                requestRedraw();
+            });
+
+            // Clear delta mode on escape key
+            window.addEventListener("keydown", (e) => {
+                if (e.key === "Escape" && measurementMode) {
+                    pointA = null;
+                    pointB = null;
+                    updateDeltaHUD();
+                    requestRedraw();
+                    logSystem("Differential points cleared.");
+                }
+            });
+
+            // System Logger helper
+            function logSystem(msg) {
+                document.getElementById("system-message").textContent =
+                    `CAL_SYS: ${msg}`;
+            }
+
+            // Canvas coordinate mapping helper objects
+            let canvasMargin = { left: 70, right: 35, top: 45, bottom: 50 };
+
+            function getPlotDimensions() {
+                const dpr = window.devicePixelRatio || 1;
+                const padLeft = canvasMargin.left * dpr;
+                const padRight = canvasMargin.right * dpr;
+                const padTop = canvasMargin.top * dpr;
+                const padBottom = canvasMargin.bottom * dpr;
+
+                const plotWidth = canvas.width - padLeft - padRight;
+                const plotHeight = canvas.height - padTop - padBottom;
+
+                return {
+                    padLeft,
+                    padRight,
+                    padTop,
+                    padBottom,
+                    plotWidth,
+                    plotHeight,
+                };
+            }
+
+            // Convert data coords to canvas pixels
+            function dataToPixel(x, y) {
+                const { padLeft, padBottom, plotWidth, plotHeight } =
+                    getPlotDimensions();
+
+                const px =
+                    padLeft +
+                    ((x - viewLimits.xMin) /
+                        (viewLimits.xMax - viewLimits.xMin)) *
+                        plotWidth;
+                const py =
+                    canvas.height -
+                    padBottom -
+                    ((y - viewLimits.yMin) /
+                        (viewLimits.yMax - viewLimits.yMin)) *
+                        plotHeight;
+
+                return { x: px, y: py };
+            }
+
+            // Convert canvas pixels to data coords
+            function pixelToData(px, py) {
+                const { padLeft, padBottom, plotWidth, plotHeight } =
+                    getPlotDimensions();
+
+                const x =
+                    viewLimits.xMin +
+                    ((px - padLeft) / plotWidth) *
+                        (viewLimits.xMax - viewLimits.xMin);
+                const y =
+                    viewLimits.yMin +
+                    ((canvas.height - padBottom - py) / plotHeight) *
+                        (viewLimits.yMax - viewLimits.yMin);
+
+                return { x, y };
+            }
+
+            // Find closest data point to data X coordinate (for snapping)
+            function getSnappedDataPoint(dataX) {
+                if (activeFileIndex === -1) return null;
+                const data = loadedFiles[activeFileIndex].data;
+                if (!data || data.length === 0) return null;
+
+                // Binary search for nearest X value since data is sorted by 2-Theta
+                let low = 0;
+                let high = data.length - 1;
+
+                while (low < high) {
+                    const mid = Math.floor((low + high) / 2);
+                    if (data[mid].x < dataX) {
+                        low = mid + 1;
+                    } else {
+                        high = mid;
+                    }
+                }
+
+                // Check which is closer: data[low] or data[low-1]
+                let closest = data[low];
+                if (
+                    low > 0 &&
+                    Math.abs(data[low - 1].x - dataX) <
+                        Math.abs(data[low].x - dataX)
+                ) {
+                    closest = data[low - 1];
+                }
+                return closest;
+            }
+
+            // Handle Resize
+            function resizeCanvas() {
+                const rect = canvasContainer.getBoundingClientRect();
+                const dpr = window.devicePixelRatio || 1;
+
+                canvas.width = rect.width * dpr;
+                canvas.height = rect.height * dpr;
+
+                requestRedraw();
+            }
+
+            const resizeObserver = new ResizeObserver(() => {
+                resizeCanvas();
+            });
+            resizeObserver.observe(canvasContainer);
+
+            // Redraw manager
+            let redrawRequested = false;
+            function requestRedraw() {
+                redrawRequested = true;
+            }
+
+            // Custom Tick Generators
+            function getTicks(min, max, targetCount) {
+                const range = max - min;
+                const roughStep = range / targetCount;
+                const log = Math.log10(roughStep);
+                const power = Math.floor(log);
+                const base = Math.pow(10, power);
+                const ratio = roughStep / base;
+                let step;
+                if (ratio < 1.5) step = 1 * base;
+                else if (ratio < 3) step = 2 * base;
+                else if (ratio < 7) step = 5 * base;
+                else step = 10 * base;
+
+                const start = Math.ceil(min / step) * step;
+                const ticks = [];
+                for (let v = start; v <= max; v += step) {
+                    ticks.push(Number(v.toFixed(10))); // avoid floating issues
+                }
+                return { ticks, step };
+            }
+
+            // Primary Draw function
+            function draw() {
+                if (canvas.width === 0 || canvas.height === 0) return;
+
+                // Clear
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                const dpr = window.devicePixelRatio || 1;
+                const {
+                    padLeft,
+                    padRight,
+                    padTop,
+                    padBottom,
+                    plotWidth,
+                    plotHeight,
+                } = getPlotDimensions();
+
+                // Draw background grid lines and ticks
+                if (activeFileIndex !== -1) {
+                    const xTicksInfo = getTicks(
+                        viewLimits.xMin,
+                        viewLimits.xMax,
+                        Math.max(4, Math.floor(canvas.width / (100 * dpr))),
+                    );
+                    const yTicksInfo = getTicks(
+                        viewLimits.yMin,
+                        viewLimits.yMax,
+                        Math.max(3, Math.floor(canvas.height / (80 * dpr))),
+                    );
+
+                    // Vertical grid lines (X axis)
+                    ctx.setLineDash([4 * dpr, 4 * dpr]);
+                    ctx.lineWidth = 1 * dpr;
+                    xTicksInfo.ticks.forEach((x) => {
+                        const px =
+                            padLeft +
+                            ((x - viewLimits.xMin) /
+                                (viewLimits.xMax - viewLimits.xMin)) *
+                                plotWidth;
+                        if (px >= padLeft && px <= canvas.width - padRight) {
+                            ctx.strokeStyle = "rgba(0, 229, 255, 0.08)";
+                            ctx.beginPath();
+                            ctx.moveTo(px, padTop);
+                            ctx.lineTo(px, canvas.height - padBottom);
+                            ctx.stroke();
+
+                            // Tick label
+                            ctx.fillStyle = "var(--text-muted)";
+                            ctx.font = `${10 * dpr}px "Share Tech Mono", monospace`;
+                            ctx.textAlign = "center";
+                            ctx.textBaseline = "top";
+                            ctx.fillText(
+                                x.toFixed(1) + "°",
+                                px,
+                                canvas.height - padBottom + 8 * dpr,
+                            );
+                        }
+                    });
+
+                    // Horizontal grid lines (Y axis)
+                    yTicksInfo.ticks.forEach((y) => {
+                        const py =
+                            canvas.height -
+                            padBottom -
+                            ((y - viewLimits.yMin) /
+                                (viewLimits.yMax - viewLimits.yMin)) *
+                                plotHeight;
+                        if (py >= padTop && py <= canvas.height - padBottom) {
+                            ctx.strokeStyle = "rgba(0, 229, 255, 0.08)";
+                            ctx.beginPath();
+                            ctx.moveTo(padLeft, py);
+                            ctx.lineTo(canvas.width - padRight, py);
+                            ctx.stroke();
+
+                            // Tick label
+                            ctx.fillStyle = "var(--text-muted)";
+                            ctx.font = `${10 * dpr}px "Share Tech Mono", monospace`;
+                            ctx.textAlign = "right";
+                            ctx.textBaseline = "middle";
+
+                            // Format Intensity labels (e.g. 10k or standard)
+                            let labelText = y.toString();
+                            if (y >= 1000) {
+                                labelText = (y / 1000).toFixed(1) + "k";
+                            }
+                            ctx.fillText(labelText, padLeft - 10 * dpr, py);
+                        }
+                    });
+
+                    ctx.setLineDash([]); // Reset to solid
+
+                    // Draw solid boundary lines
+                    ctx.strokeStyle = "var(--border-color)";
+                    ctx.lineWidth = 1.5 * dpr;
+                    ctx.strokeRect(padLeft, padTop, plotWidth, plotHeight);
+
+                    // Draw main line plot and gradient area
+                    const file = loadedFiles[activeFileIndex];
+                    const data = file.data;
+
+                    if (data && data.length > 0) {
+                        // 1. Semi-transparent glow gradient fill
+                        const areaGrad = ctx.createLinearGradient(
+                            0,
+                            padTop,
+                            0,
+                            canvas.height - padBottom,
+                        );
+                        areaGrad.addColorStop(0, "rgba(0, 229, 255, 0.15)");
+                        areaGrad.addColorStop(1, "rgba(0, 229, 255, 0.0)");
+
+                        ctx.beginPath();
+                        let first = true;
+                        let lastPx = 0;
+
+                        for (const pt of data) {
+                            const px =
+                                padLeft +
+                                ((pt.x - viewLimits.xMin) /
+                                    (viewLimits.xMax - viewLimits.xMin)) *
+                                    plotWidth;
+                            const py =
+                                canvas.height -
+                                padBottom -
+                                ((pt.y - viewLimits.yMin) /
+                                    (viewLimits.yMax - viewLimits.yMin)) *
+                                    plotHeight;
+
+                            if (first) {
+                                ctx.moveTo(px, canvas.height - padBottom);
+                                ctx.lineTo(px, py);
+                                first = false;
+                            } else {
+                                ctx.lineTo(px, py);
+                            }
+                            lastPx = px;
+                        }
+                        if (!first) {
+                            ctx.lineTo(lastPx, canvas.height - padBottom);
+                            ctx.closePath();
+                            ctx.fillStyle = areaGrad;
+                            ctx.fill();
+                        }
+
+                        // 2. Main fluorescent line stroke
+                        ctx.beginPath();
+                        first = true;
+                        for (const pt of data) {
+                            const px =
+                                padLeft +
+                                ((pt.x - viewLimits.xMin) /
+                                    (viewLimits.xMax - viewLimits.xMin)) *
+                                    plotWidth;
+                            const py =
+                                canvas.height -
+                                padBottom -
+                                ((pt.y - viewLimits.yMin) /
+                                    (viewLimits.yMax - viewLimits.yMin)) *
+                                    plotHeight;
+
+                            if (first) {
+                                ctx.moveTo(px, py);
+                                first = false;
+                            } else {
+                                ctx.lineTo(px, py);
+                            }
+                        }
+                        ctx.strokeStyle = "var(--zaun-cyan)";
+                        ctx.lineWidth = 2 * dpr;
+
+                        // Add hextech cyber glow effect
+                        ctx.shadowColor = "var(--zaun-cyan)";
+                        ctx.shadowBlur = 8 * dpr;
+                        ctx.stroke();
+
+                        // Reset shadow properties for other elements
+                        ctx.shadowColor = "transparent";
+                        ctx.shadowBlur = 0;
+
+                        // 3. Draw Permanent Peak Indicator
+                        const peak = file.highestPeak;
+                        const peakPt = dataToPixel(peak.x, peak.y);
+
+                        if (
+                            peakPt.x >= padLeft &&
+                            peakPt.x <= canvas.width - padRight &&
+                            peakPt.y >= padTop &&
+                            peakPt.y <= canvas.height - padBottom
+                        ) {
+                            // Pulse circle sizing
+                            const pulse =
+                                4 * dpr +
+                                (Math.sin(Date.now() / 150) + 1.0) * 4 * dpr;
+
+                            ctx.beginPath();
+                            ctx.arc(
+                                peakPt.x,
+                                peakPt.y,
+                                4 * dpr,
+                                0,
+                                Math.PI * 2,
+                            );
+                            ctx.fillStyle = "var(--zaun-green)";
+                            ctx.fill();
+
+                            ctx.beginPath();
+                            ctx.arc(peakPt.x, peakPt.y, pulse, 0, Math.PI * 2);
+                            ctx.strokeStyle = "rgba(13, 240, 109, 0.4)";
+                            ctx.lineWidth = 1.5 * dpr;
+                            ctx.stroke();
+
+                            // Draw peak pointer leader line
+                            ctx.strokeStyle = "var(--zaun-green)";
+                            ctx.lineWidth = 1 * dpr;
+                            ctx.setLineDash([2 * dpr, 2 * dpr]);
+                            ctx.beginPath();
+                            ctx.moveTo(peakPt.x, peakPt.y);
+                            ctx.lineTo(peakPt.x, peakPt.y - 30 * dpr);
+                            ctx.stroke();
+                            ctx.setLineDash([]);
+
+                            // Render text bubble
+                            const txt = `PEAK: ${peak.x.toFixed(2)}°, I=${Math.round(peak.y)}`;
+                            ctx.font = `bold ${9 * dpr}px "Share Tech Mono", monospace`;
+                            const txtW = ctx.measureText(txt).width;
+                            const bubbleW = txtW + 12 * dpr;
+                            const bubbleH = 18 * dpr;
+                            const bx = peakPt.x - bubbleW / 2;
+                            const by = peakPt.y - 30 * dpr - bubbleH;
+
+                            ctx.fillStyle = "rgba(13, 16, 21, 0.9)";
+                            ctx.strokeStyle = "var(--zaun-green)";
+                            ctx.lineWidth = 1 * dpr;
+                            ctx.beginPath();
+                            ctx.roundRect(bx, by, bubbleW, bubbleH, 3 * dpr);
+                            ctx.fill();
+                            ctx.stroke();
+
+                            ctx.fillStyle = "var(--zaun-green)";
+                            ctx.textAlign = "center";
+                            ctx.textBaseline = "middle";
+                            ctx.fillText(txt, peakPt.x, by + bubbleH / 2);
+                        }
+                    }
+                } else {
+                    // Empty state instruction on canvas
+                    ctx.fillStyle = "var(--text-muted)";
+                    ctx.font = `${20 * dpr}px "Teko", sans-serif`;
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(
+                        "SELECT AN XRD DATA PROFILE FROM THE SIDEBAR TO BEGIN",
+                        canvas.width / 2,
+                        canvas.height / 2,
+                    );
+                }
+
+                // Render Interactive Delta Ruler
+                if (pointA) {
+                    const ptA = dataToPixel(pointA.x, pointA.y);
+
+                    // Draw Point A Marker
+                    ctx.beginPath();
+                    ctx.arc(ptA.x, ptA.y, 5 * dpr, 0, Math.PI * 2);
+                    ctx.fillStyle = "var(--rose-accent)";
+                    ctx.fill();
+                    ctx.strokeStyle = "#fff";
+                    ctx.lineWidth = 1 * dpr;
+                    ctx.stroke();
+
+                    // Text tag for point A
+                    ctx.font = `bold ${10 * dpr}px "Share Tech Mono", monospace`;
+                    ctx.fillStyle = "var(--rose-accent)";
+                    ctx.textAlign = "left";
+                    ctx.fillText(" A", ptA.x + 6 * dpr, ptA.y - 6 * dpr);
+
+                    let activeB = null;
+                    if (pointB) {
+                        activeB = dataToPixel(pointB.x, pointB.y);
+                    } else if (hoverPoint && measurementMode) {
+                        activeB = dataToPixel(hoverPoint.x, hoverPoint.y);
+                    }
+
+                    if (activeB) {
+                        // Draw Point B/Hover Marker
+                        ctx.beginPath();
+                        ctx.arc(activeB.x, activeB.y, 5 * dpr, 0, Math.PI * 2);
+                        ctx.fillStyle = pointB
+                            ? "var(--rose-accent)"
+                            : "rgba(255, 51, 102, 0.4)";
+                        ctx.fill();
+                        ctx.strokeStyle = "#fff";
+                        ctx.lineWidth = 1 * dpr;
+                        ctx.stroke();
+
+                        ctx.fillStyle = "var(--rose-accent)";
+                        ctx.fillText(
+                            pointB ? " B" : " B (preview)",
+                            activeB.x + 6 * dpr,
+                            activeB.y - 6 * dpr,
+                        );
+
+                        // Draw dimension/bounding boxes
+                        ctx.strokeStyle = "rgba(255, 51, 102, 0.25)";
+                        ctx.lineWidth = 1 * dpr;
+                        ctx.setLineDash([4 * dpr, 3 * dpr]);
+
+                        // Draw bounding rect
+                        ctx.strokeRect(
+                            ptA.x,
+                            ptA.y,
+                            activeB.x - ptA.x,
+                            activeB.y - ptA.y,
+                        );
+
+                        // Horizontal and vertical offset ticks & dimension lines
+                        ctx.strokeStyle = "rgba(255, 51, 102, 0.6)";
+                        ctx.lineWidth = 1.2 * dpr;
+                        ctx.setLineDash([]);
+
+                        // Delta dimension lines with CAD ticks
+                        // Horizontal dimension
+                        ctx.beginPath();
+                        ctx.moveTo(ptA.x, ptA.y);
+                        ctx.lineTo(activeB.x, ptA.y);
+                        ctx.stroke();
+
+                        // CAD dimension ticks
+                        ctx.beginPath();
+                        ctx.moveTo(ptA.x, ptA.y - 5 * dpr);
+                        ctx.lineTo(ptA.x, ptA.y + 5 * dpr);
+                        ctx.moveTo(activeB.x, ptA.y - 5 * dpr);
+                        ctx.lineTo(activeB.x, ptA.y + 5 * dpr);
+                        ctx.stroke();
+
+                        // Vertical dimension
+                        ctx.beginPath();
+                        ctx.moveTo(activeB.x, ptA.y);
+                        ctx.lineTo(activeB.x, activeB.y);
+                        ctx.stroke();
+
+                        ctx.beginPath();
+                        ctx.moveTo(activeB.x - 5 * dpr, ptA.y);
+                        ctx.lineTo(activeB.x + 5 * dpr, ptA.y);
+                        ctx.moveTo(activeB.x - 5 * dpr, activeB.y);
+                        ctx.lineTo(activeB.x + 5 * dpr, activeB.y);
+                        ctx.stroke();
+                    }
+                }
+
+                // Render Hover Cursor Crosshairs
+                if (hoverPoint && !isDragging && activeFileIndex !== -1) {
+                    const mousePixel = dataToPixel(hoverPoint.x, hoverPoint.y);
+
+                    if (
+                        mousePixel.x >= padLeft &&
+                        mousePixel.x <= canvas.width - padRight &&
+                        mousePixel.y >= padTop &&
+                        mousePixel.y <= canvas.height - padBottom
+                    ) {
+                        ctx.strokeStyle = "rgba(0, 229, 255, 0.25)";
+                        ctx.lineWidth = 1 * dpr;
+                        ctx.setLineDash([3 * dpr, 3 * dpr]);
+
+                        // Vertical crosshair
+                        ctx.beginPath();
+                        ctx.moveTo(mousePixel.x, padTop);
+                        ctx.lineTo(mousePixel.x, canvas.height - padBottom);
+                        ctx.stroke();
+
+                        // Horizontal crosshair
+                        ctx.beginPath();
+                        ctx.moveTo(padLeft, mousePixel.y);
+                        ctx.lineTo(canvas.width - padRight, mousePixel.y);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                    }
+                }
+            }
+
+            // Graph Animation Loop
+            function tickLoop() {
+                if (redrawRequested) {
+                    draw();
+                    redrawRequested = false;
+                }
+                requestAnimationFrame(tickLoop);
+            }
+            requestAnimationFrame(tickLoop);
+
+            // User Interactivity Canvas Event Listeners
+            let isDragging = false;
+            let dragStartPos = { x: 0, y: 0 };
+            let dragStartLimits = { xMin: 0, xMax: 100, yMin: 0, yMax: 100 };
+
+            function getMouseCoords(e) {
+                const rect = canvas.getBoundingClientRect();
+                const dpr = window.devicePixelRatio || 1;
+                const px = (e.clientX - rect.left) * dpr;
+                const py = (e.clientY - rect.top) * dpr;
+                return { px, py };
+            }
+
+            canvas.addEventListener("mousemove", (e) => {
+                if (activeFileIndex === -1) return;
+
+                const { px, py } = getMouseCoords(e);
+                const dataCoords = pixelToData(px, py);
+
+                // Find snapped data coordinate on X axis
+                const snapped = getSnappedDataPoint(dataCoords.x);
+
+                if (snapped) {
+                    hoverPoint = { x: snapped.x, y: snapped.y, px, py };
+
+                    // Update HUD panel
+                    document.getElementById("cursor-x").textContent =
+                        snapped.x.toFixed(4) + "°";
+                    document.getElementById("cursor-y").textContent =
+                        snapped.y.toFixed(2);
+
+                    // Compute Bragg d-spacing: λ = 2d sin(θ) => d = λ / (2 sin(θ))
+                    // λ = 1.5406 Å (Cu K-alpha)
+                    // Note: θ in formula is half of 2-Theta, converted to radians.
+                    const thetaRad = (snapped.x / 2.0) * (Math.PI / 180.0);
+                    if (thetaRad > 0) {
+                        const dSpacing = 1.5406 / (2.0 * Math.sin(thetaRad));
+                        document.getElementById("cursor-d").textContent =
+                            dSpacing.toFixed(4) + " Å";
+                    } else {
+                        document.getElementById("cursor-d").textContent = "-";
+                    }
+
+                    if (measurementMode) {
+                        updateDeltaHUD();
+                    }
+                }
+
+                // Drag panning logic
+                if (isDragging && !measurementMode) {
+                    const dpr = window.devicePixelRatio || 1;
+                    const deltaXPixels = px - dragStartPos.x;
+                    const deltaYPixels = py - dragStartPos.y;
+
+                    const { plotWidth, plotHeight } = getPlotDimensions();
+
+                    // Convert pixel movement delta to data units delta
+                    const viewRangeX =
+                        dragStartLimits.xMax - dragStartLimits.xMin;
+                    const viewRangeY =
+                        dragStartLimits.yMax - dragStartLimits.yMin;
+
+                    const deltaDataX = (deltaXPixels / plotWidth) * viewRangeX;
+                    const deltaDataY = (deltaYPixels / plotHeight) * viewRangeY;
+
+                    // Apply translation
+                    viewLimits.xMin = dragStartLimits.xMin - deltaDataX;
+                    viewLimits.xMax = dragStartLimits.xMax - deltaDataX;
+                    viewLimits.yMin = dragStartLimits.yMin + deltaDataY;
+                    viewLimits.yMax = dragStartLimits.yMax + deltaDataY;
+
+                    requestRedraw();
+                } else {
+                    // Force update for hover crosshairs
+                    requestRedraw();
+                }
+            });
+
+            canvas.addEventListener("mouseleave", () => {
+                hoverPoint = null;
+                document.getElementById("cursor-x").textContent = "-";
+                document.getElementById("cursor-y").textContent = "-";
+                document.getElementById("cursor-d").textContent = "-";
+                requestRedraw();
+            });
+
+            canvas.addEventListener("mousedown", (e) => {
+                if (activeFileIndex === -1) return;
+
+                const { px, py } = getMouseCoords(e);
+                const dataCoords = pixelToData(px, py);
+                const snapped = getSnappedDataPoint(dataCoords.x);
+
+                if (measurementMode) {
+                    if (snapped) {
+                        if (!pointA) {
+                            pointA = { x: snapped.x, y: snapped.y };
+                            logSystem(
+                                "Point A set. Pick Point B to inspect delta differences.",
+                            );
+                        } else if (!pointB) {
+                            pointB = { x: snapped.x, y: snapped.y };
+                            logSystem("Point B set. Calculation complete.");
+                        } else {
+                            // Reset and start over
+                            pointA = { x: snapped.x, y: snapped.y };
+                            pointB = null;
+                            logSystem("Measurement reset: Point A set.");
+                        }
+                        updateDeltaHUD();
+                        requestRedraw();
+                    }
+                } else {
+                    // Pan mode
+                    isDragging = true;
+                    dragStartPos = { x: px, y: py };
+                    dragStartLimits = { ...viewLimits };
+                }
+            });
+
+            window.addEventListener("mouseup", () => {
+                isDragging = false;
+            });
+
+            // Double click resets zoom view
+            canvas.addEventListener("dblclick", () => {
+                if (activeFileIndex !== -1) {
+                    resetViewport();
+                    logSystem("Zoom reset to home bounds.");
+                }
+            });
+
+            // Mouse wheel Zoom logic
+            canvas.addEventListener("wheel", (e) => {
+                if (activeFileIndex === -1) return;
+                e.preventDefault();
+
+                const { px, py } = getMouseCoords(e);
+                const mouseData = pixelToData(px, py);
+
+                // Zoom factor
+                const zoomFactor = e.deltaY < 0 ? 0.88 : 1.12;
+
+                const rangeX = viewLimits.xMax - viewLimits.xMin;
+                const rangeY = viewLimits.yMax - viewLimits.yMin;
+
+                // Adjust viewport according to active zoom lock axis
+                if (zoomMode === "both" || zoomMode === "x") {
+                    viewLimits.xMin =
+                        mouseData.x -
+                        (mouseData.x - viewLimits.xMin) * zoomFactor;
+                    viewLimits.xMax = viewLimits.xMin + rangeX * zoomFactor;
+                }
+                if (zoomMode === "both" || zoomMode === "y") {
+                    viewLimits.yMin =
+                        mouseData.y -
+                        (mouseData.y - viewLimits.yMin) * zoomFactor;
+                    viewLimits.yMax = viewLimits.yMin + rangeY * zoomFactor;
+                }
+
+                requestRedraw();
+            });
+
+            // Update Delta Info HUD Panel overlay
+            function updateDeltaHUD() {
+                const panel = document.getElementById("hud-delta-panel");
+                if (!pointA) {
+                    panel.style.display = "none";
+                    return;
+                }
+
+                panel.style.display = "flex";
+                document.getElementById("delta-a").textContent =
+                    `(${pointA.x.toFixed(2)}°, ${Math.round(pointA.y)})`;
+
+                let bPoint = pointB;
+                if (!bPoint && hoverPoint) {
+                    bPoint = hoverPoint; // Show preview while positioning B
+                }
+
+                if (bPoint) {
+                    document.getElementById("delta-b").textContent =
+                        `(${bPoint.x.toFixed(2)}°, ${Math.round(bPoint.y)})`;
+
+                    const dx = Math.abs(bPoint.x - pointA.x);
+                    const dy = Math.abs(bPoint.y - pointA.y);
+
+                    document.getElementById("delta-dx").textContent =
+                        dx.toFixed(3) + "°";
+                    document.getElementById("delta-dy").textContent =
+                        Math.round(dy) + " a.u.";
+                } else {
+                    document.getElementById("delta-b").textContent = "-";
+                    document.getElementById("delta-dx").textContent = "-";
+                    document.getElementById("delta-dy").textContent = "-";
+                }
+            }
+
+            // On Initialization load default values
+            loadStaticScans();
+
+            // Security: Prevent Right Click
+            document.addEventListener("contextmenu", (e) => e.preventDefault());
+
+            // Security: Prevent common Developer Tools keyboard shortcuts
+            document.addEventListener("keydown", (e) => {
+                // F12
+                if (e.key === "F12") e.preventDefault();
+
+                // Check modifiers: Windows (Ctrl+Shift) or Mac (Cmd+Option)
+                const isModifier =
+                    (e.ctrlKey || e.metaKey) && (e.shiftKey || e.altKey);
+
+                // Inspect (I), Element Select (C), Console (J)
+                if (
+                    isModifier &&
+                    (e.key === "I" || e.key === "i" || e.code === "KeyI")
+                )
+                    e.preventDefault();
+                if (
+                    isModifier &&
+                    (e.key === "C" || e.key === "c" || e.code === "KeyC")
+                )
+                    e.preventDefault();
+                if (
+                    isModifier &&
+                    (e.key === "J" || e.key === "j" || e.code === "KeyJ")
+                )
+                    e.preventDefault();
+
+                // View Source (Ctrl+U / Cmd+Option+U / Cmd+U)
+                if (
+                    (e.ctrlKey || e.metaKey) &&
+                    (e.key === "U" || e.key === "u" || e.code === "KeyU")
+                )
+                    e.preventDefault();
+            });
+        </script>
+    </body>
+</html>
