@@ -3,7 +3,7 @@
 
 <canvas
     id="bg-canvas"
-    class="fixed inset-0 w-full h-full pointer-events-none z-0"
+    class="fixed top-0 left-0 w-full pointer-events-none z-0"
 ></canvas>
 
 <script>
@@ -56,7 +56,7 @@
             const sW = typeof screen !== 'undefined' ? screen.width : 0;
             const isPortrait = window.innerHeight > window.innerWidth;
             const maxDimension = isPortrait ? Math.max(sH, sW) : Math.min(sH, sW);
-            return Math.max(maxDimension, window.innerHeight, document.documentElement.clientHeight);
+            return Math.max(maxDimension, window.innerHeight, document.documentElement.clientHeight) + 180;
         };
 
         const getViewportSize = () => {
@@ -76,10 +76,11 @@
         // High-resolution Renderer with ACES Filmic Tonemapping
         const renderer = new THREE.WebGLRenderer({
             canvas: canvas,
-            alpha: true,
+            alpha: false,
             antialias: true,
             powerPreference: "high-performance"
         });
+        renderer.setClearColor(0x050813, 1.0);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.5));
         renderer.setSize(initW, initH, false);
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
