@@ -1589,28 +1589,10 @@
             targetLookAt.lerpVectors(p0.look, p1.look, easeT);
         };
 
-        let lastCanvasY = -1;
-        const updateCanvasPosition = (force = false) => {
-            if (window.innerWidth < 768) {
-                const currentY = getScrollY();
-                const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-                const targetY = Math.max(0, Math.min(currentY, maxScroll));
-                if (!force && Math.abs(targetY - lastCanvasY) < 0.2) return;
-                lastCanvasY = targetY;
-                canvas.style.transform = `translate3d(0, ${targetY}px, 0)`;
-            } else {
-                if (lastCanvasY !== -1) {
-                    lastCanvasY = -1;
-                    canvas.style.transform = '';
-                }
-            }
-        };
+        canvas.style.transform = '';
 
         const onScroll = () => {
             updateCameraFromScroll();
-            if (window.innerWidth < 768) {
-                updateCanvasPosition();
-            }
         };
 
         window.addEventListener('scroll', onScroll, { passive: true });
@@ -1618,14 +1600,12 @@
         setTimeout(updateSectionMetrics, 200);
         updateCameraFromScroll();
         updateCameraFromScroll();
-        updateCanvasPosition(true);
 
         let lastTrackedWidth = window.innerWidth;
         const handleResize = () => {
             const isMobile = window.innerWidth < 768;
             // On mobile devices, ignore vertical-only resize events triggered by Safari's dynamic toolbar
             if (isMobile && window.innerWidth === lastTrackedWidth) {
-                updateCanvasPosition(true);
                 return;
             }
             lastTrackedWidth = window.innerWidth;
@@ -1634,18 +1614,15 @@
             camera.aspect = w / h;
             camera.updateProjectionMatrix();
             renderer.setSize(w, h, false);
-            updateCanvasPosition(true);
         };
         window.addEventListener('resize', handleResize);
         window.addEventListener('orientationchange', () => {
             lastTrackedWidth = 0;
             setTimeout(() => {
                 handleResize();
-                updateCanvasPosition(true);
             }, 150);
         });
         handleResize();
-        updateCanvasPosition(true);
 
         // Main Animation Loop
         let lastTime = 0;
@@ -1654,10 +1631,6 @@
             const time = clock.getElapsedTime();
             const dt = Math.min(time - lastTime, 0.1) || 0.016;
             lastTime = time;
-
-            if (window.innerWidth < 768) {
-                updateCanvasPosition();
-            }
 
             // Butter-smooth mouse screen coordinates lerp
             smoothMouseNDC.lerp(mouseNDC, 0.22);
