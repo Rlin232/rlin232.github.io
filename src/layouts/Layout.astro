@@ -19,7 +19,7 @@ const navPrefix = isHome ? "" : "/";
 ---
 
 <!doctype html>
-<html lang="en" class="min-h-full scroll-smooth">
+<html lang="en" class="min-h-full">
 	<head>
 		<meta charset="UTF-8" />
 		<meta
@@ -514,6 +514,7 @@ const navPrefix = isHome ? "" : "/";
 					smoothWheel: true,
 					wheelMultiplier: 1.0,
 				});
+				window.lenis = lenis;
 
 				function raf(time) {
 					lenis.raf(time);
@@ -529,7 +530,11 @@ const navPrefix = isHome ? "" : "/";
 							e.preventDefault();
 							const target = document.querySelector(href);
 							if (target) {
-								lenis.scrollTo(target, { offset: -70 });
+								if (typeof lenis !== "undefined") {
+									lenis.scrollTo(target, { offset: -70 });
+								} else {
+									target.scrollIntoView({ behavior: "smooth" });
+								}
 							}
 						}
 					});

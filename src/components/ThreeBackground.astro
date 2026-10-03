@@ -1554,8 +1554,15 @@
             sectionProgressPoints = pts;
         };
 
+        const getScrollY = () => {
+            if (typeof window !== 'undefined' && window.lenis && typeof window.lenis.scroll === 'number') {
+                return window.lenis.scroll;
+            }
+            return window.scrollY || 0;
+        };
+
         const updateCameraFromScroll = () => {
-            const scrollY = window.scrollY;
+            const scrollY = getScrollY();
             const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
             const progress = maxScroll > 0 ? Math.min(Math.max(scrollY / maxScroll, 0), 1) : 0;
 
@@ -1582,17 +1589,28 @@
             targetLookAt.lerpVectors(p0.look, p1.look, easeT);
         };
 
-        const updateCanvasPosition = () => {
+        let lastCanvasY = -1;
+        const updateCanvasPosition = (force = false) => {
             if (window.innerWidth < 768) {
-                canvas.style.transform = `translate3d(0, ${window.scrollY}px, 0)`;
+                const currentY = getScrollY();
+                const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+                const targetY = Math.max(0, Math.min(currentY, maxScroll));
+                if (!force && Math.abs(targetY - lastCanvasY) < 0.2) return;
+                lastCanvasY = targetY;
+                canvas.style.transform = `translate3d(0, ${targetY}px, 0)`;
             } else {
-                canvas.style.transform = '';
+                if (lastCanvasY !== -1) {
+                    lastCanvasY = -1;
+                    canvas.style.transform = '';
+                }
             }
         };
 
         const onScroll = () => {
             updateCameraFromScroll();
-            updateCanvasPosition();
+            if (window.innerWidth < 768) {
+                updateCanvasPosition();
+            }
         };
 
         window.addEventListener('scroll', onScroll, { passive: true });
@@ -1600,14 +1618,14 @@
         setTimeout(updateSectionMetrics, 200);
         updateCameraFromScroll();
         updateCameraFromScroll();
-        updateCanvasPosition();
+        updateCanvasPosition(true);
 
         let lastTrackedWidth = window.innerWidth;
         const handleResize = () => {
             const isMobile = window.innerWidth < 768;
             // On mobile devices, ignore vertical-only resize events triggered by Safari's dynamic toolbar
             if (isMobile && window.innerWidth === lastTrackedWidth) {
-                updateCanvasPosition();
+                updateCanvasPosition(true);
                 return;
             }
             lastTrackedWidth = window.innerWidth;
@@ -1616,18 +1634,18 @@
             camera.aspect = w / h;
             camera.updateProjectionMatrix();
             renderer.setSize(w, h, false);
-            updateCanvasPosition();
+            updateCanvasPosition(true);
         };
         window.addEventListener('resize', handleResize);
         window.addEventListener('orientationchange', () => {
             lastTrackedWidth = 0;
             setTimeout(() => {
                 handleResize();
-                updateCanvasPosition();
+                updateCanvasPosition(true);
             }, 150);
         });
         handleResize();
-        updateCanvasPosition();
+        updateCanvasPosition(true);
 
         // Main Animation Loop
         let lastTime = 0;

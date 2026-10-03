@@ -951,9 +951,14 @@ const projects = [
 		};
 
 		let fadeTicking = false;
+		const prevOpacities = [];
+		const prevPointers = [];
+
 		const updateFadeZones = () => {
 			const vh = window.innerHeight;
-			const scrollY = window.scrollY;
+			const scrollY = (typeof window !== "undefined" && window.lenis && typeof window.lenis.scroll === "number")
+				? window.lenis.scroll
+				: window.scrollY;
 
 			for (let i = 0; i < zoneMetrics.length; i++) {
 				const { zone, top, bottom } = zoneMetrics[i];
@@ -979,9 +984,16 @@ const projects = [
 				}
 
 				const clampedOpacity = Math.max(0, Math.min(1, opacity));
-				zone.style.opacity = clampedOpacity.toFixed(3);
-				zone.style.transform = "";
-				zone.style.pointerEvents = clampedOpacity < 0.15 ? "none" : "auto";
+				if (prevOpacities[i] === undefined || Math.abs(clampedOpacity - prevOpacities[i]) > 0.005) {
+					prevOpacities[i] = clampedOpacity;
+					zone.style.opacity = clampedOpacity.toFixed(3);
+				}
+
+				const pointerState = clampedOpacity < 0.15 ? "none" : "auto";
+				if (prevPointers[i] !== pointerState) {
+					prevPointers[i] = pointerState;
+					zone.style.pointerEvents = pointerState;
+				}
 			}
 		};
 
