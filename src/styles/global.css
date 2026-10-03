@@ -2,21 +2,123 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    color-scheme: dark;
+  }
+  
+  body {
+    background-color: #070b16;
+    color: #f1f5f9;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: rgba(125, 211, 252, 0.25);
+    color: #bae6fd;
+  }
+}
+
+/* Custom Minimal Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #070b16;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #38bdf8;
+}
+
+/* Serene Frosted Glass Panels & Cards */
+.glass-panel,
+.glass-card {
+  background: rgba(13, 20, 36, 0.55);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px -10px rgba(2, 6, 23, 0.5);
+}
+
+.glass-panel-warm {
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(254, 240, 138, 0.12);
+  box-shadow: 0 12px 35px -10px rgba(251, 191, 36, 0.06);
+}
+
+/* Serene Nature & Twilight Gradient Typography */
+.text-gradient-twilight {
+  background: linear-gradient(135deg, #ffffff 25%, #bae6fd 65%, #38bdf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-sky {
+  background: linear-gradient(135deg, #e0f2fe 10%, #7dd3fc 60%, #38bdf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@keyframes gentleFloat {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-gentle-float {
+  animation: gentleFloat 7s ease-in-out infinite;
+}
+
+@keyframes waterShimmer {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+.animate-water-shimmer {
+  animation: waterShimmer 5s ease-in-out infinite;
+}
+
+@keyframes typewriterBlink {
+  0%, 45% {
+    opacity: 1;
+  }
+  50%, 95% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.animate-typewriter-blink {
+  animation: typewriterBlink 0.9s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
 
 @keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-fade-in-up {
-    opacity: 0;
-    /* Start hidden */
-    animation: fadeInUp 0.6s ease-out forwards;
+  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

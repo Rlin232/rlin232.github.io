@@ -3,262 +3,1818 @@
 
 <canvas
     id="bg-canvas"
-    class="fixed inset-0 w-full h-full pointer-events-none z-0 opacity-80"
+    class="fixed inset-0 w-full h-full pointer-events-none z-0"
 ></canvas>
 
 <script>
-    import * as THREE from "three";
+    import * as THREE from 'three';
 
-    // Scene setup
     const canvas = document.querySelector("#bg-canvas");
-    const scene = new THREE.Scene();
+    if (canvas) {
+        const scene = new THREE.Scene();
+        // Rich twilight atmospheric palette
+        const skyColor = new THREE.Color('#050813');
+        scene.background = skyColor;
+        scene.fog = new THREE.FogExp2('#050813', 0.018);
 
-    // Settings
-    const particleCount = window.innerWidth < 768 ? 150 : 350;
-    const maxDistance = 40;
+        // --- 1. SINUOUS RIVER PATH FORMULA ---
+        const getRiverX = (z) => {
+            return Math.sin(z * 0.075) * 5.5 + Math.cos(z * 0.035) * 2.5;
+        };
 
-    // Camera setup
-    const camera = new THREE.PerspectiveCamera(
-        75,
-        window.innerWidth / window.innerHeight,
-        0.1,
-        1000
-    );
-    camera.position.z = 100;
+        // --- 1B. UNIFIED GENTLE SPATIALLY-COHERENT WIND FIELD ---
+        // Prevailing wind direction wandering organically over time, gentle breeze waves across nearby patches
+        const getWindAt = (x, z, t) => {
+            // Wandering prevailing wind angle (cycles organically over tens of seconds)
+            const wanderAngle = Math.sin(t * 0.08) * 0.85 + Math.cos(t * 0.043) * 0.55 + 0.8;
 
-    // Renderer setup
-    const renderer = new THREE.WebGLRenderer({
-        canvas: canvas,
-        alpha: true,
-        antialias: true,
-    });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(window.innerWidth, window.innerHeight);
+            // Traveling gentle spatial gust waves across the valley (low spatial frequencies)
+            const wave1 = Math.sin(x * 0.055 + z * 0.075 - t * 1.05);
+            const wave2 = Math.cos(x * 0.095 - z * 0.065 - t * 1.45) * 0.35;
+            const wave3 = Math.sin(x * 0.035 - z * 0.040 + t * 0.45) * 0.20;
 
-    // Particles
-    const particles = new THREE.BufferGeometry();
-    const particlePositions = new Float32Array(particleCount * 3);
-    const particleVelocities = [];
+            // Gentle breathing envelope [0.45, 1.0] - continuous serene airflow
+            const gust = 0.60 + 0.30 * wave1 + 0.12 * wave2 + 0.08 * wave3;
 
-    for (let i = 0; i < particleCount; i++) {
-        // Random positions between -100 and 100
-        const x = (Math.random() - 0.5) * 200;
-        const y = (Math.random() - 0.5) * 200;
-        const z = (Math.random() - 0.5) * 150; // Less depth to keep mostly flat-ish
+            // Subtle patch vorticity keeping close patches aligned with gentle macro variation
+            const localAngle = wanderAngle + (wave2 + wave3) * 0.18;
 
-        particlePositions[i * 3] = x;
-        particlePositions[i * 3 + 1] = y;
-        particlePositions[i * 3 + 2] = z;
+            const dirX = Math.cos(localAngle);
+            const dirZ = Math.sin(localAngle);
 
-        // Random velocity
-        particleVelocities.push({
-            x: (Math.random() - 0.5) * 0.1,
-            y: (Math.random() - 0.5) * 0.1,
-            z: (Math.random() - 0.5) * 0.05,
+            return {
+                dirX,
+                dirZ,
+                strength: gust,
+                fx: dirX * gust,
+                fz: dirZ * gust
+            };
+        };
+
+        // Camera setup centered directly over the river channel
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 200);
+        camera.position.set(getRiverX(24), 7.2, 24);
+        camera.lookAt(getRiverX(6), 1.8, 6);
+
+        // High-resolution Renderer with ACES Filmic Tonemapping
+        const renderer = new THREE.WebGLRenderer({
+            canvas: canvas,
+            alpha: true,
+            antialias: true,
+            powerPreference: "high-performance"
         });
-    }
-
-    particles.setAttribute(
-        "position",
-        new THREE.BufferAttribute(particlePositions, 3)
-    );
-
-    // Create circular texture for particles
-    const circleCanvas = document.createElement("canvas");
-    circleCanvas.width = 32;
-    circleCanvas.height = 32;
-    const ctx = circleCanvas.getContext("2d");
-    if (ctx) {
-        ctx.beginPath();
-        ctx.arc(16, 16, 16, 0, Math.PI * 2);
-        ctx.fillStyle = "#ffffff";
-        ctx.fill();
-    }
-    const circleTexture = new THREE.CanvasTexture(circleCanvas);
-
-    // Particle Material - glowing dots
-    const pMaterial = new THREE.PointsMaterial({
-        color: 0x38bdf8, // Accent color
-        size: 0.8, // Reduced size
-        transparent: true,
-        opacity: 0.8,
-        sizeAttenuation: true,
-        map: circleTexture,
-        alphaTest: 0.01,
-    });
-
-    const particleSystem = new THREE.Points(particles, pMaterial);
-    scene.add(particleSystem);
-
-    // Lines
-    const linesGeometry = new THREE.BufferGeometry();
-    const linesMaterial = new THREE.LineBasicMaterial({
-        color: 0xffffff,
-        transparent: true,
-        opacity: 0.15,
-        linewidth: 1,
-    });
-
-    // Calculate maximum total lines possible: n*(n-1)/2, though mostly won't be filled
-    // We'll use a dynamic buffer size for performance but cap it
-    const maxLines = particleCount * particleCount;
-    const linePositions = new Float32Array(maxLines * 6);
-    const lineOpacities = new Float32Array(maxLines * 2);
-
-    linesGeometry.setAttribute(
-        "position",
-        new THREE.BufferAttribute(linePositions, 3)
-    );
-    linesGeometry.setAttribute(
-        "color",
-        new THREE.BufferAttribute(lineOpacities, 3)
-    );
-
-    // Actually line colors need VertexColors to fade out based on distance
-    linesMaterial.vertexColors = true;
-
-    const lineSystem = new THREE.LineSegments(linesGeometry, linesMaterial);
-    scene.add(lineSystem);
-
-    // Mouse interaction
-    let mouse = { x: 0, y: 0, moved: false };
-    let targetRotation = { x: 0, y: 0 };
-    let mouseWorldPos = new THREE.Vector3();
-
-    document.addEventListener("mousemove", (event) => {
-        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-        mouse.moved = true;
-
-        // Slight scene rotation based on mouse
-        targetRotation.x = mouse.y * 0.1;
-        targetRotation.y = mouse.x * 0.1;
-    });
-
-    // Handle Resize
-    window.addEventListener("resize", () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.5));
         renderer.setSize(window.innerWidth, window.innerHeight);
-    });
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.15;
 
-    // Animation Loop
-    const colorBase = new THREE.Color(0x38bdf8); // accent-400
-    const colorHighlight = new THREE.Color(0xffffff);
+        // Cinematic Natural Lighting
+        const ambientLight = new THREE.AmbientLight(0x162032, 1.5);
+        scene.add(ambientLight);
 
-    let time = 0;
+        const moonLight = new THREE.DirectionalLight(0xc7e8fe, 1.9);
+        moonLight.position.set(-1, 20, -35);
+        scene.add(moonLight);
 
-    function animate() {
-        requestAnimationFrame(animate);
+        // --- 2. PRECISE ANTI-SPILL TERRAIN & ELEVATED RIVERBANK FORMULA ---
+        const getTerrainHeight = (x, z) => {
+            const rx = getRiverX(z);
+            const distToRiver = Math.abs(x - rx);
 
-        time += 0.002;
+            let baseY = 0;
+            if (distToRiver < 3.2) {
+                // Sinuous river channel bed (below waterLevel = -0.10)
+                const t = distToRiver / 3.2;
+                baseY = -1.15 + t * t * 0.8; // -1.15 at center, -0.35 at waterline boundary
+            } else {
+                // Elevated protective riverbank (rises rapidly and decisively above water level)
+                const bankDist = distToRiver - 3.2;
+                // Steep bank ascent: reaches +0.85 by bankDist = 1.4
+                const bankRise = Math.min(bankDist * 0.95, 3.2);
 
-        const positions = particleSystem.geometry.attributes.position.array;
+                const h1 = Math.sin(x * 0.08) * Math.cos(z * 0.08) * 1.8;
+                const h2 = Math.sin(x * 0.18 + z * 0.14) * 0.45;
+                const h3 = Math.cos(x * 0.35 - z * 0.28) * 0.18;
 
-        // Update particle positions
-        for (let i = 0; i < particleCount; i++) {
-            positions[i * 3] += particleVelocities[i].x;
-            positions[i * 3 + 1] += particleVelocities[i].y;
-            positions[i * 3 + 2] += particleVelocities[i].z;
+                // Base bank height ensures water (-0.10) CANNOT spill over banks
+                const minBankFloor = -0.35 + bankRise;
+                const hills = h1 * 0.75 + h2 + h3;
 
-            // Bounce off walls
-            if (positions[i * 3] > 100 || positions[i * 3] < -100)
-                particleVelocities[i].x *= -1;
-            if (positions[i * 3 + 1] > 100 || positions[i * 3 + 1] < -100)
-                particleVelocities[i].y *= -1;
-            if (positions[i * 3 + 2] > 75 || positions[i * 3 + 2] < -75)
-                particleVelocities[i].z *= -1;
-        }
-
-        // Project mouse to world for interactions
-        if (mouse.moved) {
-            let vec = new THREE.Vector3(mouse.x, mouse.y, 0.5);
-            vec.unproject(camera);
-            let dir = vec.sub(camera.position).normalize();
-            let distance = -camera.position.z / dir.z;
-            mouseWorldPos
-                .copy(camera.position)
-                .add(dir.multiplyScalar(distance));
-        }
-
-        // Connect close particles
-        let vertexpos = 0;
-        let colorpos = 0;
-        let vertexCount = 0;
-
-        const maxLineDistSq = maxDistance * maxDistance;
-
-        for (let i = 0; i < particleCount; i++) {
-            for (let j = i + 1; j < particleCount; j++) {
-                const dx = positions[i * 3] - positions[j * 3];
-                const dy = positions[i * 3 + 1] - positions[j * 3 + 1];
-                const dz = positions[i * 3 + 2] - positions[j * 3 + 2];
-                const distSq = dx * dx + dy * dy + dz * dz;
-
-                if (distSq < maxLineDistSq) {
-                    // Determine opacity based on distance
-                    const alpha = 1.0 - Math.sqrt(distSq) / maxDistance;
-
-                    // Mouse interaction highlight
-                    let mouseDistSq = Infinity;
-                    if (mouse.moved) {
-                        const midX = (positions[i * 3] + positions[j * 3]) / 2;
-                        const midY =
-                            (positions[i * 3 + 1] + positions[j * 3 + 1]) / 2;
-                        const mdx = midX - mouseWorldPos.x;
-                        const mdy = midY - mouseWorldPos.y;
-                        mouseDistSq = mdx * mdx + mdy * mdy;
-                    }
-
-                    // Color mixing based on mouse proximity
-                    let c = colorBase;
-                    let finalAlpha = alpha * 0.4; // Base line opacity
-
-                    if (mouseDistSq < 900) {
-                        c = colorHighlight;
-                        finalAlpha = Math.max(
-                            finalAlpha,
-                            0.8 - mouseDistSq / 900
-                        );
-                    }
-
-                    linePositions[vertexpos++] = positions[i * 3];
-                    linePositions[vertexpos++] = positions[i * 3 + 1];
-                    linePositions[vertexpos++] = positions[i * 3 + 2];
-
-                    linePositions[vertexpos++] = positions[j * 3];
-                    linePositions[vertexpos++] = positions[j * 3 + 1];
-                    linePositions[vertexpos++] = positions[j * 3 + 2];
-
-                    lineOpacities[colorpos++] = c.r * finalAlpha;
-                    lineOpacities[colorpos++] = c.g * finalAlpha;
-                    lineOpacities[colorpos++] = c.b * finalAlpha;
-
-                    lineOpacities[colorpos++] = c.r * finalAlpha;
-                    lineOpacities[colorpos++] = c.g * finalAlpha;
-                    lineOpacities[colorpos++] = c.b * finalAlpha;
-
-                    vertexCount += 2;
+                // Near the shore (bankDist < 1.8), ensure terrain is strictly >= +0.25
+                if (bankDist < 1.8) {
+                    const blend = bankDist / 1.8;
+                    baseY = minBankFloor + Math.max(hills, 0.0) * blend;
+                } else {
+                    // Beyond the bank crest, rolling meadow hills
+                    baseY = Math.max(minBankFloor + hills, 0.45);
                 }
             }
+
+            // --- WATERFALL CLIFF CHASM AT THE EDGE OF THE WORLD (z < -42.0) ---
+            // As the river reaches the edge, the channel and canyon gorge plunge sheer into the abyss
+            if (z < -42.0) {
+                const cliffT = Math.min(Math.max((-42.0 - z) / 6.0, 0.0), 1.0);
+                if (distToRiver < 4.5) {
+                    baseY -= Math.pow(cliffT, 2.2) * 18.0;
+                } else if (distToRiver < 8.5) {
+                    const bluffBlend = 1.0 - (distToRiver - 4.5) / 4.0;
+                    baseY -= Math.pow(cliffT, 2.0) * 14.0 * bluffBlend;
+                }
+            }
+
+            return baseY;
+        };
+
+        // --- 3. ULTRA HIGH-RES PROCEDURAL TERRAIN (220x220 SEGMENTS) ---
+        const terrainWidth = 100;
+        const terrainDepth = 100;
+        const terrainSegments = 220;
+        const terrainGeom = new THREE.PlaneGeometry(terrainWidth, terrainDepth, terrainSegments, terrainSegments);
+        terrainGeom.rotateX(-Math.PI / 2);
+
+        const posAttr = terrainGeom.attributes.position;
+        const colorAttr = new Float32Array(posAttr.count * 3);
+
+        const colRiverbed = new THREE.Color('#030814'); // Pebble riverbed
+        const colWetShore = new THREE.Color('#061420'); // Wet shoreline lapped by water
+        const colBank = new THREE.Color('#081926');     // Shoreline bank
+        const colMeadow = new THREE.Color('#0a1e28');   // Lush twilight grass
+        const colRidge = new THREE.Color('#0e283c');    // Moonlit hill crest
+
+        for (let i = 0; i < posAttr.count; i++) {
+            const x = posAttr.getX(i);
+            const z = posAttr.getZ(i);
+
+            const y = getTerrainHeight(x, z);
+            posAttr.setY(i, y);
+
+            const rx = getRiverX(z);
+            const distToRiver = Math.abs(x - rx);
+            let vertexCol = colMeadow;
+
+            if (distToRiver < 3.2) {
+                vertexCol = colRiverbed.clone().lerp(colWetShore, distToRiver / 3.2);
+            } else if (distToRiver < 4.8) {
+                const shoreBlend = (distToRiver - 3.2) / 1.6;
+                vertexCol = colWetShore.clone().lerp(colBank, shoreBlend);
+            } else {
+                const blend = Math.min(Math.max((y - 0.4) / 3.0, 0), 1);
+                vertexCol = colBank.clone().lerp(colRidge, blend);
+            }
+
+            // Dark wet basaltic rock coloring for plunging waterfall cliffs
+            if (z < -42.0 && y < -0.8) {
+                const cliffDepth = Math.min(Math.max((-y - 0.8) / 10.0, 0.0), 1.0);
+                vertexCol = vertexCol.clone().lerp(new THREE.Color('#01040a'), cliffDepth * 0.78);
+            }
+
+            colorAttr[i * 3 + 0] = vertexCol.r;
+            colorAttr[i * 3 + 1] = vertexCol.g;
+            colorAttr[i * 3 + 2] = vertexCol.b;
         }
 
-        particleSystem.geometry.attributes.position.needsUpdate = true;
+        terrainGeom.setAttribute('color', new THREE.BufferAttribute(colorAttr, 3));
+        terrainGeom.computeVertexNormals();
 
-        lineSystem.geometry.attributes.position.needsUpdate = true;
-        lineSystem.geometry.attributes.color.needsUpdate = true;
-        lineSystem.geometry.setDrawRange(0, vertexCount);
+        const terrainMat = new THREE.MeshStandardMaterial({
+            vertexColors: true,
+            roughness: 0.88,
+            metalness: 0.08,
+            flatShading: false
+        });
+        const terrain = new THREE.Mesh(terrainGeom, terrainMat);
+        scene.add(terrain);
 
-        // Smooth scene rotation
-        scene.rotation.x += (targetRotation.x - scene.rotation.x) * 0.05;
-        scene.rotation.y += (targetRotation.y - scene.rotation.y) * 0.05;
+        // --- 4. ULTRA HIGH-DENSITY GERSTNER FLUID SIMULATION (240x360 SEGMENTS CONCENTRATED ON RIVER) ---
+        // 86,400 vertices concentrated directly across the 36-unit active river corridor
+        const waterGeom = new THREE.PlaneGeometry(48, 96, 260, 360);
+        waterGeom.rotateX(-Math.PI / 2);
 
-        // Slow autospin
-        scene.rotation.y += 0.001;
-        scene.rotation.z = Math.sin(time) * 0.05;
+        const rippleUniforms = [
+            new THREE.Vector4(0, 0, -100, 0),
+            new THREE.Vector4(0, 0, -100, 0),
+            new THREE.Vector4(0, 0, -100, 0),
+            new THREE.Vector4(0, 0, -100, 0),
+            new THREE.Vector4(0, 0, -100, 0),
+            new THREE.Vector4(0, 0, -100, 0),
+            new THREE.Vector4(0, 0, -100, 0),
+            new THREE.Vector4(0, 0, -100, 0)
+        ];
 
-        renderer.render(scene, camera);
+        const waterMat = new THREE.ShaderMaterial({
+            transparent: true,
+            depthWrite: true,
+            uniforms: {
+                uTime: { value: 0 },
+                uWaterCursor: { value: new THREE.Vector4(0, 0, 0, 0) },
+                uRipples: { value: rippleUniforms },
+                uDeepColor: { value: new THREE.Color('#020613') },
+                uShallowColor: { value: new THREE.Color('#071c32') },
+                uHighlightColor: { value: new THREE.Color('#7dd3fc') },
+                uMoonLightColor: { value: new THREE.Color('#c7e8fe') },
+                uFoamColor: { value: new THREE.Color('#e0f2fe') }
+            },
+            vertexShader: `
+                uniform float uTime;
+                uniform vec4 uWaterCursor; // (x, z, smoothSpeed, activeIntensity)
+                uniform vec4 uRipples[8];  // (x, z, birthTime, strength)
+                varying vec3 vWorldPos;
+                varying vec3 vNormal;
+                varying float vElevation;
+                varying float vFoam;
+                varying float vRippleDisplacement;
+
+                // Trochoidal Gerstner Wave: generates sharp crests and broad troughs
+                vec3 gerstnerWave(vec2 p, vec2 dir, float steepness, float wavelength, float speed) {
+                    float k = 6.2831853 / wavelength;
+                    float c = sqrt(9.81 / k) * speed;
+                    vec2 d = normalize(dir);
+                    float f = k * (dot(d, p) - c * uTime);
+                    float a = steepness / k;
+
+                    return vec3(
+                        d.x * (a * cos(f)),
+                        a * sin(f),
+                        d.y * (a * cos(f))
+                    );
+                }
+
+                // Sinuous river centerline formula matching terrain
+                float getRiverCenter(float z) {
+                    return sin(z * 0.075) * 5.5 + cos(z * 0.035) * 2.5;
+                }
+
+                vec3 computeWaterDisplacement(vec2 p) {
+                    // Multi-scale Gerstner wave packets flowing downstream along Z (gentle serpentine river flow)
+                    vec3 disp = vec3(0.0);
+                    disp += gerstnerWave(p, vec2(0.05, 0.998), 0.12, 7.5, 0.85);
+                    disp += gerstnerWave(p, vec2(-0.06, 0.998), 0.07, 4.4, 1.05);
+                    disp += gerstnerWave(p, vec2(0.08, 0.996), 0.035, 2.2, 1.30);
+                    disp += gerstnerWave(p, vec2(-0.05, 0.998), 0.020, 1.1, 1.55);
+
+                    // 1. Continuous Butter-Smooth Hydrodynamic Cursor Wake (Tuned calm moving splash)
+                    float distCursor = length(p - uWaterCursor.xy);
+                    float cursorRadius = 3.0;
+                    float wakeEnv = exp(-distCursor * distCursor / (cursorRadius * cursorRadius)) * uWaterCursor.w;
+
+                    // Still: depression is 0.13, moving gently rises to 0.20 (smooth and gentle, never too high)
+                    disp.y -= wakeEnv * 0.24 * clamp(uWaterCursor.z * 0.14 + 0.55, 0.55, 0.88);
+                    // Still: capillary ripple is 0.11, moving gently rises to 0.18
+                    disp.y += sin(distCursor * 6.2 - uTime * 7.5) * wakeEnv * 0.20 * clamp(uWaterCursor.z * 0.16 + 0.55, 0.55, 0.90);
+
+                    // 2. Propagating Wave Rings (8-Pulse Buffer with Smooth Cubic Fade-in - gentle calm ripples)
+                    for (int i = 0; i < 8; i++) {
+                        vec4 rip = uRipples[i];
+                        float age = uTime - rip.z;
+                        if (age > 0.0 && age < 4.8) {
+                            // Ripple origin drifts downstream with the river velocity
+                            vec2 center = vec2(rip.x, rip.y + age * 0.85);
+                            float dist = length(p - center);
+                            
+                            float waveSpeed = 3.8;
+                            float waveRadius = age * waveSpeed;
+                            float delta = dist - waveRadius;
+
+                            // Smooth cubic fade-in to prevent any pop, followed by exponential decay
+                            float fadeIn = smoothstep(0.0, 0.20, age);
+                            float fadeOut = exp(-age * 0.65);
+                            float envelope = exp(-delta * delta * 0.85) * fadeIn * fadeOut;
+                            float rippleWave = sin(delta * 5.6) * envelope * 0.18 * rip.w;
+                            
+                            disp.y += rippleWave;
+                        }
+                    }
+
+                    return disp;
+                }
+
+                void main() {
+                    vec3 pos = position;
+                    vec3 disp = computeWaterDisplacement(pos.xz);
+
+                    // Multi-scale base wave for differential ripple tracking
+                    vec3 baseWave = vec3(0.0);
+                    baseWave += gerstnerWave(pos.xz, vec2(0.05, 0.998), 0.12, 7.5, 0.85);
+                    baseWave += gerstnerWave(pos.xz, vec2(-0.06, 0.998), 0.07, 4.4, 1.05);
+                    baseWave += gerstnerWave(pos.xz, vec2(0.08, 0.996), 0.035, 2.2, 1.30);
+                    baseWave += gerstnerWave(pos.xz, vec2(-0.05, 0.998), 0.020, 1.1, 1.55);
+                    
+                    // Apply trochoidal displacement
+                    pos.x -= disp.x;
+                    pos.z -= disp.z;
+                    pos.y = -0.1 + disp.y;
+
+                    // Waterfall brink plunge at the edge of the world (z < -42.0)
+                    float brinkT = smoothstep(-42.0, -47.0, pos.z);
+                    if (brinkT > 0.0) {
+                        pos.y -= pow(brinkT, 2.3) * 11.5;
+                        pos.z -= brinkT * 1.4;
+                    }
+
+                    vElevation = disp.y;
+                    vRippleDisplacement = disp.y - baseWave.y;
+
+                    vec4 worldPos = modelMatrix * vec4(pos, 1.0);
+                    vWorldPos = worldPos.xyz;
+
+                    // High-accuracy analytical finite-difference surface normal
+                    float eps = 0.05;
+                    vec3 dispX = computeWaterDisplacement(pos.xz + vec2(eps, 0.0));
+                    vec3 dispZ = computeWaterDisplacement(pos.xz + vec2(0.0, eps));
+                    float dYdX = (dispX.y - disp.y) / eps;
+                    float dYdZ = (dispZ.y - disp.y) / eps;
+                    vNormal = normalize(vec3(-dYdX, 1.0, -dYdZ));
+
+                    // Shoreline frothy boundary foam detection (natural organic lapping without lattice grids)
+                    float rx = getRiverCenter(pos.z);
+                    float distToCenter = abs(pos.x - rx);
+                    float shoreProximity = smoothstep(2.5, 3.3, distToCenter);
+                    float shorePhase = pos.z * 2.4 - uTime * 1.8;
+                    float shoreLapping = sin(shorePhase + sin(pos.x * 3.2 + shorePhase * 0.4)) * 0.5 + 0.5;
+                    vFoam = shoreProximity * smoothstep(0.20, 0.75, shoreLapping);
+
+                    gl_Position = projectionMatrix * viewMatrix * worldPos;
+                }
+            `,
+            fragmentShader: `
+                uniform float uTime;
+                uniform vec4 uWaterCursor;
+                uniform vec4 uRipples[8];
+                uniform vec3 uDeepColor;
+                uniform vec3 uShallowColor;
+                uniform vec3 uHighlightColor;
+                uniform vec3 uMoonLightColor;
+                uniform vec3 uFoamColor;
+                varying vec3 vWorldPos;
+                varying vec3 vNormal;
+                varying float vElevation;
+                varying float vFoam;
+                varying float vRippleDisplacement;
+
+                void main() {
+                    vec3 viewDir = normalize(cameraPosition - vWorldPos);
+                    vec3 normal = normalize(vNormal);
+
+                    // Exact Schlick Fresnel reflectance for air-water interface (n = 1.333, R0 = 0.020)
+                    float cosTheta = max(0.0, dot(viewDir, normal));
+                    float fresnel = 0.02 + 0.98 * pow(1.0 - cosTheta, 5.0);
+
+                    // Depth absorption via Beer-Lambert law
+                    vec3 waterCol = mix(uDeepColor, uShallowColor, smoothstep(-0.14, 0.14, vElevation));
+                    
+                    // Twilight sky reflection towards distant horizon
+                    vec3 skyReflect = mix(uHighlightColor, vec3(0.08, 0.16, 0.26), 0.35);
+
+                    // Multi-frequency organic water flow shimmer (NO diamond lattice)
+                    vec2 pFlow = vWorldPos.xz * 1.4 + vec2(0.0, uTime * 0.75);
+                    float w1 = sin(pFlow.x * 1.73 + pFlow.y * 2.21);
+                    float w2 = sin(pFlow.x * -1.37 + pFlow.y * 3.19 + 1.4);
+                    float w3 = sin(pFlow.x * 2.43 - pFlow.y * 1.57 + 2.8);
+
+                    // Phase-modulated fluid micro-facets (streamlines rather than rectilinear facets)
+                    vec2 microDisp = vec2(
+                        sin(pFlow.y * 2.8 + w1 * 1.3) * 0.020 + cos(pFlow.x * 2.2 + w2) * 0.015,
+                        cos(pFlow.x * 2.6 + w2 * 1.3) * 0.020 + sin(pFlow.y * 2.4 + w3) * 0.015
+                    );
+                    vec3 microNormal = normalize(normal + vec3(microDisp.x, 0.0, microDisp.y));
+
+                    // Celestial directional moonlight specular highlights (Blinn-Phong)
+                    vec3 moonDir = normalize(vec3(-0.02, 0.70, -0.92));
+                    vec3 halfDir = normalize(moonDir + viewDir);
+                    float spec = pow(max(0.0, dot(microNormal, halfDir)), 48.0);
+                    float broadGlint = pow(max(0.0, dot(microNormal, moonDir)), 6.0) * 0.20;
+
+                    // Composite Fresnel blend, glints, and surface sheen
+                    vec3 finalCol = mix(waterCol, skyReflect, fresnel * 0.68 + broadGlint);
+                    finalCol += uMoonLightColor * spec * 0.88;
+
+                    // --- RADIANT LUMINOUS CURSOR RIPPLE & EXPANDING WAVE CRESTS ---
+                    // 1. Concentric radiant rings around cursor
+                    float distCursor = length(vWorldPos.xz - uWaterCursor.xy);
+                    float cursorHalo = exp(-distCursor * distCursor / 8.5) * uWaterCursor.w;
+                    float cursorRings = sin(distCursor * 6.5 - uTime * 7.5);
+                    float ringCrests = smoothstep(0.18, 0.90, cursorRings) * cursorHalo;
+
+                    // 2. Propagating wave rings shimmer
+                    float pulseRings = 0.0;
+                    for (int i = 0; i < 8; i++) {
+                        vec4 rip = uRipples[i];
+                        float age = uTime - rip.z;
+                        if (age > 0.0 && age < 4.8) {
+                            vec2 center = vec2(rip.x, rip.y + age * 0.85);
+                            float dist = length(vWorldPos.xz - center);
+                            float waveRadius = age * 3.8;
+                            float delta = dist - waveRadius;
+                            float ringEnv = exp(-delta * delta * 1.4) * smoothstep(0.0, 0.22, age) * exp(-age * 0.62);
+                            pulseRings += smoothstep(0.15, 0.85, sin(delta * 5.6)) * ringEnv * rip.w;
+                        }
+                    }
+
+                    // 3. Dynamic luminous aquatic crest shimmer (Sky-Cyan & Pure Starlight White)
+                    float rippleShimmerIntensity = clamp(ringCrests * 0.85 + pulseRings * 0.55 + max(0.0, vRippleDisplacement * 2.0), 0.0, 1.0);
+                    vec3 rippleColor = mix(vec3(0.38, 0.82, 1.0), vec3(0.95, 0.98, 1.0), smoothstep(0.35, 0.85, rippleShimmerIntensity));
+                    finalCol += rippleColor * (rippleShimmerIntensity * 0.72);
+
+                    // Subtle shoreline foam
+                    finalCol = mix(finalCol, uFoamColor, vFoam * 0.42);
+
+                    // Rushing white-water rapids and foaming spray as water reaches the waterfall brink
+                    float waterfallBrink = smoothstep(-42.0, -46.5, vWorldPos.z);
+                    if (waterfallBrink > 0.0) {
+                        float rushFlow = vWorldPos.z * 5.5 - uTime * 11.0;
+                        float rushStreaks = sin(rushFlow + sin(vWorldPos.x * 6.0 + rushFlow * 0.4)) * 0.5 + 0.5;
+                        float rushFoam = smoothstep(0.18, 0.70, rushStreaks) * waterfallBrink;
+                        finalCol = mix(finalCol, vec3(0.94, 0.98, 1.0), rushFoam * 0.88);
+                        finalCol += vec3(0.35, 0.75, 1.0) * (waterfallBrink * 0.40);
+                    }
+
+                    // Serene atmospheric depth haze
+                    float dist = length(vWorldPos - cameraPosition);
+                    float fogFactor = smoothstep(10.0, 56.0, dist);
+                    finalCol = mix(finalCol, vec3(0.02, 0.03, 0.07), fogFactor * 0.96);
+
+                    gl_FragColor = vec4(finalCol, 0.94);
+                }
+            `
+        });
+
+        const river = new THREE.Mesh(waterGeom, waterMat);
+        scene.add(river);
+
+        // --- 5. DETAILED PROCEDURAL MULTI-BRANCH TREES ---
+        // Construct a stylized multi-cluster organic pine/cedar tree
+        const createDetailedTreeGeom = () => {
+            const group = new THREE.Group();
+
+            // 1. Tapered Wooden Trunk extending 1.1 units below ground to ensure trees on hills/slopes never have exposed stump bottoms
+            const trunkGeom = new THREE.CylinderGeometry(0.14, 0.38, 3.8, 8);
+            trunkGeom.translate(0, 0.8, 0); // Bottom is at y = -1.1, top is at y = +2.7
+            const trunkMat = new THREE.MeshStandardMaterial({
+                color: 0x1f1610, // Dark cedar bark
+                roughness: 0.9
+            });
+            const trunkMesh = new THREE.Mesh(trunkGeom, trunkMat);
+            group.add(trunkMesh);
+
+            // 2. Angled Branches
+            const branchGeom = new THREE.CylinderGeometry(0.06, 0.12, 1.2, 6);
+            branchGeom.translate(0, 0.6, 0);
+            
+            const b1 = new THREE.Mesh(branchGeom, trunkMat);
+            b1.position.set(0, 1.2, 0);
+            b1.rotation.set(0.3, 0.5, 0.6);
+            group.add(b1);
+
+            const b2 = new THREE.Mesh(branchGeom, trunkMat);
+            b2.position.set(0, 1.5, 0);
+            b2.rotation.set(-0.4, 2.0, -0.5);
+            group.add(b2);
+
+            const b3 = new THREE.Mesh(branchGeom, trunkMat);
+            b3.position.set(0, 1.8, 0);
+            b3.rotation.set(0.2, -1.5, 0.4);
+            group.add(b3);
+
+            // 3. Dense Organic Foliage Canopies (Deformed low-poly spheres)
+            const foliageMat = new THREE.MeshStandardMaterial({
+                color: 0x061e1c, // Rich twilight pine
+                roughness: 0.8,
+                metalness: 0.1,
+                flatShading: true
+            });
+
+            const makeFoliageCluster = (r, x, y, z) => {
+                const geom = new THREE.IcosahedronGeometry(r, 1);
+                // Subtle organic perturbation
+                const pos = geom.attributes.position;
+                for (let i = 0; i < pos.count; i++) {
+                    const vx = pos.getX(i);
+                    const vy = pos.getY(i);
+                    const vz = pos.getZ(i);
+                    const factor = 1.0 + Math.sin(vx * 3.0) * Math.cos(vy * 3.0) * 0.18;
+                    pos.setXYZ(i, vx * factor, vy * factor, vz * factor);
+                }
+                geom.computeVertexNormals();
+                const m = new THREE.Mesh(geom, foliageMat);
+                m.position.set(x, y, z);
+                return m;
+            };
+
+            // Main crown canopy
+            group.add(makeFoliageCluster(0.95, 0, 3.2, 0));
+            group.add(makeFoliageCluster(0.85, 0.3, 2.7, 0.2));
+            group.add(makeFoliageCluster(0.8, -0.3, 2.6, -0.2));
+            group.add(makeFoliageCluster(0.7, 0.2, 2.2, -0.3));
+
+            // Branch clusters
+            group.add(makeFoliageCluster(0.65, 0.7, 1.8, 0.4));
+            group.add(makeFoliageCluster(0.6, -0.6, 2.0, -0.4));
+            group.add(makeFoliageCluster(0.55, -0.5, 2.2, 0.4));
+
+            return group;
+        };
+
+        const treePrototype = createDetailedTreeGeom();
+
+        // Scatter 110 detailed trees along the valley banks and meadow ridges
+        const treeCount = 110;
+        const trees = [];
+        let placed = 0;
+
+        for (let i = 0; i < treeCount * 4 && placed < treeCount; i++) {
+            const z = (Math.random() - 0.5) * 85;
+            const rx = getRiverX(z);
+            const side = Math.random() < 0.5 ? -1 : 1;
+            const distFromBank = 4.2 + Math.random() * 28;
+            const x = rx + side * distFromBank;
+
+            // Keep waterfall canyon gorge clear of trees
+            if (z < -41.0 && Math.abs(x - rx) < 9.5) continue;
+
+            const y = getTerrainHeight(x, z);
+
+            const tree = treePrototype.clone();
+            const scale = 0.7 + Math.random() * 0.7;
+            tree.position.set(x, y - 0.18, z); // Embed 1.28 units into terrain to eliminate slope cutoff
+            tree.scale.set(scale, scale * (0.9 + Math.random() * 0.35), scale);
+            tree.rotation.y = Math.random() * Math.PI * 2;
+            tree.rotation.z = (Math.random() - 0.5) * 0.08;
+            tree.userData = {
+                baseRotX: tree.rotation.x,
+                baseRotY: tree.rotation.y,
+                baseRotZ: tree.rotation.z
+            };
+
+            scene.add(tree);
+            trees.push(tree);
+            placed++;
+        }
+
+        // --- 6. INSTANCED RIVER STONES & BOULDERS ---
+        const stoneGeom = new THREE.DodecahedronGeometry(0.4, 0);
+        const stoneMat = new THREE.MeshStandardMaterial({
+            color: 0x0b1a26,
+            roughness: 0.9,
+            flatShading: true
+        });
+        const stoneCount = 45;
+        const instancedStones = new THREE.InstancedMesh(stoneGeom, stoneMat, stoneCount);
+        const dummy = new THREE.Object3D();
+
+        let stonesPlaced = 0;
+        for (let i = 0; i < stoneCount * 3 && stonesPlaced < stoneCount; i++) {
+            const z = (Math.random() - 0.5) * 75;
+            const rx = getRiverX(z);
+            const side = Math.random() < 0.5 ? -1 : 1;
+            const dist = 3.2 + Math.random() * 2.2;
+            const x = rx + side * dist;
+            const y = -0.15 + Math.random() * 0.2;
+
+            const s = 0.5 + Math.random() * 0.7;
+            dummy.position.set(x, y, z);
+            dummy.scale.set(s, s * 0.6, s * (0.8 + Math.random() * 0.4));
+            dummy.rotation.set(Math.random(), Math.random(), Math.random());
+            dummy.updateMatrix();
+
+            instancedStones.setMatrixAt(stonesPlaced, dummy.matrix);
+            stonesPlaced++;
+        }
+        instancedStones.instanceMatrix.needsUpdate = true;
+        scene.add(instancedStones);
+
+        // --- 6B. TALL SILVER BIRCH TREES (SECOND FOREST SPECIES) ---
+        const createBirchTree = () => {
+            const group = new THREE.Group();
+
+            // Slender birch trunk extending 1.3 units into the ground to anchor firmly on slopes
+            const trunkGeom = new THREE.CylinderGeometry(0.08, 0.24, 5.2, 7);
+            trunkGeom.translate(0, 1.3, 0); // Bottom is at y = -1.3, top is at y = +3.9
+            const trunkMat = new THREE.MeshStandardMaterial({
+                color: 0x1f2b38, // Silvery birch bark
+                roughness: 0.75
+            });
+            const trunkMesh = new THREE.Mesh(trunkGeom, trunkMat);
+            group.add(trunkMesh);
+
+            const birchFoliageMat = new THREE.MeshStandardMaterial({
+                color: 0x072528, // Crisp twilight birch foliage
+                roughness: 0.75,
+                flatShading: true
+            });
+
+            const addBirchCluster = (r, x, y, z) => {
+                const geom = new THREE.IcosahedronGeometry(r, 1);
+                const m = new THREE.Mesh(geom, birchFoliageMat);
+                m.position.set(x, y, z);
+                group.add(m);
+            };
+
+            addBirchCluster(0.85, 0, 3.8, 0);
+            addBirchCluster(0.7, 0.25, 3.3, 0.15);
+            addBirchCluster(0.65, -0.2, 3.1, -0.2);
+            addBirchCluster(0.55, 0.35, 2.7, -0.1);
+
+            return group;
+        };
+
+        const birchPrototype = createBirchTree();
+        const birchCount = 42;
+        const birchTrees = [];
+        let birchesPlaced = 0;
+
+        for (let i = 0; i < birchCount * 4 && birchesPlaced < birchCount; i++) {
+            const z = (Math.random() - 0.5) * 85;
+            const rx = getRiverX(z);
+            const side = Math.random() < 0.5 ? -1 : 1;
+            const distFromBank = 7.0 + Math.random() * 26; // High meadows and ridges
+            const x = rx + side * distFromBank;
+            const y = getTerrainHeight(x, z);
+
+            const birch = birchPrototype.clone();
+            const scale = 0.8 + Math.random() * 0.5;
+            birch.position.set(x, y - 0.18, z); // Embed 1.48 units into terrain to eliminate slope cutoff
+            birch.scale.set(scale, scale * (0.95 + Math.random() * 0.3), scale);
+            birch.rotation.y = Math.random() * Math.PI * 2;
+            birch.rotation.z = (Math.random() - 0.5) * 0.06;
+            birch.userData = {
+                baseRotX: birch.rotation.x,
+                baseRotY: birch.rotation.y,
+                baseRotZ: birch.rotation.z
+            };
+
+            scene.add(birch);
+            birchTrees.push(birch);
+            birchesPlaced++;
+        }
+
+        // --- 6C. ORGANIC ARCHING RIVERSIDE REEDS & CATTAILS ---
+        // Construct curved reed stalk with natural parabolic arch & integrated velvety cattail head
+        const reedGeom = new THREE.CylinderGeometry(0.015, 0.045, 2.1, 7, 14);
+        reedGeom.translate(0, 1.05, 0);
+
+        const rPos = reedGeom.attributes.position;
+        const rColors = new Float32Array(rPos.count * 3);
+
+        const colReedBase = new THREE.Color('#051516');    // Dark wet stem base
+        const colReedGreen = new THREE.Color('#0a2b28');   // Deep reed green
+        const colCattailHead = new THREE.Color('#1c140e'); // Velvety dark chocolate/amber cattail head
+        const colReedTip = new THREE.Color('#0d3330');     // Tapered upper spike
+
+        for (let i = 0; i < rPos.count; i++) {
+            const rawY = rPos.getY(i); // 0 to 2.1
+            const t = Math.max(0, rawY / 2.1);
+
+            // Natural arching curvature: bends toward water with tip droop
+            const arch = t * t * 0.48;
+            const droop = Math.pow(t, 3.2) * 0.22;
+            let vx = rPos.getX(i);
+            let vz = rPos.getZ(i);
+
+            // Cattail head bulge between y = 1.32 and 1.82
+            let vertexCol = colReedGreen;
+            if (rawY > 1.32 && rawY < 1.82) {
+                const headT = Math.sin((rawY - 1.32) / 0.50 * Math.PI);
+                const bulge = 1.0 + headT * 2.6; // Thick velvety cylinder
+                vx *= bulge;
+                vz *= bulge;
+                vertexCol = colCattailHead;
+            } else if (rawY <= 1.32) {
+                const baseBlend = Math.min(rawY / 0.6, 1.0);
+                vertexCol = colReedBase.clone().lerp(colReedGreen, baseBlend);
+            } else {
+                vertexCol = colReedTip;
+            }
+
+            rPos.setXYZ(i, vx + arch, rawY - droop, vz + arch * 0.32);
+
+            rColors[i * 3 + 0] = vertexCol.r;
+            rColors[i * 3 + 1] = vertexCol.g;
+            rColors[i * 3 + 2] = vertexCol.b;
+        }
+        reedGeom.setAttribute('color', new THREE.BufferAttribute(rColors, 3));
+        reedGeom.computeVertexNormals();
+
+        const reedMat = new THREE.MeshStandardMaterial({
+            vertexColors: true,
+            roughness: 0.85,
+            metalness: 0.08
+        });
+
+        const reedCount = 170;
+        const instancedReeds = new THREE.InstancedMesh(reedGeom, reedMat, reedCount);
+        const reedDummy = new THREE.Object3D();
+        const reedOffsets = [];
+
+        // Botanical reality: Cattails grow in dense colonial rhizome bunches (stands / clumps)
+        // clustered in calm inner river coves and backwaters, with open shoreline between bunches!
+        const reedBunches = [
+            { z: 18.0, side: 1, count: 26, radius: 1.6 },   // Hero foreground right bank stand (visible immediately on load!)
+            { z: 10.0, side: -1, count: 24, radius: 1.4 },  // Midground left bank bend stand
+            { z: 0.0, side: 1, count: 28, radius: 1.8 },    // Calm inner river bend stand
+            { z: -10.0, side: -1, count: 22, radius: 1.3 }, // Left bank wetland cove
+            { z: -20.0, side: 1, count: 26, radius: 1.5 },  // Overlook right bank stand
+            { z: -32.0, side: -1, count: 26, radius: 1.6 }, // Zone 4 horizon bend stand
+            { z: 26.0, side: -1, count: 18, radius: 1.2 }   // Far south foreground left stand
+        ];
+
+        let reedsPlaced = 0;
+        reedBunches.forEach((bunch) => {
+            for (let j = 0; j < bunch.count && reedsPlaced < reedCount; j++) {
+                const angle = Math.random() * Math.PI * 2;
+                const r = Math.pow(Math.random(), 0.6) * bunch.radius;
+                const z = bunch.z + Math.sin(angle) * r;
+                const rx = getRiverX(z);
+                const dist = 3.15 + Math.abs(Math.cos(angle) * r * 0.5) + Math.random() * 0.35;
+                const x = rx + bunch.side * dist;
+                const y = getTerrainHeight(x, z);
+
+                reedDummy.position.set(x, y - 0.05, z);
+                // Dense core has taller mature stalks, outer perimeter has shorter shoots
+                const coreFactor = 1.0 - (r / bunch.radius) * 0.35;
+                const s = (0.7 + Math.random() * 0.45) * coreFactor;
+                reedDummy.scale.set(s, s * (0.95 + Math.random() * 0.3), s);
+
+                // Lean outward toward the water channel
+                const leanDir = Math.sign(rx - x);
+                const riverLean = leanDir * (0.24 + Math.random() * 0.32);
+                const crossLean = (Math.random() - 0.5) * 0.25;
+                const yaw = (leanDir < 0 ? Math.PI : 0) + (Math.random() - 0.5) * 0.5;
+
+                reedDummy.rotation.set(crossLean, yaw, riverLean);
+                reedDummy.updateMatrix();
+                instancedReeds.setMatrixAt(reedsPlaced, reedDummy.matrix);
+
+                reedOffsets.push({
+                    pos: reedDummy.position.clone(),
+                    scale: reedDummy.scale.clone(),
+                    baseRot: reedDummy.rotation.clone()
+                });
+                reedsPlaced++;
+            }
+        });
+        instancedReeds.instanceMatrix.needsUpdate = true;
+        scene.add(instancedReeds);
+
+        // --- 6D. BOTANICAL HIGH-CONTRAST WATER LILIES (NOTCHED LILY PADS & LOTUS BLOSSOMS) ---
+        // Organic notched leaf with upturned rim and vivid emerald-to-bright-jade gradient
+        const createLilyPadGeom = () => {
+            const geom = new THREE.BufferGeometry();
+            const segments = 24;
+            const notchAngle = 0.45; // ~26° botanical V-notch opening
+            const startAngle = notchAngle / 2;
+            const endAngle = Math.PI * 2 - notchAngle / 2;
+            const angleStep = (endAngle - startAngle) / segments;
+
+            const positions = [];
+            const colors = [];
+            const indices = [];
+
+            // Center vertex (leaf heart)
+            positions.push(0, 0.002, 0);
+            const colHeart = new THREE.Color('#022c22'); // Deep dark emerald heart
+            const colMid = new THREE.Color('#059669');   // Lush vivid green blade
+            const colRim = new THREE.Color('#34d399');   // Bright jade/lime contrast rim
+
+            colors.push(colHeart.r, colHeart.g, colHeart.b);
+
+            // Ring 1: Mid blade (r = 0.28)
+            for (let i = 0; i <= segments; i++) {
+                const theta = startAngle + i * angleStep;
+                const r = 0.28;
+                positions.push(Math.cos(theta) * r, 0.006, Math.sin(theta) * r);
+                colors.push(colMid.r, colMid.g, colMid.b);
+            }
+
+            // Ring 2: Outer rim with gentle upturned curl (r = 0.44, y = 0.026)
+            for (let i = 0; i <= segments; i++) {
+                const theta = startAngle + i * angleStep;
+                const wobble = 1.0 + Math.sin(theta * 5.0) * 0.04;
+                const r = 0.44 * wobble;
+                positions.push(Math.cos(theta) * r, 0.026, Math.sin(theta) * r);
+                colors.push(colRim.r, colRim.g, colRim.b);
+            }
+
+            // Triangles from center to mid ring
+            for (let i = 0; i < segments; i++) {
+                indices.push(0, 1 + i, 1 + i + 1);
+            }
+
+            // Triangles between mid ring and outer rim
+            const ring1Offset = 1;
+            const ring2Offset = ring1Offset + segments + 1;
+            for (let i = 0; i < segments; i++) {
+                const a = ring1Offset + i;
+                const b = ring1Offset + i + 1;
+                const c = ring2Offset + i;
+                const d = ring2Offset + i + 1;
+                indices.push(a, d, b);
+                indices.push(a, c, d);
+            }
+
+            geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            geom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            geom.setIndex(indices);
+            geom.computeVertexNormals();
+            return geom;
+        };
+
+        // Delicate blooming lotus flower atop selected lily pads
+        const createLotusBlossomGeom = () => {
+            const geom = new THREE.BufferGeometry();
+            const petalCount = 8;
+            const positions = [];
+            const colors = [];
+            const indices = [];
+
+            const colBase = new THREE.Color('#f472b6');   // Rose blush inner petal base
+            const colTip = new THREE.Color('#fdf2f8');    // Star-white outer petal tip
+            const colStamen = new THREE.Color('#fbbf24'); // Radiant golden stamen center
+
+            // Center stamen cone (vertex 0)
+            positions.push(0, 0.065, 0);
+            colors.push(colStamen.r, colStamen.g, colStamen.b);
+
+            // Ring of petal bases (vertices 1 .. petalCount)
+            for (let i = 0; i < petalCount; i++) {
+                const a = (i / petalCount) * Math.PI * 2;
+                positions.push(Math.cos(a) * 0.045, 0.015, Math.sin(a) * 0.045);
+                colors.push(colBase.r, colBase.g, colBase.b);
+            }
+
+            // Ring of pointed petal tips arching upward & outward (vertices petalCount+1 .. 2*petalCount)
+            for (let i = 0; i < petalCount; i++) {
+                const a = (i / petalCount) * Math.PI * 2;
+                positions.push(Math.cos(a) * 0.15, 0.085, Math.sin(a) * 0.15);
+                colors.push(colTip.r, colTip.g, colTip.b);
+            }
+
+            for (let i = 0; i < petalCount; i++) {
+                const next = (i + 1) % petalCount;
+                const b1 = 1 + i;
+                const b2 = 1 + next;
+                const t1 = 1 + petalCount + i;
+                indices.push(0, b1, b2);  // Stamen center
+                indices.push(b1, t1, b2); // Petal triangle
+            }
+
+            geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            geom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            geom.setIndex(indices);
+            geom.computeVertexNormals();
+            return geom;
+        };
+
+        const lilyGeom = createLilyPadGeom();
+        const lilyMat = new THREE.MeshStandardMaterial({
+            vertexColors: true,
+            roughness: 0.55,
+            metalness: 0.10,
+            side: THREE.DoubleSide
+        });
+        const lilyCount = 36;
+        const instancedLilies = new THREE.InstancedMesh(lilyGeom, lilyMat, lilyCount);
+        const lilyDummy = new THREE.Object3D();
+        const lilyData = [];
+
+        // Lotus flower blossoms on a portion of the pads
+        const lotusGeom = createLotusBlossomGeom();
+        const lotusMat = new THREE.MeshStandardMaterial({
+            vertexColors: true,
+            roughness: 0.45,
+            metalness: 0.15,
+            side: THREE.DoubleSide
+        });
+        const flowerCount = 14;
+        const instancedFlowers = new THREE.InstancedMesh(lotusGeom, lotusMat, flowerCount);
+        const flowerDummy = new THREE.Object3D();
+        let flowersPlaced = 0;
+
+        let liliesPlaced = 0;
+        for (let i = 0; i < lilyCount * 4 && liliesPlaced < lilyCount; i++) {
+            const z = (Math.random() - 0.5) * 75;
+            const rx = getRiverX(z);
+            const side = Math.random() < 0.5 ? -1 : 1;
+            const dist = 1.0 + Math.random() * 1.7;
+            const x = rx + side * dist;
+            const y = -0.085;
+
+            const s = 0.65 + Math.random() * 0.55;
+            lilyDummy.position.set(x, y, z);
+            lilyDummy.scale.set(s, 1.0, s * (0.85 + Math.random() * 0.3));
+            lilyDummy.rotation.set(0, Math.random() * Math.PI * 2, 0);
+            lilyDummy.updateMatrix();
+            instancedLilies.setMatrixAt(liliesPlaced, lilyDummy.matrix);
+
+            // Add flower blossom to roughly 40% of lily pads
+            const hasFlower = flowersPlaced < flowerCount && Math.random() < 0.45;
+            let flowerIndex = -1;
+            if (hasFlower) {
+                flowerIndex = flowersPlaced;
+                flowerDummy.position.set(x, y + 0.02, z);
+                flowerDummy.scale.set(s * 0.85, s * 0.85, s * 0.85);
+                flowerDummy.rotation.set(0, Math.random() * Math.PI * 2, 0);
+                flowerDummy.updateMatrix();
+                instancedFlowers.setMatrixAt(flowersPlaced, flowerDummy.matrix);
+                flowersPlaced++;
+            }
+
+            lilyData.push({
+                x, z,
+                baseY: y,
+                scale: s,
+                rotY: lilyDummy.rotation.y,
+                phase: Math.random() * Math.PI * 2,
+                flowerIndex: flowerIndex
+            });
+            liliesPlaced++;
+        }
+        instancedLilies.instanceMatrix.needsUpdate = true;
+        scene.add(instancedLilies);
+
+        if (flowersPlaced > 0) {
+            instancedFlowers.instanceMatrix.needsUpdate = true;
+            scene.add(instancedFlowers);
+        }
+
+        // --- 6E. LOW-LYING MOONLIT RIVER MIST (ATMOSPHERIC VAPORS) ---
+        const mistCount = 130;
+        const mistGeom = new THREE.BufferGeometry();
+        const mistPos = new Float32Array(mistCount * 3);
+        const mistSpeeds = new Float32Array(mistCount);
+
+        for (let i = 0; i < mistCount; i++) {
+            const z = (Math.random() - 0.5) * 80;
+            const rx = getRiverX(z);
+            mistPos[i * 3 + 0] = rx + (Math.random() - 0.5) * 5.2;
+            mistPos[i * 3 + 1] = 0.18 + Math.random() * 0.6;
+            mistPos[i * 3 + 2] = z;
+            mistSpeeds[i] = 0.25 + Math.random() * 0.35;
+        }
+        mistGeom.setAttribute('position', new THREE.BufferAttribute(mistPos, 3));
+
+        const mistCanvas = document.createElement('canvas');
+        mistCanvas.width = 64;
+        mistCanvas.height = 64;
+        const mistCtx = mistCanvas.getContext('2d');
+        if (mistCtx) {
+            const grad = mistCtx.createRadialGradient(32, 32, 0, 32, 32, 32);
+            grad.addColorStop(0, 'rgba(186, 230, 253, 0.16)');
+            grad.addColorStop(0.45, 'rgba(125, 211, 252, 0.07)');
+            grad.addColorStop(1, 'rgba(125, 211, 252, 0)');
+            mistCtx.fillStyle = grad;
+            mistCtx.fillRect(0, 0, 64, 64);
+        }
+        const mistTexture = new THREE.CanvasTexture(mistCanvas);
+
+        const mistMat = new THREE.PointsMaterial({
+            size: 2.6,
+            map: mistTexture,
+            transparent: true,
+            opacity: 0.55,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending
+        });
+        const riverMist = new THREE.Points(mistGeom, mistMat);
+        scene.add(riverMist);
+
+        // --- 6F. ULTRA-DENSE HIGH-RESOLUTION MEADOW GRASS (18,000 TUFTS / 54,000 BLADES) ---
+        // Multi-blade organic tuft with 3 crossing curved blades per cluster for lush, continuous meadow coverage
+        const createGrassTuftGeom = () => {
+            const positions = [];
+            const colors = [];
+            const indices = [];
+
+            // 3 blades per clump rotated at 0°, +62°, -58° with natural height and curl variations
+            const blades = [
+                { angle: 0.0,  curl: 0.14, width: 0.038, height: 0.62 },
+                { angle: 1.08, curl: 0.12, width: 0.032, height: 0.52 },
+                { angle: -1.02, curl: 0.13, width: 0.034, height: 0.56 }
+            ];
+
+            const colRoot = new THREE.Color('#031514');  // Dark moist root
+            const colMid = new THREE.Color('#0a362c');   // Deep emerald blade
+            const colTip = new THREE.Color('#226558');   // Starlit jade dew tip
+
+            blades.forEach((b, bIdx) => {
+                const baseIdx = bIdx * 5;
+                const cosA = Math.cos(b.angle);
+                const sinA = Math.sin(b.angle);
+
+                const w = b.width;
+                const h = b.height;
+                const c = b.curl;
+
+                // Root left & right (y = 0)
+                positions.push(-w * cosA, 0.0, -w * sinA);
+                colors.push(colRoot.r, colRoot.g, colRoot.b);
+
+                positions.push(w * cosA, 0.0, w * sinA);
+                colors.push(colRoot.r, colRoot.g, colRoot.b);
+
+                // Mid left & right (y = h * 0.45, curled forward)
+                const midW = w * 0.75;
+                const midFwd = c * 0.35;
+                positions.push(-midW * cosA - midFwd * sinA, h * 0.45, -midW * sinA + midFwd * cosA);
+                colors.push(colMid.r, colMid.g, colMid.b);
+
+                positions.push(midW * cosA - midFwd * sinA, h * 0.45, midW * sinA + midFwd * cosA);
+                colors.push(colMid.r, colMid.g, colMid.b);
+
+                // Tip (y = h, curled forward)
+                positions.push(-c * sinA, h, c * cosA);
+                colors.push(colTip.r, colTip.g, colTip.b);
+
+                // 3 triangles per blade
+                indices.push(
+                    baseIdx + 0, baseIdx + 1, baseIdx + 2,
+                    baseIdx + 1, baseIdx + 3, baseIdx + 2,
+                    baseIdx + 2, baseIdx + 3, baseIdx + 4
+                );
+            });
+
+            const geom = new THREE.BufferGeometry();
+            geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            geom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            geom.setIndex(indices);
+            geom.computeVertexNormals();
+            return geom;
+        };
+
+        const grassGeom = createGrassTuftGeom();
+
+        const grassMat = new THREE.MeshStandardMaterial({
+            vertexColors: true,
+            roughness: 0.82,
+            metalness: 0.08,
+            side: THREE.DoubleSide
+        });
+
+        // 100% GPU Wind Sway Displacement: zero CPU cost!
+        grassMat.onBeforeCompile = (shader) => {
+            shader.uniforms.uTime = { value: 0 };
+            shader.vertexShader = `
+                uniform float uTime;
+            ` + shader.vertexShader;
+            shader.vertexShader = shader.vertexShader.replace(
+                '#include <begin_vertex>',
+                `
+                #include <begin_vertex>
+                float hFactor = clamp(transformed.y / 0.62, 0.0, 1.0);
+                vec4 wPos = instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0);
+
+                // Unified gentle wind field matching JavaScript getWindAt
+                float wanderAngle = sin(uTime * 0.08) * 0.85 + cos(uTime * 0.043) * 0.55 + 0.8;
+                float wave1 = sin(wPos.x * 0.055 + wPos.z * 0.075 - uTime * 1.05);
+                float wave2 = cos(wPos.x * 0.095 - wPos.z * 0.065 - uTime * 1.45) * 0.35;
+                float wave3 = sin(wPos.x * 0.035 - wPos.z * 0.040 + uTime * 0.45) * 0.20;
+                float gust = 0.60 + 0.30 * wave1 + 0.12 * wave2 + 0.08 * wave3;
+                float localAngle = wanderAngle + (wave2 + wave3) * 0.18;
+
+                vec2 windDir = vec2(cos(localAngle), sin(localAngle));
+                float dispStrength = gust * 0.10 * hFactor;
+
+                transformed.x += windDir.x * dispStrength;
+                transformed.z += windDir.y * dispStrength;
+                `
+            );
+            grassMat.userData.shader = shader;
+        };
+
+        const grassCount = 18000;
+        const instancedGrass = new THREE.InstancedMesh(grassGeom, grassMat, grassCount);
+        const gDummy = new THREE.Object3D();
+
+        let grassPlaced = 0;
+        for (let i = 0; i < grassCount * 3 && grassPlaced < grassCount; i++) {
+            const z = (Math.random() - 0.5) * 88;
+            const rx = getRiverX(z);
+            const side = Math.random() < 0.5 ? -1 : 1;
+            // Spread across all rolling hills from bank crest (3.5) out to edges (28)
+            const dist = 3.5 + Math.pow(Math.random(), 0.82) * 24.5;
+            const x = rx + side * dist;
+            const y = getTerrainHeight(x, z);
+
+            gDummy.position.set(x, y - 0.01, z);
+            const s = 0.65 + Math.random() * 0.7;
+            gDummy.scale.set(s, s * (0.85 + Math.random() * 0.35), s);
+            gDummy.rotation.set(
+                (Math.random() - 0.5) * 0.25,
+                Math.random() * Math.PI * 2,
+                (Math.random() - 0.5) * 0.25
+            );
+            gDummy.updateMatrix();
+            instancedGrass.setMatrixAt(grassPlaced, gDummy.matrix);
+            grassPlaced++;
+        }
+        instancedGrass.instanceMatrix.needsUpdate = true;
+        scene.add(instancedGrass);
+
+        // --- 7. CELESTIAL MOON & STARDUST SKY ---
+        const starCount = 500;
+        const starGeom = new THREE.BufferGeometry();
+        const starPos = new Float32Array(starCount * 3);
+
+        for (let i = 0; i < starCount; i++) {
+            starPos[i * 3 + 0] = (Math.random() - 0.5) * 120;
+            starPos[i * 3 + 1] = Math.random() * 45 + 10;
+            starPos[i * 3 + 2] = (Math.random() - 0.5) * 100 - 30;
+        }
+        starGeom.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+
+        const starMat = new THREE.PointsMaterial({
+            size: 0.15,
+            color: 0xe0f2fe,
+            transparent: true,
+            opacity: 0.85,
+            blending: THREE.AdditiveBlending
+        });
+        const stars = new THREE.Points(starGeom, starMat);
+        scene.add(stars);
+
+        // --- 7B. CELESTIAL SHOOTING STAR (METEOR) ---
+        const meteorGeom = new THREE.BufferGeometry();
+        const meteorPositions = new Float32Array(2 * 3);
+        meteorGeom.setAttribute('position', new THREE.BufferAttribute(meteorPositions, 3));
+        const meteorMat = new THREE.LineBasicMaterial({
+            color: 0xbae6fd,
+            transparent: true,
+            opacity: 0.0,
+            blending: THREE.AdditiveBlending
+        });
+        const meteor = new THREE.Line(meteorGeom, meteorMat);
+        scene.add(meteor);
+
+        let meteorActive = false;
+        let meteorStartTime = 0;
+        let nextMeteorTime = 5.0;
+        const meteorStart = new THREE.Vector3();
+        const meteorEnd = new THREE.Vector3();
+
+        // --- 7C. TRUE 3D SPHERICAL MOON WITH PROCEDURAL MARIA, CRATERS & CORONA ---
+        // 1. High-resolution 3D Moon Sphere Geometry (64x64 segments for mathematically smooth spherical silhouette)
+        const moonGeom = new THREE.SphereGeometry(4.4, 64, 64);
+        const moonMat = new THREE.ShaderMaterial({
+            transparent: false,
+            depthWrite: true,
+            depthTest: true,
+            vertexShader: `
+                varying vec3 vSphereNormal;
+                varying vec3 vLocalPos;
+                varying vec3 vWorldPos;
+                varying vec3 vViewDir;
+
+                void main() {
+                    vLocalPos = normalize(position);
+                    vSphereNormal = normalize(normalMatrix * normal);
+                    vec4 worldPos = modelMatrix * vec4(position, 1.0);
+                    vWorldPos = worldPos.xyz;
+                    vViewDir = normalize(cameraPosition - worldPos.xyz);
+                    gl_Position = projectionMatrix * viewMatrix * worldPos;
+                }
+            `,
+            fragmentShader: `
+                varying vec3 vSphereNormal;
+                varying vec3 vLocalPos;
+                varying vec3 vWorldPos;
+                varying vec3 vViewDir;
+
+                float hash3(vec3 p) {
+                    p = fract(p * 0.3183099 + 0.1);
+                    p *= 17.0;
+                    return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+                }
+
+                float noise3(vec3 x) {
+                    vec3 p = floor(x);
+                    vec3 w = fract(x);
+                    vec3 u = w * w * (3.0 - 2.0 * w);
+                    float n = p.x + p.y * 157.0 + 113.0 * p.z;
+                    return mix(mix(mix(hash3(p), hash3(p + vec3(1,0,0)), u.x),
+                                   mix(hash3(p + vec3(0,1,0)), hash3(p + vec3(1,1,0)), u.x), u.y),
+                               mix(mix(hash3(p + vec3(0,0,1)), hash3(p + vec3(1,0,1)), u.x),
+                                   mix(hash3(p + vec3(0,1,1)), hash3(p + vec3(1,1,1)), u.x), u.y), u.z);
+                }
+
+                float fbm3(vec3 p) {
+                    float v = 0.0;
+                    float a = 0.5;
+                    for (int i = 0; i < 5; i++) {
+                        v += a * noise3(p);
+                        p = p * 2.08 + vec3(0.18, 0.32, 0.45);
+                        a *= 0.5;
+                    }
+                    return v;
+                }
+
+                void main() {
+                    vec3 p = vLocalPos;
+
+                    // 1. Broad Lunar Maria (dark basaltic volcanic plains)
+                    float mariaNoise = fbm3(p * 2.6);
+                    float isMare = smoothstep(0.38, 0.64, mariaNoise);
+
+                    // 2. Distinct Lunar Crater Basins (Raised bright rims & shadowed floors)
+                    float crater1 = length(p - normalize(vec3(0.18, 0.28, 0.93)));   // Copernicus
+                    float crater2 = length(p - normalize(vec3(-0.32, -0.42, 0.86))); // Tycho
+                    float crater3 = length(p - normalize(vec3(-0.46, 0.12, 0.88)));  // Kepler
+                    float crater4 = length(p - normalize(vec3(0.52, -0.18, 0.82)));  // Mare Crisium
+
+                    float rim1 = exp(-pow((crater1 - 0.22) * 22.0, 2.0)) * 0.65;
+                    float floor1 = smoothstep(0.22, 0.09, crater1) * 0.45;
+
+                    float rim2 = exp(-pow((crater2 - 0.18) * 24.0, 2.0)) * 0.85;
+                    float floor2 = smoothstep(0.18, 0.08, crater2) * 0.50;
+
+                    float rim3 = exp(-pow((crater3 - 0.14) * 26.0, 2.0)) * 0.55;
+
+                    // 3. Tycho Ray System: brilliant ejecta streaks radiating across the highlands
+                    vec3 tychoCenter = normalize(vec3(-0.32, -0.42, 0.86));
+                    vec3 dTycho = p - tychoCenter;
+                    float tychoDist = length(dTycho);
+                    float tychoAngle = atan(dTycho.y, dTycho.x);
+                    float tychoRays = pow(max(0.0, sin(tychoAngle * 9.0)), 5.0) * exp(-tychoDist * 2.2) * 0.58;
+
+                    // Dense multi-scale impact crater micro-relief
+                    float microCraters = noise3(p * 15.0) * 0.16 + noise3(p * 32.0) * 0.08;
+
+                    // High-contrast color palette: deep basaltic slate vs brilliant silvery highlands
+                    vec3 colMare = vec3(0.20, 0.28, 0.38);       // Dark basaltic sea
+                    vec3 colHighland = vec3(0.95, 0.98, 1.0);     // Brilliant silvery starlight highland
+                    vec3 colRims = vec3(1.0, 1.0, 1.0);           // Pure bright crater rim highlights
+
+                    float albedo = mix(0.18, 0.94, isMare) + rim1 + rim2 + rim3 + tychoRays + microCraters - floor1 - floor2;
+                    albedo = clamp(albedo, 0.0, 1.0);
+
+                    vec3 surfaceCol = mix(colMare, colHighland, albedo);
+                    surfaceCol += colRims * (rim1 * 0.45 + rim2 * 0.65 + tychoRays * 0.35);
+
+                    // 4. True 3D Spherical Diffuse Lighting & Terminator Relief
+                    vec3 moonLightDir = normalize(vec3(0.18, 0.45, 0.87));
+                    float nDotL = dot(vSphereNormal, moonLightDir);
+                    float sphericalLight = max(0.10, nDotL * 0.82 + 0.18);
+
+                    // Lunar limb darkening (Fresnel soft edge)
+                    float vDotN = max(0.0, dot(vViewDir, vSphereNormal));
+                    float limb = pow(vDotN, 0.26);
+
+                    vec3 finalMoon = surfaceCol * sphericalLight * limb;
+                    gl_FragColor = vec4(finalMoon, 1.0);
+                }
+            `
+        });
+        const moon = new THREE.Mesh(moonGeom, moonMat);
+        moon.position.set(-1.2, 8.2, -62.0);
+        moon.lookAt(getRiverX(0), 6.5, 0);
+        moon.rotateY(Math.PI); // Orient the detailed cratered hemisphere directly toward camera
+        scene.add(moon);
+
+        // 2. Soft Atmospheric Corona Glow Billboard behind the 3D Moon
+        const coronaCanvas = document.createElement('canvas');
+        coronaCanvas.width = 128;
+        coronaCanvas.height = 128;
+        const cCtx = coronaCanvas.getContext('2d');
+        if (cCtx) {
+            const grad = cCtx.createRadialGradient(64, 64, 28, 64, 64, 64);
+            grad.addColorStop(0, 'rgba(186, 230, 253, 0.75)');
+            grad.addColorStop(0.35, 'rgba(56, 189, 248, 0.35)');
+            grad.addColorStop(0.70, 'rgba(14, 165, 233, 0.12)');
+            grad.addColorStop(1, 'rgba(5, 8, 19, 0)');
+            cCtx.fillStyle = grad;
+            cCtx.fillRect(0, 0, 128, 128);
+        }
+        const coronaTexture = new THREE.CanvasTexture(coronaCanvas);
+        const coronaMat = new THREE.SpriteMaterial({
+            map: coronaTexture,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            opacity: 0.85
+        });
+        const moonCorona = new THREE.Sprite(coronaMat);
+        moonCorona.position.copy(moon.position);
+        moonCorona.scale.set(15.0, 15.0, 1.0);
+        scene.add(moonCorona);
+
+        // --- 8. SERENE FLOATING CELESTIAL STARDUST & FIREFLIES ---
+        const fireflyCount = 240;
+        const fireflyGeom = new THREE.BufferGeometry();
+        const pPos = new Float32Array(fireflyCount * 3);
+        const pColors = new Float32Array(fireflyCount * 3);
+        const pSpeeds = new Float32Array(fireflyCount);
+        const pPhases = new Float32Array(fireflyCount);
+
+        // Warm bioluminescent yellow firefly tones
+        const luminousYellow = new THREE.Color('#fef08a'); // Soft luminous yellow
+        const warmGold = new THREE.Color('#facc15');       // Golden yellow firefly glow
+        const amberGold = new THREE.Color('#f59e0b');      // Warm twilight amber
+
+        for (let i = 0; i < fireflyCount; i++) {
+            const z = (Math.random() - 0.5) * 75;
+            const rx = getRiverX(z);
+            pPos[i * 3 + 0] = rx + (Math.random() - 0.5) * 24;
+            pPos[i * 3 + 1] = Math.random() * 5.0 + 0.3;
+            pPos[i * 3 + 2] = z;
+
+            pSpeeds[i] = 0.3 + Math.random() * 0.5;
+            pPhases[i] = Math.random() * Math.PI * 2;
+
+            const c = Math.random() < 0.50 ? luminousYellow : Math.random() < 0.85 ? warmGold : amberGold;
+            pColors[i * 3 + 0] = c.r;
+            pColors[i * 3 + 1] = c.g;
+            pColors[i * 3 + 2] = c.b;
+        }
+
+        fireflyGeom.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+        fireflyGeom.setAttribute('color', new THREE.BufferAttribute(pColors, 3));
+
+        const dotCanvas = document.createElement('canvas');
+        dotCanvas.width = 48;
+        dotCanvas.height = 48;
+        const dotCtx = dotCanvas.getContext('2d');
+        if (dotCtx) {
+            const grad = dotCtx.createRadialGradient(24, 24, 0, 24, 24, 24);
+            grad.addColorStop(0, 'rgba(255, 255, 200, 1.0)');
+            grad.addColorStop(0.28, 'rgba(254, 240, 138, 0.95)');
+            grad.addColorStop(0.60, 'rgba(250, 204, 21, 0.55)');
+            grad.addColorStop(1, 'rgba(234, 179, 8, 0)');
+            dotCtx.fillStyle = grad;
+            dotCtx.fillRect(0, 0, 48, 48);
+        }
+        const fireflyTexture = new THREE.CanvasTexture(dotCanvas);
+
+        const fireflyMat = new THREE.PointsMaterial({
+            size: 0.24,
+            map: fireflyTexture,
+            transparent: true,
+            vertexColors: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            opacity: 0.85
+        });
+        const fireflies = new THREE.Points(fireflyGeom, fireflyMat);
+        scene.add(fireflies);
+
+        // --- 9. BUTTER-SMOOTH CONTINUOUS WATER RAYCASTING ---
+        const raycaster = new THREE.Raycaster();
+        const waterMathPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0.1);
+        const mouseNDC = new THREE.Vector2(0, 0);
+        const smoothMouseNDC = new THREE.Vector2(0, 0);
+        const hitPoint = new THREE.Vector3();
+        const smoothWaterCursor = new THREE.Vector3(getRiverX(16), -0.1, 16);
+        const prevWaterCursor = new THREE.Vector3(getRiverX(16), -0.1, 16);
+        let smoothCursorSpeed = 0.0;
+        let isMouseActive = true;
+
+        let mouseX = 0, mouseY = 0;
+        let targetMouseX = 0, targetMouseY = 0;
+
+        const RIPPLE_COUNT = 8;
+        let currentRippleIndex = 0;
+        let lastSpawnPos = new THREE.Vector2(999, 999);
+        let lastSpawnTime = 0;
+
+        window.addEventListener('mousemove', (e) => {
+            mouseNDC.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouseNDC.y = -(e.clientY / window.innerHeight) * 2 + 1;
+            isMouseActive = true;
+        });
+
+        window.addEventListener('mouseleave', () => {
+            isMouseActive = false;
+        });
+
+        // --- 10. SAFE NON-CLIPPING CAMERA WAYPOINTS WITH ALTERNATING BANK STAGING ---
+        // Dynamically frames the river on one side while opening the opposite bank for content
+        const waypoints = [
+            // Zone 0: Valley Overlook (Hero) - centered overview
+            {
+                cam: new THREE.Vector3(getRiverX(24), 7.2, 24),
+                look: new THREE.Vector3(getRiverX(6), 1.8, 6)
+            },
+            // Zone 1: West Bank (About) - camera offsets East, framing river on right and West bank on left
+            {
+                cam: new THREE.Vector3(getRiverX(13) + 3.8, 4.4, 15),
+                look: new THREE.Vector3(getRiverX(8) - 3.8, 2.0, 8)
+            },
+            // Zone 2: East Bank (Research) - camera offsets West, framing river on left and East bank on right
+            {
+                cam: new THREE.Vector3(getRiverX(0) - 4.2, 4.6, 2),
+                look: new THREE.Vector3(getRiverX(-5) + 3.8, 2.2, -5)
+            },
+            // Zone 3: West Bank (Publications) - camera offsets East, framing river on right and West bank on left
+            {
+                cam: new THREE.Vector3(getRiverX(-14) + 4.2, 4.8, -12),
+                look: new THREE.Vector3(getRiverX(-19) - 3.8, 2.3, -19)
+            },
+            // Zone 4: East Bank (Experience) - camera offsets West, framing river on left and East bank on right
+            {
+                cam: new THREE.Vector3(getRiverX(-27) - 4.0, 5.0, -25),
+                look: new THREE.Vector3(getRiverX(-32) + 3.8, 2.5, -32)
+            },
+            // Zone 5: West Bank (Projects) - camera offsets East, framing river on right and West bank on left
+            {
+                cam: new THREE.Vector3(getRiverX(-36), 7.2, -34),
+                look: new THREE.Vector3(getRiverX(-54), 2.8, -54)
+            },
+            // Zone 6: Celestial Horizon (Contact) - panoramic overlook at the brink of the waterfall
+            {
+                cam: new THREE.Vector3(getRiverX(-39), 7.8, -37),
+                look: new THREE.Vector3(getRiverX(-60), 2.6, -59)
+            }
+        ];
+
+        let targetCamPos = new THREE.Vector3().copy(waypoints[0].cam);
+        let targetLookAt = new THREE.Vector3().copy(waypoints[0].look);
+        let currentLookAt = new THREE.Vector3().copy(waypoints[0].look);
+
+        // Section Metric Tracker: Maps DOM section center points to camera waypoints
+        const sectionIds = ['hero', 'about', 'research', 'publications', 'journey', 'projects', 'contact'];
+        let sectionProgressPoints = [0, 0.17, 0.33, 0.50, 0.67, 0.83, 1.0];
+
+        const updateSectionMetrics = () => {
+            const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+            const scrollY = window.scrollY;
+
+            const pts = sectionIds.map((id, idx) => {
+                const el = document.getElementById(id);
+                if (!el) return idx / (sectionIds.length - 1);
+                const rect = el.getBoundingClientRect();
+                const absoluteTop = scrollY + rect.top;
+                const centerScroll = absoluteTop + rect.height * 0.5 - window.innerHeight * 0.5;
+                return Math.max(0, Math.min(1, centerScroll / maxScroll));
+            });
+
+            pts[0] = 0;
+            pts[pts.length - 1] = 1;
+            for (let i = 1; i < pts.length; i++) {
+                if (pts[i] <= pts[i - 1]) pts[i] = pts[i - 1] + 0.04;
+            }
+            sectionProgressPoints = pts;
+        };
+
+        const updateCameraFromScroll = () => {
+            const scrollY = window.scrollY;
+            const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+            const progress = maxScroll > 0 ? Math.min(Math.max(scrollY / maxScroll, 0), 1) : 0;
+
+            let index = 0;
+            for (let i = 0; i < sectionProgressPoints.length - 1; i++) {
+                if (progress >= sectionProgressPoints[i] && progress <= sectionProgressPoints[i + 1]) {
+                    index = i;
+                    break;
+                }
+            }
+
+            const p0Prog = sectionProgressPoints[index];
+            const p1Prog = sectionProgressPoints[index + 1] || 1;
+            const span = Math.max(0.0001, p1Prog - p0Prog);
+            const localT = Math.min(Math.max((progress - p0Prog) / span, 0), 1);
+
+            // Hermite cubic ease
+            const easeT = localT * localT * (3 - 2 * localT);
+
+            const p0 = waypoints[index];
+            const p1 = waypoints[Math.min(index + 1, waypoints.length - 1)];
+
+            targetCamPos.lerpVectors(p0.cam, p1.cam, easeT);
+            targetLookAt.lerpVectors(p0.look, p1.look, easeT);
+        };
+
+        window.addEventListener('scroll', updateCameraFromScroll, { passive: true });
+        window.addEventListener('resize', updateSectionMetrics);
+        setTimeout(updateSectionMetrics, 200);
+        updateCameraFromScroll();
+        updateCameraFromScroll();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Main Animation Loop
+        const clock = new THREE.Clock();
+        let lastTime = 0;
+
+        const animate = () => {
+            const time = clock.getElapsedTime();
+            const dt = Math.min(time - lastTime, 0.1) || 0.016;
+            lastTime = time;
+
+            // Butter-smooth mouse screen coordinates lerp
+            smoothMouseNDC.lerp(mouseNDC, 0.22);
+            targetMouseX = smoothMouseNDC.x;
+            targetMouseY = smoothMouseNDC.y;
+
+            mouseX += (targetMouseX - mouseX) * 0.05;
+            mouseY += (targetMouseY - mouseY) * 0.05;
+
+            // Smooth camera gliding
+            camera.position.x += (targetCamPos.x + mouseX * 0.85 - camera.position.x) * 0.06;
+            camera.position.y += (targetCamPos.y + mouseY * 0.4 - camera.position.y) * 0.06;
+            camera.position.z += (targetCamPos.z - camera.position.z) * 0.06;
+
+            // --- STRICT TERRAIN ANTI-CLIPPING GUARANTEE ---
+            const groundUnderCam = getTerrainHeight(camera.position.x, camera.position.z);
+            const minSafeHeight = groundUnderCam + 2.4;
+            if (camera.position.y < minSafeHeight) {
+                camera.position.y += (minSafeHeight - camera.position.y) * 0.3;
+            }
+
+            currentLookAt.x += (targetLookAt.x + mouseX * 0.4 - currentLookAt.x) * 0.06;
+            currentLookAt.y += (targetLookAt.y + mouseY * 0.2 - currentLookAt.y) * 0.06;
+            currentLookAt.z += (targetLookAt.z - currentLookAt.z) * 0.06;
+
+            camera.lookAt(currentLookAt);
+
+            // Water animation
+            waterMat.uniforms.uTime.value = time;
+
+            // --- REAL-TIME EXACT WATER RAYCASTING ---
+            raycaster.setFromCamera(smoothMouseNDC, camera);
+            const riverHits = raycaster.intersectObject(river);
+            let hasHit = false;
+
+            if (riverHits.length > 0) {
+                hitPoint.copy(riverHits[0].point);
+                hasHit = true;
+            } else {
+                // Fallback to mathematical water plane if grazing near shoreline
+                const planeHit = raycaster.ray.intersectPlane(waterMathPlane, hitPoint);
+                if (planeHit) {
+                    const rx = getRiverX(hitPoint.z);
+                    if (Math.abs(hitPoint.x - rx) < 6.5) {
+                        hasHit = true;
+                    }
+                }
+            }
+
+            if (hasHit && isMouseActive) {
+                // Rapidly glide 3D water cursor toward hit point
+                smoothWaterCursor.lerp(hitPoint, 0.45);
+
+                // Compute instantaneous velocity on water surface
+                const stepDist = Math.hypot(smoothWaterCursor.x - prevWaterCursor.x, smoothWaterCursor.z - prevWaterCursor.z);
+                const instSpeed = stepDist * 55.0;
+                smoothCursorSpeed += (instSpeed - smoothCursorSpeed) * 0.28;
+                prevWaterCursor.copy(smoothWaterCursor);
+
+                // River channel proximity check
+                const rx = getRiverX(smoothWaterCursor.z);
+                const distToRiver = Math.abs(smoothWaterCursor.x - rx);
+                const channelProximity = Math.max(0, Math.min(1.0, (6.8 - distToRiver) / 2.5));
+
+                // Update continuous hydrodynamic cursor uniform: (x, z, smoothSpeed, activeIntensity)
+                waterMat.uniforms.uWaterCursor.value.set(
+                    smoothWaterCursor.x,
+                    smoothWaterCursor.z,
+                    smoothCursorSpeed,
+                    channelProximity
+                );
+
+                // Spawn trailing expanding wave pulses with tuned gentle amplitude
+                const distFromLastSpawn = Math.hypot(smoothWaterCursor.x - lastSpawnPos.x, smoothWaterCursor.z - lastSpawnPos.y);
+                if (channelProximity > 0.05 && (distFromLastSpawn > 0.35 || (time - lastSpawnTime > 0.12 && distFromLastSpawn > 0.08))) {
+                    const pulseStrength = Math.min(Math.max(smoothCursorSpeed * 0.25 + 0.35, 0.35), 0.85);
+                    rippleUniforms[currentRippleIndex].set(smoothWaterCursor.x, smoothWaterCursor.z, time, pulseStrength);
+                    currentRippleIndex = (currentRippleIndex + 1) % RIPPLE_COUNT;
+                    lastSpawnPos.set(smoothWaterCursor.x, smoothWaterCursor.z);
+                    lastSpawnTime = time;
+                }
+            } else {
+                // Fade out cursor influence smoothly
+                waterMat.uniforms.uWaterCursor.value.w *= 0.90;
+            }
+
+            // --- UNIFIED, GENTLE, SPATIALLY-COHERENT WIND FIELD ---
+            // Pines, birches, and riverside reeds all respond to the exact same continuous wind field
+            // Nearby objects in close patches sway in the same direction and phase!
+            trees.forEach((tree) => {
+                const w = getWindAt(tree.position.x, tree.position.z, time);
+                const sway = 0.022 * w.strength;
+                tree.rotation.z = tree.userData.baseRotZ - w.dirX * sway;
+                tree.rotation.x = tree.userData.baseRotX + w.dirZ * sway;
+            });
+
+            birchTrees.forEach((tree) => {
+                const w = getWindAt(tree.position.x, tree.position.z, time);
+                const sway = 0.034 * w.strength;
+                tree.rotation.z = tree.userData.baseRotZ - w.dirX * sway;
+                tree.rotation.x = tree.userData.baseRotX + w.dirZ * sway;
+            });
+
+            // Riverside reeds bend together in patches along the passing breeze
+            for (let i = 0; i < reedCount; i++) {
+                const r = reedOffsets[i];
+                if (!r) continue;
+                const w = getWindAt(r.pos.x, r.pos.z, time);
+                const sway = 0.055 * w.strength;
+                const bendX = w.dirZ * sway;
+                const bendZ = -w.dirX * sway;
+
+                reedDummy.position.copy(r.pos);
+                reedDummy.scale.copy(r.scale);
+                reedDummy.rotation.set(
+                    r.baseRot.x + bendX,
+                    r.baseRot.y,
+                    r.baseRot.z + bendZ
+                );
+                reedDummy.updateMatrix();
+                instancedReeds.setMatrixAt(i, reedDummy.matrix);
+            }
+            instancedReeds.instanceMatrix.needsUpdate = true;
+
+            // 100% GPU-computed wind waves across the 9,000 hill grass blades
+            if (grassMat.userData.shader) {
+                grassMat.userData.shader.uniforms.uTime.value = time;
+            }
+
+            // --- PRECISE REAL-TIME WATER SURFACE ELEVATION SAMPLER ---
+            // Samples exact instantaneous fluid displacement (all 4 waves + wake + ripples) at any (x, z)
+            const getWaterSurfaceY = (wx, wz, t) => {
+                let y = -0.10;
+
+                // Gerstner Wave 1 (wavelength 7.5, speed 0.85)
+                const k1 = 6.2831853 / 7.5;
+                const c1 = Math.sqrt(9.81 / k1) * 0.85;
+                const a1 = 0.12 / k1;
+                const d1x = 0.05 / Math.hypot(0.05, 0.998), d1z = 0.998 / Math.hypot(0.05, 0.998);
+                y += a1 * Math.sin(k1 * (d1x * wx + d1z * wz - c1 * t));
+
+                // Gerstner Wave 2 (wavelength 4.4, speed 1.05)
+                const k2 = 6.2831853 / 4.4;
+                const c2 = Math.sqrt(9.81 / k2) * 1.05;
+                const a2 = 0.07 / k2;
+                const d2x = -0.06 / Math.hypot(-0.06, 0.998), d2z = 0.998 / Math.hypot(-0.06, 0.998);
+                y += a2 * Math.sin(k2 * (d2x * wx + d2z * wz - c2 * t));
+
+                // Gerstner Wave 3 (wavelength 2.2, speed 1.30)
+                const k3 = 6.2831853 / 2.2;
+                const c3 = Math.sqrt(9.81 / k3) * 1.30;
+                const a3 = 0.035 / k3;
+                const d3x = 0.08 / Math.hypot(0.08, 0.996), d3z = 0.996 / Math.hypot(0.08, 0.996);
+                y += a3 * Math.sin(k3 * (d3x * wx + d3z * wz - c3 * t));
+
+                // Gerstner Wave 4 (wavelength 1.1, speed 1.55)
+                const k4 = 6.2831853 / 1.1;
+                const c4 = Math.sqrt(9.81 / k4) * 1.55;
+                const a4 = 0.020 / k4;
+                const d4x = -0.05 / Math.hypot(-0.05, 0.998), d4z = 0.998 / Math.hypot(-0.05, 0.998);
+                y += a4 * Math.sin(k4 * (d4x * wx + d4z * wz - c4 * t));
+
+                // Continuous Cursor Wake
+                const uCursor = waterMat.uniforms.uWaterCursor.value;
+                if (uCursor.w > 0.01) {
+                    const dist = Math.hypot(wx - uCursor.x, wz - uCursor.y);
+                    const radius = 3.0;
+                    const wake = Math.exp(-dist * dist / (radius * radius)) * uCursor.w;
+                    const speed = uCursor.z;
+                    const depressMult = Math.min(Math.max(speed * 0.14 + 0.55, 0.55), 0.88);
+                    const rippleMult = Math.min(Math.max(speed * 0.16 + 0.55, 0.55), 0.90);
+                    y -= wake * 0.24 * depressMult;
+                    y += Math.sin(dist * 6.2 - t * 7.5) * wake * 0.20 * rippleMult;
+                }
+
+                // Expanding ripple wave pulses
+                for (let rIdx = 0; rIdx < RIPPLE_COUNT; rIdx++) {
+                    const rip = rippleUniforms[rIdx];
+                    const age = t - rip.z;
+                    if (age > 0.0 && age < 4.8) {
+                        const dist = Math.hypot(wx - rip.x, wz - (rip.y + age * 0.85));
+                        const delta = dist - (age * 3.8);
+                        const fadeIn = Math.min(Math.max(age / 0.20, 0), 1);
+                        const fadeOut = Math.exp(-age * 0.65);
+                        const envelope = Math.exp(-delta * delta * 0.85) * fadeIn * fadeOut;
+                        y += Math.sin(delta * 5.6) * envelope * 0.18 * rip.w;
+                    }
+                }
+
+                return y;
+            };
+
+            // Lily pads & blooming lotus flowers float dynamically on instantaneous water surface (NEVER get submerged!)
+            for (let i = 0; i < lilyCount; i++) {
+                const pad = lilyData[i];
+                if (!pad) continue;
+
+                // Sample water height at pad center AND 4 perimeter locations (radius = pad.scale * 0.42)
+                // This ensures that even when two waves cross off-center, the pad rises to clear the highest crest!
+                const r = pad.scale * 0.42;
+                const yC = getWaterSurfaceY(pad.x, pad.z, time);
+                const yE = getWaterSurfaceY(pad.x + r, pad.z, time);
+                const yW = getWaterSurfaceY(pad.x - r, pad.z, time);
+                const yN = getWaterSurfaceY(pad.x, pad.z - r, time);
+                const yS = getWaterSurfaceY(pad.x, pad.z + r, time);
+
+                // Maximum water height across the entire pad footprint
+                const maxWaterY = Math.max(yC, yE, yW, yN, yS);
+
+                // Raised baseline height (+0.035 above center, or +0.026 above highest crest) so it never gets clipped
+                const currentY = Math.max(yC + 0.035, maxWaterY + 0.026);
+
+                // Accurate central difference tilt along X and Z
+                const slopeX = (yE - yW) / (2 * r);
+                const slopeZ = (yS - yN) / (2 * r);
+                const tiltZ = -Math.atan(slopeX) * 0.85;
+                const tiltX = Math.atan(slopeZ) * 0.85;
+
+                lilyDummy.position.set(pad.x, currentY, pad.z);
+                lilyDummy.scale.set(pad.scale, 1.0, pad.scale);
+                lilyDummy.rotation.set(tiltX, pad.rotY, tiltZ);
+                lilyDummy.updateMatrix();
+                instancedLilies.setMatrixAt(i, lilyDummy.matrix);
+
+                // Synchronize flower blossom floating atop its parent pad
+                if (pad.flowerIndex >= 0 && pad.flowerIndex < flowerCount) {
+                    flowerDummy.position.set(pad.x, currentY + 0.016, pad.z);
+                    flowerDummy.scale.set(pad.scale * 0.85, pad.scale * 0.85, pad.scale * 0.85);
+                    flowerDummy.rotation.set(tiltX, pad.rotY, tiltZ);
+                    flowerDummy.updateMatrix();
+                    instancedFlowers.setMatrixAt(pad.flowerIndex, flowerDummy.matrix);
+                }
+            }
+            instancedLilies.instanceMatrix.needsUpdate = true;
+            if (flowersPlaced > 0) {
+                instancedFlowers.instanceMatrix.needsUpdate = true;
+            }
+
+            // River mist drifting downstream
+            const mPos = mistGeom.attributes.position;
+            for (let i = 0; i < mistCount; i++) {
+                let z = mPos.getZ(i);
+                z += mistSpeeds[i] * 0.032;
+                if (z > 42) z = -45;
+                mPos.setZ(i, z);
+
+                const rx = getRiverX(z);
+                let x = mPos.getX(i);
+                if (Math.abs(x - rx) > 3.4) {
+                    x = rx + (Math.sin(time * 0.2 + i) * 2.5);
+                    mPos.setX(i, x);
+                }
+            }
+            mPos.needsUpdate = true;
+
+            // Celestial meteor shooting star streak
+            if (!meteorActive && time > nextMeteorTime) {
+                meteorActive = true;
+                meteorStartTime = time;
+                nextMeteorTime = time + 7.5 + Math.random() * 6.0;
+                const startX = (Math.random() - 0.5) * 55 - 15;
+                const startY = 22 + Math.random() * 12;
+                const startZ = -45 - Math.random() * 20;
+                meteorStart.set(startX, startY, startZ);
+                meteorEnd.set(startX + 24, startY - 14, startZ);
+            }
+
+            if (meteorActive) {
+                const meteorAge = time - meteorStartTime;
+                const meteorDuration = 0.95;
+                if (meteorAge < meteorDuration) {
+                    const t = meteorAge / meteorDuration;
+                    const head = meteorStart.clone().lerp(meteorEnd, t);
+                    const tail = meteorStart.clone().lerp(meteorEnd, Math.max(0, t - 0.24));
+                    const mPosAttr = meteorGeom.attributes.position;
+                    mPosAttr.setXYZ(0, tail.x, tail.y, tail.z);
+                    mPosAttr.setXYZ(1, head.x, head.y, head.z);
+                    mPosAttr.needsUpdate = true;
+                    const alpha = Math.sin(t * Math.PI);
+                    meteorMat.opacity = alpha * 0.85;
+                } else {
+                    meteorActive = false;
+                    meteorMat.opacity = 0.0;
+                }
+            }
+
+            // Animate fireflies
+            const pos = fireflyGeom.attributes.position;
+            for (let i = 0; i < fireflyCount; i++) {
+                let y = pos.getY(i);
+                let x = pos.getX(i);
+
+                y += Math.sin(time * pSpeeds[i] + pPhases[i]) * 0.007;
+                x += Math.cos(time * 0.4 * pSpeeds[i] + pPhases[i]) * 0.004;
+
+                if (y < 0.2) y = 4.8;
+                if (y > 5.2) y = 0.3;
+
+                pos.setY(i, y);
+                pos.setX(i, x);
+            }
+            pos.needsUpdate = true;
+
+            // Twinkle stars gently
+            starMat.opacity = 0.75 + Math.sin(time * 1.5) * 0.15;
+
+            // Moon & Corona soft breathing in upper twilight sky
+            const moonBreathe = 10.6 + Math.sin(time * 0.3) * 0.12;
+            moon.position.y = moonBreathe;
+            moonCorona.position.y = moonBreathe;
+
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        };
+
+        animate();
     }
-
-    animate();
 </script>

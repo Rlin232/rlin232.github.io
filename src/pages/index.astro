@@ -1,5 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { publications } from "../data/publications";
 
 const socialLinks = {
 	github: "rlin232",
@@ -8,353 +9,1126 @@ const socialLinks = {
 	googleScholar: "hl=en&user=3i8ThuwAAAAJ",
 };
 
-const researchInterests = [
-	"Physics-informed Machine Learning",
-	"Large Language Models",
-	"Network Economics",
-	"Vision Language Models",
+const researchPillars = [
+	{
+		number: "01",
+		title: "Physics-Informed ML",
+		subtitle: "Continuous operators & partial differential equations",
+		description:
+			"Modeling infinite-dimensional continuous operators across arbitrary physical geometries. Enabling zero-shot resolution-invariant surrogate models for fluid flows, wave dynamics, and 3D MRI reconstruction.",
+		paper: "mGNO (TMLR '25) • 3D MRI (NeurIPS '25)",
+		lab: "Caltech Anima Lab",
+	},
+	{
+		number: "02",
+		title: "Representation Learning",
+		subtitle: "Geometric deep learning & manifold curvature",
+		description:
+			"Investigating how neural representations adapt to complex non-Euclidean geometry. Designing curvature-adaptive architectures and diffusion models that respect intrinsic data manifolds.",
+		paper: "CAT (NeurIPS '25) • Graph Diffusion (NeurIPS '25)",
+		lab: "Personal Research @ Caltech",
+	},
+	{
+		number: "03",
+		title: "Deep Learning in Finance",
+		subtitle: "Quantitative modeling & high-frequency dynamics",
+		description:
+			"Applying modern deep learning architectures and large models to financial systems or game-theoretic simulations.",
+		paper: "Strategic Collusion in LLMs (NeurIPS '24)",
+		lab: "Personal Research @ Caltech",
+	},
+	{
+		number: "04",
+		title: "Computer Vision",
+		subtitle: "Perceptual grounding & vision-language models",
+		description:
+			"Probing visual discrimination in multimodal foundation models. Developing rigorous counterfactual benchmarks to evaluate whether vision-language models genuinely perceive visual distinctions.",
+		paper: "Same or Not? (CVPR '26 Spotlight)",
+		lab: "Caltech Gkioxari Lab",
+	},
+];
+
+const timeline = [
+	{
+		period: "2026 — Present",
+		title: "AI Researcher",
+		organization: "DRW Holdings",
+		description:
+			"Conducting AI/ML research in the domain of quantitative finance.",
+		tags: ["Quantitative ML", "Deep Learning", "LLMs"],
+	},
+	{
+		period: "2026 - Present",
+		title: "M.S. in Computer Science",
+		organization: "Stanford University",
+		description:
+			"Pursuing graduate studies under the Honors Cooperative Program (HCP), focusing on advanced foundation models, geometric deep learning, and continuous mathematical representations.",
+		tags: ["Stanford CS", "Graduate Studies"],
+	},
+	{
+		period: "2023 — 2026",
+		title: "B.S. in Computer Science",
+		organization: "California Institute of Technology (Caltech)",
+		description:
+			"Undergraduate researcher at Anima Lab, Yue Lab, and Gkioxari Lab. Executive Director of Hacktech (Caltech's annual hackathon). NCAA Division III Varsity Swimmer (top 10 all-time!). Teaching Assistant for undergraduate + graduate computer science courses, and Cooking Basics (SA 16).",
+		tags: ["Caltech CS", "Hacktech Director", "NCAA", "TA"],
+	},
+	{
+		period: "Summer 2025",
+		title: "AI/ML Engineering Intern",
+		organization: "Apple (Foundation Model Compute)",
+		description:
+			"Designed, implemented, and deployed a production-grade LLM inference server from scratch with elastic accelerator autoscaling, improving resource efficiency by 8x. Selected to present to Apple AI/ML leadership. Contributed to axlearn, Apple's largest open-source AI framework.",
+		tags: ["axlearn", "LLM Inference", "Autoscaling"],
+	},
+	{
+		period: "2021 — 2024",
+		title: "Software Engineer Intern (4 Summers)",
+		organization: "The MITRE Corporation",
+		description:
+			"Designed a pipeline using Retrieval-Augmented Generation (RAG) and LLMs to automate security profile generation from STIGs, accelerating delivery by 500%. Built automated cloud pipelines on AWS EC2. Developed large, open-source cybersecurity data normalization and visualization platforms for corporate partners and government sponsors.",
+		tags: ["RAG", "Cybersecurity", "DevSecOps", "AWS"],
+	},
+];
+
+const projects = [
+	{
+		title: "AI Vocal Remover",
+		category: "Audio Machine Learning",
+		description:
+			"A client-side web application that isolates instrumental backtracks from audio files in real time using Demucs inference and the Web Audio API.",
+		link: "/vocal-remover",
+		tags: ["Web Audio API", "Demucs ML", "Client-Side Audio"],
+	},
+	{
+		title: "Trip Restaurant Planner",
+		category: "Spatial Mapping",
+		archived: true,
+		description:
+			"An interactive mapping tool for discovering and saving places with background geocoding, spatial list views, and Leaflet mapping. (Archived / No longer serviced).",
+		link: "/trip-planner",
+		tags: ["Archived", "Leaflet GIS", "Spatial Indexing"],
+	},
+	{
+		title: "Academic Paper Reader",
+		category: "Research Tool",
+		description:
+			"A peaceful, distraction-free PDF reading environment tailored for reading machine learning papers, featuring personal annotations and sidebar indexing.",
+		link: "/paper-reader",
+		tags: ["PDF.js", "Research Workflow", "Tailwind"],
+	},
+	{
+		title: "Lattice Point Geometry Portfolio",
+		category: "Pure Mathematics",
+		description:
+			"A collection of 100+ formal proofs exploring fundamental geometric, algebraic, and topological properties of discrete lattice planes.",
+		tags: ["Discrete Geometry", "Formal Proofs", "Mathematics"],
+	},
 ];
 ---
 
-<Layout title="Ryan Lin | AI Researcher & Developer">
-	<div class="max-w-6xl mx-auto px-4">
-		<!-- Hero Section -->
-		<section
-			class="min-h-[80vh] flex flex-col justify-center items-center text-center relative mb-20"
-		>
-			<div
-				class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-[500px] h-[90vw] max-h-[500px] bg-accent-600/20 rounded-full blur-[100px] -z-10 animate-pulse"
-			>
-			</div>
-
-			<div class="mb-8 relative group" data-aos="fade-down">
-				<div
-					class="absolute -inset-1 bg-gradient-to-r from-accent-600 to-blue-600 rounded-full blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"
-				>
-				</div>
-				<img
-					src="/assets/img/prof_pic_color.jpg"
-					alt="Ryan Lin"
-					class="relative rounded-full w-40 h-40 md:w-56 md:h-56 mx-auto object-cover object-top border-4 border-slate-900 shadow-2xl"
-				/>
-			</div>
-
+<Layout title="Ryan Lin | AI Researcher & Swimmer">
+	<!-- Hero Section -->
+	<section
+		id="hero"
+		class="scroll-fade-zone relative min-h-[96vh] flex flex-col justify-center items-center px-6 md:px-12 text-center pt-24 pb-16 transition-all duration-700"
+	>
+		<div class="max-w-4xl mx-auto flex flex-col items-center relative z-10">
+			<!-- Main Headline -->
 			<h1
-				class="text-5xl md:text-7xl font-bold mb-6 tracking-tight"
-				data-aos="fade-up"
-				data-aos-delay="50"
+				class="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-bold font-outfit tracking-tight leading-[1.08] text-white drop-shadow-lg mb-8"
 			>
-				Ryan <span
-					class="text-transparent bg-clip-text bg-gradient-to-r from-accent-400 to-blue-500"
-					>Y.</span
-				> Lin
+				<span class="text-gradient-twilight">Ryan Y. Lin</span>
 			</h1>
 
+			<!-- Frameless Typewriter Bio (No Borders, Clean & Legible Over Water) -->
 			<div
-				class="text-xl md:text-2xl text-slate-400 mb-10 max-w-2xl font-light"
-				data-aos="fade-up"
-				data-aos-delay="100"
+				class="max-w-2xl mx-auto mb-10 min-h-[5.5rem] sm:min-h-[4.5rem] flex items-center justify-center"
 			>
-				<span id="typewriter"></span>
+				<p
+					class="text-base sm:text-xl text-slate-100 font-light leading-relaxed drop-shadow-[0_2px_12px_rgba(0,0,0,0.95)] [text-shadow:_0_2px_10px_rgba(0,0,0,0.95),_0_4px_24px_rgba(2,6,23,0.95)]"
+					aria-label="AI Researcher in Quant Finance @ DRW | prev ML @ Apple | M.S. CS @ Stanford | Caltech Alum"
+				>
+					<span id="typewriter"
+						>AI Researcher in Quant Finance @ <span
+							class="text-white font-bold text-[1.2em]">DRW</span
+						> | prev ML @ <span
+							class="text-white font-bold text-[1.2em]"
+							>Apple</span
+						><br />M.S. CS @ <span
+							class="text-white font-bold text-[1.2em]"
+							>Stanford</span
+						> | <span class="text-white font-bold text-[1.2em]"
+							>Caltech</span
+						> Alum</span
+					><span
+						id="typewriter-cursor"
+						class="inline-block w-[2px] h-5 sm:h-6 bg-sky-400 ml-1.5 rounded-sm animate-typewriter-blink align-middle shadow-[0_0_8px_rgba(56,189,248,0.9)]"
+					></span>
+				</p>
 			</div>
 
-			<!-- Social Links -->
+			<!-- Minimalist Navigation Arrow -->
+			<div class="flex items-center justify-center">
+				<a
+					href="#about"
+					aria-label="Scroll to content"
+					class="w-11 h-11 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 hover:border-sky-400/40 text-sky-300 hover:text-white transition-all duration-300 flex items-center justify-center backdrop-blur-md cursor-hover group shadow-sm"
+				>
+					<svg
+						class="w-5 h-5 transition-transform duration-300 group-hover:translate-y-0.5"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="1.75"
+							d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+					</svg>
+				</a>
+			</div>
+		</div>
+
+		<!-- Scroll Indicator -->
+		<div
+			class="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-xs text-slate-400/70 font-light"
+		>
+			<span>Scroll</span>
 			<div
-				class="flex justify-center space-x-8"
-				data-aos="fade-up"
-				data-aos-delay="150"
+				class="w-3.5 h-6 rounded-full border border-slate-600/60 flex justify-center p-0.5"
+			>
+				<div class="w-1 h-2 rounded-full bg-sky-300 animate-bounce">
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- About Section -->
+	<section
+		id="about"
+		class="scroll-fade-zone relative min-h-[95vh] py-28 px-4 sm:px-6 md:px-12 flex flex-col justify-center transition-all duration-700"
+	>
+		<div class="max-w-2xl w-full mr-auto lg:ml-10 xl:ml-20">
+			<div
+				class="bg-[#070b16]/75 backdrop-blur-xl rounded-3xl p-6 sm:p-8 md:p-10 border border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.65)] space-y-6"
+			>
+				<div class="flex items-start justify-between gap-4">
+					<div class="space-y-3">
+						<div
+							class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-400/20 text-xs font-medium text-sky-300 tracking-wide uppercase"
+						>
+							<span class="w-1.5 h-1.5 rounded-full bg-sky-400"
+							></span>
+							<span>About</span>
+						</div>
+
+						<h2
+							class="text-3xl sm:text-4xl font-bold font-outfit text-white tracking-tight leading-snug drop-shadow-md"
+						>
+							Hi, I'm Ryan.
+						</h2>
+
+						<!-- Location Pin -->
+						<div class="flex items-center gap-1.5 text-xs sm:text-sm text-slate-300/90 font-light pt-0.5">
+							<svg class="w-3.5 h-3.5 text-sky-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+							</svg>
+							<span>Palo Alto, CA</span>
+						</div>
+					</div>
+
+					<!-- Profile Photo Circle in Top-Right Corner -->
+					<div class="shrink-0 group">
+						<div
+							class="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-40 lg:h-40 rounded-full p-1.5 bg-gradient-to-br from-sky-400/40 via-sky-500/15 to-transparent border border-white/20 shadow-[0_6px_28px_rgba(0,0,0,0.65)] group-hover:border-sky-400/60 group-hover:shadow-[0_0_24px_rgba(56,189,248,0.25)] transition-all duration-300"
+						>
+							<img
+								src="/assets/img/prof_pic_color.jpg"
+								alt="Ryan Lin"
+								class="w-full h-full rounded-full object-cover object-[center_20%] group-hover:scale-105 transition-transform duration-300"
+							/>
+						</div>
+					</div>
+				</div>
+
+				<p
+					class="text-slate-200/90 leading-relaxed text-base sm:text-lg font-light drop-shadow"
+				>
+					I'm currently conducting cutting-edge AI research in
+					quantitative finance at DRW while completing a part-time
+					M.S. in CS at Stanford. Before this, I was doing my
+					undergraduate B.S. at Caltech, where I majored in Computer
+					Science and was also a part of the NCAA DIII Varsity Swim &
+					Dive team.
+				</p>
+
+				<p class="text-slate-300 leading-relaxed text-base font-light">
+					During my three years at Caltech, I also had the privilege
+					of researching and working under some amazing professors!
+					Big thanks to Professors Adam Blank, Adam Wierman, Anima
+					Anandkumar, Georgia Gkioxari, and Yisong Yue for mentoring
+					me in research projects and when I was a TA for their
+					courses.
+				</p>
+
+				<p class="text-slate-300 leading-relaxed text-base font-light">
+					I spent one summer working on optimizing model inference at
+					Apple, Inc. I spent the other as a full time researcher in
+					Prof. Anandkumar's lab as a Summer Undergraduate Research
+					Fellow. Throughout that time, I really gained a love for
+					going to the beach and cooking (thanks, Tom Mannion)!
+				</p>
+
+				<p class="text-slate-300 leading-relaxed text-base font-light">
+					In my spare time, I enjoy swimming, playing basketball,
+					lifting weights, playing video games, and making ice cream
+					:)
+				</p>
+
+				<!-- Institution Links -->
+				<div class="pt-6 border-t border-white/10">
+					<div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+						<a
+							href="https://www.caltech.edu"
+							target="_blank"
+							rel="noopener noreferrer"
+							class="group flex items-center justify-between px-4 py-2.5 rounded-xl bg-sky-500/5 hover:bg-sky-500/10 border border-sky-400/20 hover:border-sky-400/40 text-sky-300 hover:text-sky-200 transition-all cursor-hover"
+						>
+							<span
+								class="text-sm font-semibold font-outfit text-sky-300 group-hover:text-sky-200 transition-colors"
+								>Caltech</span
+							>
+							<svg
+								class="w-3.5 h-3.5 text-sky-400/70 group-hover:text-sky-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+								><path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+								></path></svg
+							>
+						</a>
+
+						<a
+							href="https://drw.com"
+							target="_blank"
+							rel="noopener noreferrer"
+							class="group flex items-center justify-between px-4 py-2.5 rounded-xl bg-sky-500/5 hover:bg-sky-500/10 border border-sky-400/20 hover:border-sky-400/40 text-sky-300 hover:text-sky-200 transition-all cursor-hover"
+						>
+							<span
+								class="text-sm font-semibold font-outfit text-sky-300 group-hover:text-sky-200 transition-colors"
+								>DRW</span
+							>
+							<svg
+								class="w-3.5 h-3.5 text-sky-400/70 group-hover:text-sky-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+								><path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+								></path></svg
+							>
+						</a>
+
+						<a
+							href="https://www.apple.com"
+							target="_blank"
+							rel="noopener noreferrer"
+							class="group flex items-center justify-between px-4 py-2.5 rounded-xl bg-sky-500/5 hover:bg-sky-500/10 border border-sky-400/20 hover:border-sky-400/40 text-sky-300 hover:text-sky-200 transition-all cursor-hover"
+						>
+							<span
+								class="text-sm font-semibold font-outfit text-sky-300 group-hover:text-sky-200 transition-colors"
+								>Apple</span
+							>
+							<svg
+								class="w-3.5 h-3.5 text-sky-400/70 group-hover:text-sky-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+								><path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+								></path></svg
+							>
+						</a>
+
+						<a
+							href="https://www.stanford.edu"
+							target="_blank"
+							rel="noopener noreferrer"
+							class="group flex items-center justify-between px-4 py-2.5 rounded-xl bg-sky-500/5 hover:bg-sky-500/10 border border-sky-400/20 hover:border-sky-400/40 text-sky-300 hover:text-sky-200 transition-all cursor-hover"
+						>
+							<span
+								class="text-sm font-semibold font-outfit text-sky-300 group-hover:text-sky-200 transition-colors"
+								>Stanford</span
+							>
+							<svg
+								class="w-3.5 h-3.5 text-sky-400/70 group-hover:text-sky-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+								><path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+								></path></svg
+							>
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Research Section -->
+	<section
+		id="research"
+		class="scroll-fade-zone relative min-h-[95vh] py-28 px-4 sm:px-6 md:px-12 flex flex-col justify-center transition-all duration-700"
+	>
+		<div class="max-w-3xl w-full ml-auto lg:mr-10 xl:mr-20">
+			<div
+				class="bg-[#070b16]/75 backdrop-blur-xl rounded-3xl p-6 sm:p-8 md:p-10 border border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.65)]"
+			>
+				<div
+					class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-400/20 text-xs font-medium text-sky-300 tracking-wide uppercase mb-6"
+				>
+					<span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
+					<span>Research</span>
+				</div>
+
+				<!-- Header -->
+				<div class="mb-10">
+					<h2
+						class="text-3xl sm:text-4xl font-bold font-outfit text-white tracking-tight drop-shadow-md mb-2"
+					>
+						Research Interests
+					</h2>
+					<p class="text-slate-300 text-sm font-light">
+						Exploring continuous physical systems, geometric
+						representations, quantitative finance, and visual
+						perception.
+					</p>
+				</div>
+
+				<!-- Editorial Research Grid -->
+				<div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-8">
+					{
+						researchPillars.map((pillar) => (
+							<div class="group relative space-y-2.5 pb-6 border-b border-white/10">
+								<div class="flex items-center justify-between text-xs text-slate-400">
+									<span class="font-mono text-sky-300 font-medium">
+										{pillar.number}
+									</span>
+									<span class="text-[11px] text-slate-400 font-light">
+										{pillar.lab}
+									</span>
+								</div>
+
+								<h3 class="text-xl font-bold font-outfit text-white group-hover:text-sky-300 transition-colors drop-shadow">
+									{pillar.title}
+								</h3>
+
+								<div class="text-xs text-sky-200/80 font-medium">
+									{pillar.subtitle}
+								</div>
+
+								<p class="text-slate-300 text-xs sm:text-sm leading-relaxed font-light">
+									{pillar.description}
+								</p>
+
+								<div class="text-xs text-slate-400 pt-1 flex items-center gap-1.5">
+									<span class="text-slate-200 font-medium text-[11px]">
+										Focus:
+									</span>
+									<span class="text-[11px]">
+										{pillar.paper}
+									</span>
+								</div>
+							</div>
+						))
+					}
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Publications Section -->
+	<section
+		id="publications"
+		class="scroll-fade-zone relative min-h-[95vh] py-28 px-4 sm:px-6 md:px-12 flex flex-col justify-center transition-all duration-700"
+	>
+		<div class="max-w-3xl w-full mr-auto lg:ml-10 xl:ml-20">
+			<div
+				class="bg-[#070b16]/75 backdrop-blur-xl rounded-3xl p-6 sm:p-8 md:p-10 border border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.65)]"
+			>
+				<div
+					class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-400/20 text-xs font-medium text-sky-300 tracking-wide uppercase mb-6"
+				>
+					<span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
+					<span>Publications</span>
+				</div>
+
+				<div
+					class="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-10"
+				>
+					<div>
+						<h2
+							class="text-3xl sm:text-4xl font-bold font-outfit text-white tracking-tight drop-shadow-md"
+						>
+							Selected Works
+						</h2>
+					</div>
+
+					<!-- Clean Organic Filter Chips -->
+					<div class="flex flex-wrap items-center gap-2 text-xs">
+						<button
+							class="pub-filter-btn active px-3.5 py-1 rounded-full bg-white/15 text-white font-medium cursor-hover backdrop-blur-md"
+							data-filter="all">All (6)</button
+						>
+						<button
+							class="pub-filter-btn px-3.5 py-1 rounded-full bg-transparent hover:bg-white/10 text-slate-400 hover:text-white font-medium transition-all cursor-hover"
+							data-filter="highlight">Spotlight</button
+						>
+						<button
+							class="pub-filter-btn px-3.5 py-1 rounded-full bg-transparent hover:bg-white/10 text-slate-400 hover:text-white font-medium transition-all cursor-hover"
+							data-filter="neurips">NeurIPS</button
+						>
+						<button
+							class="pub-filter-btn px-3.5 py-1 rounded-full bg-transparent hover:bg-white/10 text-slate-400 hover:text-white font-medium transition-all cursor-hover"
+							data-filter="cvpr">CVPR</button
+						>
+					</div>
+				</div>
+
+				<!-- Frameless Publication List -->
+				<div class="space-y-6">
+					{
+						publications.map((pub) => (
+							<article
+								class="pub-card group pb-6 border-b border-white/10 flex flex-col md:flex-row gap-4 md:items-center justify-between transition-all"
+								data-venue={pub.venue.toLowerCase()}
+								data-highlight={
+									pub.highlight ? "true" : "false"
+								}
+							>
+								<div class="max-w-2xl space-y-1.5 flex-1">
+									<div class="flex flex-wrap items-center gap-2">
+										{pub.highlight && (
+											<span class="inline-flex items-center gap-1 text-[11px] text-sky-300 font-medium bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-400/20">
+												Spotlight
+											</span>
+										)}
+										<span class="text-xs text-sky-300 font-medium">
+											{pub.venue}
+										</span>
+										<span class="text-xs text-slate-500">
+											• {pub.year}
+										</span>
+									</div>
+
+									<h3 class="text-lg sm:text-xl font-bold font-outfit text-white group-hover:text-sky-300 transition-colors drop-shadow leading-snug">
+										{pub.title}
+									</h3>
+
+									<p class="text-xs text-slate-300 font-light">
+										{pub.authors.map((author, aIdx) => (
+											<span
+												class={
+													author.includes(
+														"Ryan Y. Lin",
+													)
+														? "text-sky-200 font-medium underline underline-offset-4 decoration-sky-300/40"
+														: ""
+												}
+											>
+												{author}
+												{aIdx < pub.authors.length - 1
+													? ", "
+													: ""}
+											</span>
+										))}
+									</p>
+								</div>
+
+								<!-- Action Links & Rounded Square Thumbnail Icon Centered Underneath -->
+								<div class="flex flex-row md:flex-col items-center justify-between md:justify-center gap-3 shrink-0 pt-2 md:pt-0 self-stretch md:self-center md:min-w-[170px]">
+									<!-- Links with micro-icons -->
+									<div class="flex items-center gap-2 text-xs">
+										{pub.links?.pdf && (
+											<a
+												href={pub.links.pdf}
+												target="_blank"
+												rel="noopener noreferrer"
+												class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/5 hover:bg-sky-500/20 text-slate-300 hover:text-sky-300 border border-white/10 hover:border-sky-400/30 transition-all cursor-hover text-[11px] font-medium"
+												title="Open PDF"
+											>
+												<svg class="w-3 h-3 text-sky-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zM14 2v6h6" />
+												</svg>
+												<span>PDF</span>
+											</a>
+										)}
+										{pub.links?.url && (
+											<a
+												href={pub.links.url}
+												target="_blank"
+												rel="noopener noreferrer"
+												class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/5 hover:bg-sky-500/20 text-slate-300 hover:text-sky-300 border border-white/10 hover:border-sky-400/30 transition-all cursor-hover text-[11px] font-medium"
+												title="Project Page"
+											>
+												<svg class="w-3 h-3 text-sky-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+												</svg>
+												<span>Project</span>
+											</a>
+										)}
+										<button
+											class="copy-bibtex-btn inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-sky-500/10 hover:bg-sky-500/25 text-sky-300 border border-sky-400/25 hover:border-sky-400/40 transition-all cursor-hover text-[11px] font-medium"
+											data-bibtex={pub.bibtex}
+											title="Copy BibTeX Citation"
+										>
+											<svg class="w-3 h-3 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+											</svg>
+											<span>BibTeX</span>
+										</button>
+									</div>
+
+									<!-- Rounded square picture icon centered under the links -->
+									{pub.preview && (
+										<div class="flex justify-center">
+											<a
+												href={pub.links?.url || pub.links?.pdf || "#"}
+												target="_blank"
+												rel="noopener noreferrer"
+												class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl p-1 bg-gradient-to-br from-sky-400/30 via-white/10 to-transparent border border-white/20 shadow-[0_4px_16px_rgba(0,0,0,0.5)] hover:border-sky-400/70 hover:shadow-[0_0_20px_rgba(56,189,248,0.25)] transition-all duration-300 block overflow-hidden shrink-0 group-hover:scale-105"
+												title={`View ${pub.title}`}
+											>
+												<img
+													src={pub.preview}
+													alt={`Icon for ${pub.title}`}
+													class="w-full h-full rounded-xl object-cover bg-slate-900/90"
+													loading="lazy"
+												/>
+											</a>
+										</div>
+									)}
+								</div>
+							</article>
+						))
+					}
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Experience Section -->
+	<section
+		id="journey"
+		class="scroll-fade-zone relative min-h-[95vh] py-28 px-4 sm:px-6 md:px-12 flex flex-col justify-center transition-all duration-700"
+	>
+		<div class="max-w-2xl w-full ml-auto lg:mr-10 xl:mr-20">
+			<div
+				class="bg-[#070b16]/75 backdrop-blur-xl rounded-3xl p-6 sm:p-8 md:p-10 border border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.65)]"
+			>
+				<div
+					class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-400/20 text-xs font-medium text-sky-300 tracking-wide uppercase mb-6"
+				>
+					<span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
+					<span>Experience</span>
+				</div>
+
+				<div class="mb-10">
+					<h2
+						class="text-3xl sm:text-4xl font-bold font-outfit text-white tracking-tight drop-shadow-md mb-2"
+					>
+						My Journey
+					</h2>
+					<p class="text-slate-300 text-sm font-light">
+						A blend of research, traditional software engineering,
+						and community building across academia and industry.
+					</p>
+				</div>
+
+				<!-- Integrated Timeline -->
+				<div
+					class="relative border-l border-white/10 ml-3 md:ml-4 pl-6 md:pl-8 space-y-10"
+				>
+					{
+						timeline.map((item) => (
+							<div class="relative group">
+								<div class="absolute -left-[31px] md:-left-[39px] top-1.5 w-2.5 h-2.5 rounded-full bg-slate-900 border-2 border-sky-400 group-hover:bg-sky-400 transition-all" />
+
+								<div class="space-y-1">
+									<div class="text-[11px] font-medium text-sky-300 font-mono">
+										{item.period}
+									</div>
+
+									<h3 class="text-lg sm:text-xl font-bold font-outfit text-white drop-shadow">
+										{item.title}{" "}
+										<span class="text-slate-400 font-normal text-sm">
+											at {item.organization}
+										</span>
+									</h3>
+
+									<p class="text-slate-300 text-xs sm:text-sm leading-relaxed font-light">
+										{item.description}
+									</p>
+
+									<div class="flex flex-wrap gap-1.5 pt-1 text-xs text-slate-400">
+										{item.tags.map((tag) => (
+											<span class="text-[10px] text-slate-400 bg-white/5 px-2 py-0.5 rounded-md">
+												#{tag}
+											</span>
+										))}
+									</div>
+								</div>
+							</div>
+						))
+					}
+				</div>
+
+				<!-- Personal Touch Highlights -->
+				<div
+					class="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6 pt-6 border-t border-white/10"
+				>
+					<div>
+						<div class="text-xl font-bold text-sky-300 mb-0.5">
+							3
+						</div>
+						<div class="text-xs font-medium text-white">
+							Erdős Number
+						</div>
+						<div
+							class="text-[11px] text-slate-400 font-light leading-relaxed"
+						>
+							via Ryan Lin → Anima Anandkumar → Béla Bollobás →
+							Paul Erdős
+						</div>
+					</div>
+					<div>
+						<div class="text-xl font-bold text-sky-300 mb-0.5">
+							NCAA DIII
+						</div>
+						<div class="text-xs font-medium text-white">
+							Varsity Swimmer
+						</div>
+						<div class="text-[11px] text-slate-400 font-light">
+							Caltech Men's Swimming & Diving
+						</div>
+					</div>
+					<div>
+						<div class="text-xl font-bold text-sky-300 mb-0.5">
+							Languages
+						</div>
+						<div class="text-xs font-medium text-white">
+							Fluent in:
+						</div>
+						<div class="text-[11px] text-slate-400 font-light">
+							English, Chinese, Burmese
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Projects Section -->
+	<section
+		id="projects"
+		class="scroll-fade-zone relative min-h-[95vh] py-28 px-4 sm:px-6 md:px-12 flex flex-col justify-center transition-all duration-700"
+	>
+		<div class="max-w-5xl mx-auto w-full">
+			<div
+				class="bg-[#070b16]/75 backdrop-blur-xl rounded-3xl p-6 sm:p-8 md:p-12 border border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.65)]"
+			>
+				<div class="text-center mb-12">
+					<div
+						class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-400/20 text-xs font-medium text-sky-300 tracking-wide uppercase mb-6"
+					>
+						<span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
+						<span>Projects</span>
+					</div>
+					<h2
+						class="text-3xl sm:text-5xl font-bold font-outfit text-white tracking-tight drop-shadow-md mb-3"
+					>
+						Things I've Built
+					</h2>
+					<p
+						class="text-slate-300 text-base font-light max-w-xl mx-auto"
+					>
+						Interactive tools and mathematics exploring audio separation, spatial mapping, and geometric proofs.
+					</p>
+				</div>
+
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+					{
+						projects.map((proj) => (
+							<div class="group space-y-2 pb-6 border-b border-white/10 flex flex-col justify-between">
+								<div>
+									<div class="flex items-center justify-between mb-1">
+										<span class="text-xs text-sky-300/80 font-mono">
+											{proj.category}
+										</span>
+										{proj.archived && (
+											<span class="px-2 py-0.5 text-[9px] font-semibold tracking-wider uppercase rounded bg-amber-500/10 text-amber-300 border border-amber-500/30">
+												Archived
+											</span>
+										)}
+									</div>
+									<h3 class="text-xl font-bold font-outfit text-white group-hover:text-sky-300 transition-colors drop-shadow">
+										{proj.title}
+									</h3>
+									<p class="text-slate-300 text-xs sm:text-sm leading-relaxed font-light mb-3">
+										{proj.description}
+									</p>
+									{proj.tags && (
+										<div class="flex flex-wrap gap-1.5 pt-1">
+											{proj.tags.map((tag) => (
+												<span class={`px-2 py-0.5 text-[10px] font-medium rounded-full border ${tag === "Archived" ? "bg-amber-500/10 text-amber-300 border-amber-500/30" : "bg-sky-500/10 text-sky-300/80 border-sky-400/20"}`}>
+													{tag}
+												</span>
+											))}
+										</div>
+									)}
+								</div>
+
+								{proj.link && (
+									<div class="pt-2">
+										<a
+											href={proj.link}
+											class="text-xs text-sky-300 hover:text-white transition-colors underline underline-offset-4 decoration-sky-300/30 cursor-hover inline-flex items-center gap-1.5 font-medium"
+										>
+											<span>{proj.archived ? "View Read-Only Archive Demo" : "Launch Interactive Demo"}</span>
+											<svg
+												class="w-3.5 h-3.5"
+												fill="none"
+												stroke="currentColor"
+												viewBox="0 0 24 24"
+											>
+												<path
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													stroke-width="2"
+													d="M14 5l7 7m0 0l-7 7m7-7H3"
+												/>
+											</svg>
+										</a>
+									</div>
+								)}
+							</div>
+						))
+					}
+				</div>
+
+				<div class="mt-10 pt-6 border-t border-white/10 text-center">
+					<a
+						href="https://github.com/rlin232"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="inline-flex items-center gap-2 text-xs font-semibold px-5 py-2.5 rounded-full bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 border border-sky-400/25 transition-all cursor-hover"
+					>
+						<span>Explore More on GitHub</span>
+						<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+						</svg>
+					</a>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Let's Connect (Standalone text without a backing panel) -->
+	<section
+		id="contact"
+		class="scroll-fade-zone relative min-h-[55vh] py-28 px-4 sm:px-6 md:px-12 flex flex-col justify-center items-center text-center transition-all duration-700"
+	>
+		<div class="max-w-2xl mx-auto space-y-6">
+			<h2
+				class="text-3xl sm:text-5xl font-bold font-outfit text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)]"
+			>
+				Let's Connect
+			</h2>
+			<p
+				class="text-slate-100 text-base sm:text-lg font-light leading-relaxed max-w-xl mx-auto drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] [text-shadow:_0_2px_8px_rgba(0,0,0,0.9)]"
+			>
+				Whether you'd like to collaborate on research, talk about
+				mathematics and physics, or discuss basketball, swimming and
+				cooking, I'd love to hear from you.
+			</p>
+
+			<div class="pt-2">
+				<button
+					id="copy-email-btn"
+					class="px-8 py-3.5 rounded-full bg-slate-900/60 hover:bg-slate-800/80 text-white border border-white/20 text-sm font-medium transition-all backdrop-blur-md cursor-hover shadow-[0_4px_24px_rgba(0,0,0,0.7)]"
+				>
+					<span id="copy-email-hint"
+						>rlin232@stanford.edu (Click to Copy)</span
+					>
+				</button>
+			</div>
+
+			<div
+				class="flex flex-wrap items-center justify-center gap-6 text-sm text-slate-200 pt-3 [text-shadow:_0_2px_8px_rgba(0,0,0,0.9)]"
 			>
 				<a
 					href={`https://github.com/${socialLinks.github}`}
 					target="_blank"
 					rel="noopener noreferrer"
-					class="text-slate-400 hover:text-white transform hover:scale-110 transition-all duration-300"
+					class="hover:text-sky-300 transition-colors cursor-hover"
 				>
-					<span class="sr-only">GitHub</span>
-					<svg
-						class="h-8 w-8"
-						fill="currentColor"
-						viewBox="0 0 24 24"
-					>
-						<path
-							d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
-						></path>
-					</svg>
+					GitHub
 				</a>
-				<a
-					href={`https://scholar.google.com/citations?${socialLinks.googleScholar}`}
-					target="_blank"
-					rel="noopener noreferrer"
-					class="text-slate-400 hover:text-white transform hover:scale-110 transition-all duration-300"
-				>
-					<span class="sr-only">Google Scholar</span>
-					<svg
-						class="h-8 w-8"
-						fill="currentColor"
-						viewBox="0 0 24 24"
-					>
-						<path
-							d="M5.242 13.769L0 9.5 12 0l12 9.5-5.242 4.269C17.548 11.249 14.978 9.5 12 9.5c-2.977 0-5.548 1.748-6.758 4.269zM12 10a7 7 0 1 0 0 14 7 7 0 0 0 0-14z"
-						></path>
-						<path
-							d="M12 10c-3.866 0-7 3.134-7 7s3.134 7 7 7 7-3.134 7-7-3.134-7-7-7zm-1.834 3h3.668v.875h-3.668V13zm4.167 8.4h-4.666v-.875h4.666v.875zm0-1.75h-4.666v-.875h4.666v.875zm-4.167-4.9h3.668c0 .726-.19 1.413-.499 2.007s-.722 1.072-1.193 1.424c-.345.254-.649.423-.984.513v.056h2.676v.875h-3.668v-.875h.499c.334-.09.638-.26.984-.513.471-.352.884-.83 1.193-1.424.31-.594.499-1.281.499-2.007h-3.175v-.056z"
-						></path>
-					</svg>
-				</a>
+				<span class="text-slate-500">•</span>
 				<a
 					href={`https://linkedin.com/in/${socialLinks.linkedin}`}
 					target="_blank"
 					rel="noopener noreferrer"
-					class="text-slate-400 hover:text-white transform hover:scale-110 transition-all duration-300"
+					class="hover:text-sky-300 transition-colors cursor-hover"
 				>
-					<span class="sr-only">LinkedIn</span>
-					<svg
-						class="h-8 w-8"
-						fill="currentColor"
-						viewBox="0 0 24 24"
-					>
-						<path
-							d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"
-						></path>
-					</svg>
+					LinkedIn
 				</a>
+				<span class="text-slate-500">•</span>
 				<a
-					href={`mailto:${socialLinks.email}`}
-					class="text-slate-400 hover:text-white transform hover:scale-110 transition-all duration-300"
+					href={`https://scholar.google.com/citations?${socialLinks.googleScholar}`}
+					target="_blank"
+					rel="noopener noreferrer"
+					class="hover:text-sky-300 transition-colors cursor-hover"
 				>
-					<span class="sr-only">Email</span>
-					<svg
-						class="h-8 w-8"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-						></path>
-					</svg>
+					Google Scholar
 				</a>
-			</div>
-
-			<!-- Scroll Arrow -->
-			<div
-				id="scroll-arrow"
-				class="mt-16 animate-bounce text-slate-500 cursor-pointer"
-				data-aos="fade-up"
-				data-aos-delay="200"
-			>
-				<svg
-					class="w-10 h-10 mx-auto drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]"
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24"
+				<span class="text-slate-500">•</span>
+				<a
+					href="/cv"
+					class="text-sky-300 hover:text-sky-200 transition-colors cursor-hover"
 				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="3"
-						d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-				</svg>
-			</div>
-		</section>
-
-		<!-- Content Grid -->
-		<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-20">
-			<!-- About Me (Spans 8 columns) -->
-			<div
-				class="lg:col-span-8 glass-card rounded-2xl p-8"
-				data-aos="fade-up"
-				data-aos-offset="200"
-			>
-				<h2 class="text-2xl font-bold mb-6 flex items-center">
-					<span class="bg-accent-500 w-2 h-8 mr-4 rounded-full"
-					></span>
-					About Me
-				</h2>
-				<p class="text-lg text-slate-300 leading-relaxed mb-6">
-					Hi, I'm Ryan Lin, an AI Researcher at <span
-						class="text-white font-medium">DRW</span
-					>. I completed my undergraduate degree in Computer Science
-					at <span class="text-accent-400 font-medium">Caltech</span>.
-				</p>
-				<p class="text-lg text-slate-300 leading-relaxed mb-6">
-					In 2025, I spent a summer as an AI/ML intern at <span
-						class="text-white font-medium">Apple, Inc</span
-					>. Throughout my time at Caltech, I had the tremendous
-					pleasure of working with various AI labs, including the <span
-						class="text-accent-400 font-medium"
-						>Anima AI + Science Lab</span
-					>, <span class="text-accent-400 font-medium">Yue Lab</span>,
-					and <span class="text-accent-400 font-medium"
-						>Gkioxari Lab</span
-					>.
-				</p>
-				<p class="text-lg text-slate-300 leading-relaxed">
-					During high school, I also had four summers of work
-					experience at the <span class="text-white font-medium"
-						>MITRE Corporation</span
-					> as a software engineer and DevSecOps engineer. Outside of tech,
-					I'm an avid swimmer and a former member of Caltech's NCAA Division
-					III Swimming & Diving team.
-				</p>
-			</div>
-
-			<!-- Quick Info / Interests (Spans 4 columns) -->
-			<div class="lg:col-span-4 space-y-8">
-				<div
-					class="glass-card rounded-2xl p-8 h-full"
-					data-aos="fade-up"
-					data-aos-delay="100"
-					data-aos-offset="200"
-				>
-					<h2 class="text-xl font-bold mb-6 flex items-center">
-						<svg
-							class="w-6 h-6 mr-3 text-accent-400"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-							></path>
-						</svg>
-						Research Interests
-					</h2>
-					<ul class="space-y-4">
-						{
-							researchInterests.map((interest) => (
-								<li class="flex items-center text-slate-300 bg-white/5 p-3 rounded-lg hover:bg-white/10 transition-colors">
-									<span class="w-2 h-2 bg-accent-500 rounded-full mr-3" />
-									{interest}
-								</li>
-							))
-						}
-					</ul>
-				</div>
-			</div>
-
-			<!-- Recent Updates (Full Width) -->
-			<div
-				class="lg:col-span-12 glass-card rounded-2xl p-8 relative overflow-hidden group"
-				data-aos="fade-up"
-				data-aos-delay="200"
-				data-aos-offset="50"
-			>
-				<div
-					class="absolute top-0 right-0 w-64 h-64 bg-accent-600/10 rounded-full blur-[80px] -mr-32 -mt-32 transition-all duration-700 group-hover:bg-accent-600/20"
-				>
-				</div>
-
-				<h2
-					class="text-2xl font-bold mb-6 flex items-center relative z-10"
-				>
-					<svg
-						class="w-6 h-6 mr-3 text-accent-400"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"
-						></path>
-					</svg>
-					Recent Updates
-				</h2>
-
-				<div class="relative z-10">
-					<div
-						class="bg-slate-900/50 border border-white/5 rounded-xl p-6 hover:border-accent-500/30 transition-colors"
-					>
-						<div
-							class="flex flex-col md:flex-row md:items-center justify-between mb-2"
-						>
-							<span
-								class="text-accent-400 text-sm font-mono mb-2 md:mb-0"
-								>Latest News</span
-							>
-							<span class="text-slate-500 text-sm">CVPR 2026</span
-							>
-						</div>
-						<p class="text-lg text-slate-200">
-							One of my papers was accepted as a
-							highlight/spotlight at <a
-								href="https://cvpr.thecvf.com/"
-								class="text-accent-400 hover:text-accent-300 underline decoration-accent-400/30 underline-offset-4 transition-all"
-								>CVPR 2026</a
-							>! See my <a
-								href="/publications"
-								class="text-accent-400 hover:text-accent-300 underline decoration-accent-400/30 underline-offset-4 transition-all"
-								>Publications</a
-							> page for more details.
-						</p>
-					</div>
-				</div>
+					Curriculum Vitae
+				</a>
 			</div>
 		</div>
+	</section>
+
+	<!-- Toast Alert -->
+	<div
+		id="toast"
+		class="fixed bottom-8 right-8 z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none px-5 py-3 rounded-2xl bg-sky-500/90 text-slate-950 font-medium text-xs shadow-2xl backdrop-blur-md"
+	>
+		<span>Copied to clipboard</span>
 	</div>
 
-	<script>
-		// Typewriter effect
-		const text = "AI Researcher";
-		const speed = 50;
-		const element = document.getElementById("typewriter");
-		let i = 0;
+	<!-- Client Scripts: Dynamic Scroll-Linked Fade-In / Fade-Out & Interactions -->
+	<script is:inline>
+		// Dynamic Scroll-Linked Fade In & Fade Out Engine
+		const fadeZones = document.querySelectorAll(".scroll-fade-zone");
 
-		function typeWriter() {
-			if (i < text.length) {
-				element.innerHTML += text.charAt(i);
-				i++;
-				setTimeout(typeWriter, speed);
+		const updateFadeZones = () => {
+			const vh = window.innerHeight;
+
+			fadeZones.forEach((zone) => {
+				const rect = zone.getBoundingClientRect();
+
+				// Zone enters from bottom
+				// Fully visible when top is between vh*0.75 and bottom is above vh*0.25
+				// Fades out as top approaches top/leaves screen
+				let opacity = 1;
+				let translateY = 0;
+
+				if (rect.top > vh * 0.75) {
+					// Entering from bottom
+					const t = Math.max(
+						0,
+						Math.min(1, 1 - (rect.top - vh * 0.75) / (vh * 0.28)),
+					);
+					opacity = t * t * (3 - 2 * t); // Smooth Hermite curve
+					translateY = (1 - opacity) * 28;
+				} else if (rect.bottom < vh * 0.35) {
+					// Leaving through top
+					const t = Math.max(
+						0,
+						Math.min(1, rect.bottom / (vh * 0.35)),
+					);
+					opacity = t * t * (3 - 2 * t);
+					translateY = -(1 - opacity) * 28;
+				}
+
+				zone.style.opacity = Math.max(0, Math.min(1, opacity)).toFixed(
+					3,
+				);
+				zone.style.transform = `translateY(${translateY.toFixed(1)}px)`;
+				zone.style.pointerEvents = opacity < 0.15 ? "none" : "auto";
+			});
+		};
+
+		window.addEventListener("scroll", updateFadeZones, { passive: true });
+		window.addEventListener("resize", updateFadeZones);
+		// Initial trigger
+		updateFadeZones();
+
+		// Toast Helper
+		const showToast = (msg = "Copied to clipboard") => {
+			const toast = document.getElementById("toast");
+			if (toast) {
+				toast.innerText = msg;
+				toast.classList.remove("translate-y-24", "opacity-0");
+				toast.classList.add("translate-y-0", "opacity-100");
+				setTimeout(() => {
+					toast.classList.add("translate-y-24", "opacity-0");
+					toast.classList.remove("translate-y-0", "opacity-100");
+				}, 2000);
 			}
+		};
+
+		// Copy Email
+		const copyEmailBtn = document.getElementById("copy-email-btn");
+		const copyEmailHint = document.getElementById("copy-email-hint");
+		if (copyEmailBtn) {
+			copyEmailBtn.addEventListener("click", () => {
+				navigator.clipboard
+					.writeText("rlin232@stanford.edu")
+					.then(() => {
+						if (copyEmailHint)
+							copyEmailHint.innerText = "✓ Copied to clipboard!";
+						showToast("Copied: rlin232@stanford.edu");
+						setTimeout(() => {
+							if (copyEmailHint)
+								copyEmailHint.innerText =
+									"rlin232@stanford.edu (Click to Copy)";
+						}, 2000);
+					});
+			});
 		}
 
-		// Start typing when element is in view or after a slight delay
-		setTimeout(typeWriter, 1000);
-
-		// Hide scroll arrow on scroll
-		const scrollArrow = document.getElementById("scroll-arrow");
-		let lastScrollTop = 0;
-
-		// Click arrow to scroll down to content
-		scrollArrow.addEventListener("click", () => {
-			const heroSection = document.querySelector("section");
-			const heroHeight = heroSection.offsetHeight;
-			window.scrollTo({
-				top: heroHeight,
-				behavior: "smooth",
+		// Copy BibTeX
+		document.querySelectorAll(".copy-bibtex-btn").forEach((btn) => {
+			btn.addEventListener("click", () => {
+				const bibtex = btn.getAttribute("data-bibtex");
+				if (bibtex) {
+					navigator.clipboard.writeText(bibtex.trim()).then(() => {
+						showToast("✓ BibTeX copied to clipboard");
+					});
+				}
 			});
 		});
 
-		window.addEventListener("scroll", () => {
-			const scrollTop =
-				window.pageYOffset || document.documentElement.scrollTop;
+		// Publication filtering
+		const filterButtons = document.querySelectorAll(".pub-filter-btn");
+		const pubCards = document.querySelectorAll(".pub-card");
 
-			// If user scrolled down at all, fade out the arrow
-			if (scrollTop > 50) {
-				scrollArrow.style.opacity = "0";
-				scrollArrow.style.transition = "opacity 0.3s ease-out";
-				// After fade out, make it invisible but keep the space
-				setTimeout(() => {
-					scrollArrow.style.visibility = "hidden";
-					scrollArrow.style.pointerEvents = "none";
-				}, 300);
-			} else {
-				// Show arrow when back at top
-				scrollArrow.style.visibility = "visible";
-				scrollArrow.style.pointerEvents = "auto";
-				scrollArrow.style.opacity = "1";
+		filterButtons.forEach((btn) => {
+			btn.addEventListener("click", () => {
+				filterButtons.forEach((b) => {
+					b.classList.remove("bg-white/15", "text-white");
+					b.classList.add("bg-transparent", "text-slate-400");
+				});
+				btn.classList.add("bg-white/15", "text-white");
+				btn.classList.remove("bg-transparent", "text-slate-400");
+
+				const filter = btn.dataset.filter;
+				pubCards.forEach((card) => {
+					const venue = card.dataset.venue || "";
+					const isHighlight = card.dataset.highlight === "true";
+
+					if (filter === "all") {
+						card.style.display = "flex";
+					} else if (filter === "highlight" && isHighlight) {
+						card.style.display = "flex";
+					} else if (
+						filter === "neurips" &&
+						venue.includes("neurips")
+					) {
+						card.style.display = "flex";
+					} else if (filter === "cvpr" && venue.includes("cvpr")) {
+						card.style.display = "flex";
+					} else {
+						card.style.display = "none";
+					}
+				});
+			});
+		});
+
+		// Typewriter Effect (Frameless & clean, like original website)
+		const typewriterEl = document.getElementById("typewriter");
+		if (typewriterEl) {
+			const boldStyle = "text-white font-bold text-[1.2em]";
+			const segments = [
+				{ text: "AI Researcher in Quant Finance @ " },
+				{ text: "DRW", className: boldStyle },
+				{ text: " | prev ML @ " },
+				{ text: "Apple", className: boldStyle },
+				{ isBreak: true },
+				{ text: "M.S. CS @ " },
+				{ text: "Stanford", className: boldStyle },
+				{ text: " | " },
+				{ text: "Caltech", className: boldStyle },
+				{ text: " Alum" },
+			];
+
+			// Clear initial fallback for dynamic typing
+			typewriterEl.innerHTML = "";
+
+			let segIdx = 0;
+			let charIdx = 0;
+			let currentSpan = null;
+
+			function typeWriter() {
+				if (segIdx >= segments.length) return;
+
+				const currentSeg = segments[segIdx];
+
+				if (currentSeg.isBreak) {
+					typewriterEl.appendChild(document.createElement("br"));
+					segIdx++;
+					charIdx = 0;
+					setTimeout(typeWriter, 140);
+					return;
+				}
+
+				if (charIdx === 0) {
+					if (currentSeg.className) {
+						currentSpan = document.createElement("span");
+						currentSpan.className = currentSeg.className;
+						typewriterEl.appendChild(currentSpan);
+					} else {
+						currentSpan = document.createTextNode("");
+						typewriterEl.appendChild(currentSpan);
+					}
+				}
+
+				const char = currentSeg.text[charIdx];
+				if (currentSpan.nodeType === Node.TEXT_NODE) {
+					currentSpan.nodeValue += char;
+				} else {
+					currentSpan.textContent += char;
+				}
+
+				charIdx++;
+
+				if (charIdx >= currentSeg.text.length) {
+					segIdx++;
+					charIdx = 0;
+				}
+
+				let delay = 28;
+				if (char === "|") delay = 180;
+				else if (char === "@") delay = 80;
+
+				setTimeout(typeWriter, delay);
 			}
 
-			lastScrollTop = scrollTop;
-		});
+			// Smooth start after mount
+			setTimeout(typeWriter, 350);
+		}
 	</script>
 </Layout>

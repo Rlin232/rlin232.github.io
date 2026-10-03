@@ -1,17 +1,13 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-  <style>
-    text {
-      font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-      font-size: 24px;
-      dominant-baseline: middle;
-      text-anchor: middle;
-    }
-    @media (prefers-color-scheme: dark) {
-      text {
-        fill: white;
-      }
-    }
-  </style>
-  <text x="16" y="16">🍂</text>
-</svg> 
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="rlGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#7dd3fc"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="#070b16"/>
+  <rect x="1" y="1" width="62" height="62" rx="15" fill="none" stroke="#38bdf8" stroke-opacity="0.3" stroke-width="2"/>
+  <!-- Minimalist modern typographic RL mark -->
+  <path d="M19 18h12c5 0 9 3 9 7.5s-4 7.5-9 7.5h-5v13h-7V18zm7 9h4c2.2 0 4-1 4-2.5S32.2 22 30 22h-4v5z" fill="url(#rlGrad)"/>
+  <path d="M33 32l10 14h-7.5l-7.5-11 5-3z" fill="#7dd3fc"/>
+</svg>

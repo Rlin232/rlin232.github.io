@@ -1,25 +1,16 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import Layout from "../layouts/Layout.astro";
 import { publications } from "../data/publications";
 
-const venueColors = {
-  NeurIPS: "bg-purple-500/20 text-purple-200 border border-purple-500/30",
-  ICML: "bg-blue-500/20 text-blue-200 border border-blue-500/30",
-  ICLR: "bg-pink-500/20 text-pink-200 border border-pink-500/30",
-  CVPR: "bg-red-500/20 text-red-200 border border-red-500/30",
-  TMLR: "bg-green-500/20 text-green-200 border border-green-500/30",
-} as const;
-
-type VenueKey = keyof typeof venueColors;
-
 function getVenueBadge(venue: string, highlight?: boolean): string | null {
-  const match = (Object.keys(venueColors) as VenueKey[]).find((v) =>
-    venue.includes(v)
-  );
+  const venues = ["NeurIPS", "ICML", "ICLR", "CVPR", "TMLR"];
+  const match = venues.find((v) => venue.includes(v));
   if (!match) return null;
 
-  const text = highlight ? `<span class="mr-1">🏆</span>${match} Highlight` : match;
-  return `<span class="inline-flex items-center px-2 py-0.5 rounded-full font-medium text-xs ${venueColors[match]}">${text}</span>`;
+  if (highlight) {
+    return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs bg-sky-500/10 text-sky-300 border border-sky-400/20">${match} Spotlight</span>`;
+  }
+  return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs bg-white/5 text-slate-300 border border-white/10">${match}</span>`;
 }
 
 const personalInfo = {
@@ -28,407 +19,423 @@ const personalInfo = {
   email: "rlin232@stanford.edu",
   github: "rlin232",
   linkedin: "ryan-lin232",
-  erdosNumber: "3 ☝️🤓"
+  erdosNumber: "3",
 };
 
 const education = [
   {
-    title: "M.S. Computer Science",
+    title: "M.S. in Computer Science",
     institution: "Stanford University",
-    year: "Incoming: Sep 2026 - ",
+    year: "Sep 2026 — Present",
+    badge: "GRADUATE",
     descriptions: [
-      "Honors Cooperative Program (HCP)"
-    ]
+      "Honors Cooperative Program (HCP)",
+      "Focus: Artificial Intelligence",
+    ],
   },
   {
-    title: "B.S. Computer Science",
-    institution: "California Institute of Technology",
-    year: "Sep 2023 - Jun 2026",
+    title: "B.S. in Computer Science",
+    institution: "California Institute of Technology (Caltech)",
+    year: "Sep 2023 — Jun 2026",
+    badge: "UNDERGRADUATE",
     descriptions: [
-      "Student Organizations: Executive Director of Hacktech (Caltech's Annual Hackathon), NCAA DIII Varsity Men's Swim & Dive", 
-      "Graduate-level Coursework: Large Language Models for Reasoning, Machine Learning & Data Mining, Projects in Machine Learning, Probability Models, Distributed Computing, Bayesian Statistics",
-      "Undergraduate-level Coursework: Data Structures & Algorithms, Mathematical Foundations of Computer Science (Discrete Mathematics), Differential Equations, Probability & Statistics, Software Design, Computer Systems"
-    ]
-  }
+      "Leadership: Executive Director of Hacktech (Caltech's Premier Annual Hackathon)",
+      "Athletics: NCAA Division III Varsity Men's Swimming & Diving athlete (Sprint Freestyle & Butterfly)",
+      "Select Graduate-level Coursework: Large Language Models for Reasoning, Machine Learning & Data Mining (CMS 155), Bayesian Statistics, Distributed Computing, Probability Models",
+      "Select Undergraduate-level Coursework: Differential Equations, Algorithms & Data Structures, Discrete Mathematics, Software Design, Computer Systems Architecture",
+    ],
+  },
 ];
 
 const experience = [
   {
     title: "AI Researcher",
     institution: "DRW Holdings",
-    year: "Jul 2026 - Present"
+    year: "Jul 2026 — Present",
+    badge: "FULL-TIME",
+    descriptions: [
+      "Conducting quantitative machine learning research and modeling high-frequency market dynamics.",
+    ],
   },
   {
-    title: "AI/ML Intern",
-    institution: "Apple",
-    year: "Jun 2025 - Sep 2025",
+    title: "AI/ML Engineering Intern",
+    institution: "Apple (Foundation Model Compute)",
+    year: "Jun 2025 — Sep 2025",
+    badge: "INFRASTRUCTURE",
     descriptions: [
-      "Designed, implemented, and deployed a production-grade LLM inference server from scratch for the Foundation Model Compute (Infra) team, enabling elastic autoscaling on accelerators, improving resource efficiency by 8x on real use-cases across cross-functional teams.",
-      "Contributed to axlearn, Apple's largest open-source deep learning library.",
-      "One of two intern projects from the org selected to present to Apple AI/ML leadership."
-    ]
+      "Designed, implemented, and deployed a production-grade LLM inference server from scratch for the Foundation Model Compute (Infra) team, enabling elastic autoscaling on accelerators and improving resource efficiency by 8x on real production workloads.",
+      "Contributed key performance features to axlearn, Apple's flagship open-source deep learning library.",
+      "One of only two intern projects across the entire organization selected to present to Apple AI/ML leadership.",
+    ],
   },
   {
     title: "Researcher",
-    institution: "Caltech - Anima AI + Science Lab",
-    year: "Oct 2023 - Dec 2025",
+    institution: "Caltech — Anima AI + Science Lab",
+    year: "Oct 2023 — Dec 2025",
+    badge: "RESEARCH",
     descriptions: [
-      "Developing new machine learning architectures capable of zero-shot super-resolution for solving families of Partial Differential Equations (PDEs) with arbitrary geometries.",
-      "Incorporating new loss functions to neural operators (ex. physics losses) to improve training speed and data usage",
-      "Performing ablation studies on neural operator architectures to understand the impact of different components on performance and compare against state-of-the-art models.",
-      "Improving code quality and flexibility of the neural operator repository."
-    ]
+      "Developed new machine learning architectures capable of zero-shot super-resolution for solving families of Partial Differential Equations (PDEs) with arbitrary geometries.",
+      "Co-authored 'Enabling Automatic Differentiation with Mollified Graph Neural Operators' (TMLR 2025) and 'Coarse-to-Fine 3D MRI Reconstruction via 3D Neural Operators' (NeurIPS 2025 Workshop).",
+      "Incorporated continuous physics loss functions to neural operators to improve training speed and sample efficiency.",
+    ],
   },
   {
     title: "Teaching Assistant",
-    instituteion: "Caltech",
-    year: "Jan 2025 - Apr 2026",
+    institution: "California Institute of Technology",
+    year: "Jan 2025 — Apr 2026",
+    badge: "ACADEMIC",
     descriptions: [
-      "CS 2: Programming Methods",
-      "CS 3: Software Design",
       "CMS/CS/CNS/EE/IDS 155: Machine Learning & Data Mining",
       "CS/EE/IDS 143: Networks: Algorithms & Architecture",
-      "SA 16: Cooking Basics :)"
-    ]
+      "CS 2: Programming Methods & Data Structures",
+      "CS 3: Software Design",
+      "SA 16: Cooking Basics :)",
+    ],
   },
   {
-    title: "Software Engineering Intern",
+    title: "Software & DevSecOps Engineer (4 Summers)",
     institution: "The MITRE Corporation",
-    year: "Jun - Sep (2021, 2022, 2023, 2024)",
+    year: "Jun — Sep (2021, 2022, 2023, 2024)",
+    badge: "INDUSTRY",
     descriptions: [
-      "Designed a pipeline leveraging Retrieval-Augmented Generation (RAG) and Large Language Models (LLMs) to enhance domain-specific knowledge retrieval and automate the creation of security tests from Security Technical Implementation Guides (STIGs), accelerating security profile delivery by 500%",
-      "Engineered an end-to-end DevSecOps pipeline for Security Automation Framework (SAF) using applications, libraries, and tools created by MITRE and the security community. Hosted pipeline on EC2.",
-      "Automated pipeline for key tasks (hardening, validation, visualization) to inform platform owners of security risks and accelerate capability deployment in development, test, and prod environments by up to 500%",
-      "One of ≈ 5 high school sophomores out of all the (500+) interns selected for the MITRE Internship Program",
-      "Authored the SAF CLI (Command Line Interface), a software that streamlines security automation for IT Systems and DevOps pipelines with over 100,000 downloads by the security community.",
-      "Created and published libraries to normalize outputs from various cybersecurity scanning tools into Heimdall Data Format for government sponsors and commercial partners, accelerating accreditation processes by up to 1000%."
-    ]
-  }
-];
-
-const projects = [
-  {
-    title: "Trip Restaurant Planner",
-    url: "/trip-planner",
-    year: "2024",
-    description: "Interactive mapping dashboard with automatic geocoding and Supabase backend."
+      "Designed a pipeline leveraging Retrieval-Augmented Generation (RAG) and LLMs to automate security profile creation from STIGs, accelerating delivery by 500%.",
+      "Engineered an end-to-end DevSecOps pipeline for the Security Automation Framework (SAF) hosted on AWS EC2.",
+      "Authored parts of the SAF CLI used by over 100,000 security practitioners worldwide.",
+    ],
   },
-  {
-    title: "Strategic Collusion Research",
-    url: "https://openreview.net/forum?id=X9vAImw5Yj",
-    year: "2024",
-    description: "Research on strategic collusion between LLM agents in multi-commodity competitions."
-  },
-  {
-    title: "Stock Price Prediction with LSTM",
-    url: "https://github.com/rlin232",
-    year: "2023",
-    description: "Implementation of LSTM neural networks for stock market analysis and prediction."
-  },
-  {
-    title: "Y86 Processor Implementation",
-    url: "https://github.com/rlin232",
-    year: "2023",
-    description: "Hardware implementation of Y86 processor architecture in Verilog."
-  }
 ];
 
 const skills = [
   {
-    category: "Programming Languages",
-    items: ["Java", "Python", "Typescript", "JavaScript", "R", "Ruby", "C", "C++", "Shell Script"]
+    category: "Core Areas",
+    items: [
+      "Geometric Deep Learning",
+      "Physics-Informed ML",
+      "Neural Operators (PDEs)",
+      "Vision-Language Models",
+      "High-Throughput LLM Inference",
+      "Quantitative Modeling",
+    ],
   },
   {
-    category: "Technologies & Frameworks",
-    items: ["TensorFlow", "PyTorch", "Git", "Jupyter", "Weights & Biases", "SLURM", "CUDA", "Linux", "High Performance Computing (HPC)", "Natural Language Processing", "GitHub", "Android Studios", "AWS", "Brew", "Bash/Shell", "Docker", "Eclipse", "Firebase", "VSCode", "PyCharm", "RStudio", "PostgreSQL", "Jenkins", "Vuex", "React", "Node.js", "Chef", "Ansible", "Github Actions", "LangChain", "OpenAI API", "Huggingface", "Agile Development"]
+    category: "Languages & Frameworks",
+    items: [
+      "Python",
+      "PyTorch",
+      "axlearn",
+      "JAX",
+      "CUDA",
+      "TypeScript",
+      "JavaScript",
+      "C++",
+      "C",
+      "SQL",
+      "Tailwind CSS",
+      "Astro",
+      "Three.js",
+    ],
   },
   {
-    category: "Areas of Expertise",
-    items: ["Machine Learning Research", "Full-Stack Development", "Cybersecurity"]
-  }
-];
-
-const awards = [
+    category: "Infrastructure & Tools",
+    items: [
+      "SLURM",
+      "HPC Clusters",
+      "AWS EC2",
+      "Docker",
+      "Git / GitHub Actions",
+      "Weights & Biases",
+      "Linux / Bash",
+      "PostgreSQL",
+      "Supabase",
+    ],
+  },
 ];
 ---
 
-<Layout title="CV | Ryan Y. Lin" description="Academic and professional curriculum vitae">
-  <div class="max-w-4xl mx-auto px-4 sm:px-6">
-    <div class="flex items-center justify-between mb-12 animate-fade-in-up">
-      <h1 class="text-4xl font-bold text-white">Curriculum Vitae</h1>
-      <a 
-        href="/assets/pdf/cv.pdf" 
-        class="inline-flex items-center justify-center w-12 h-12 bg-accent-600 hover:bg-accent-500 text-white rounded-xl transition-all duration-300 hover:scale-110 shadow-lg shadow-accent-600/20"
-        target="_blank"
-        title="Download Full CV"
+<Layout
+  title="Curriculum Vitae | Ryan Y. Lin"
+  description="Academic and professional curriculum vitae of Ryan Y. Lin"
+>
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 pt-20 sm:pt-24 pb-20">
+    <!-- Top Action Breadcrumb & PDF Button -->
+    <div
+      class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8"
+    >
+      <a
+        href="/"
+        class="inline-flex items-center gap-2 text-xs text-sky-300 hover:text-sky-200 transition-colors"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          ><path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg
+        >
+        <span>Back to Home</span>
+      </a>
+
+      <a
+        href="/assets/pdf/cv.pdf"
+        target="_blank"
+        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-sky-500/20 text-sky-200 border border-sky-400/30 text-xs font-medium hover:bg-sky-500/30 transition-all"
+        title="Download Official PDF Resume"
+      >
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          ><path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          ></path></svg
+        >
+        <span>Download PDF CV</span>
       </a>
     </div>
-    
-    <!-- Personal Information -->
-    <section class="mb-8 glass-card rounded-2xl p-8 animate-fade-in-up">
-      <h2 class="text-2xl font-bold mb-6 text-white flex items-center">
-        <span class="w-1.5 h-8 bg-accent-500 rounded-full mr-3"></span>
-        Personal Information
-      </h2>
-      <div class="space-y-3 text-slate-300">
-        <p><span class="font-medium text-slate-100">Full Name:</span> {personalInfo.fullName}</p>
-        <p><span class="font-medium text-slate-100">Languages:</span> {personalInfo.languages.join(", ")}</p>
-        <p><span class="font-medium text-slate-100">Email:</span> <a href={`mailto:${personalInfo.email}`} class="text-accent-400 hover:text-accent-300 transition-colors">{personalInfo.email}</a></p>
-        <p><span class="font-medium text-slate-100">Erdős Number:</span> {personalInfo.erdosNumber}</p>
-        <div class="flex space-x-4 pt-2">
-          <a 
-            href={`https://github.com/${personalInfo.github}`} 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            class="inline-flex items-center px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-colors duration-200 border border-white/10"
+
+    <!-- Header Billboard -->
+    <div
+      class="p-6 sm:p-8 md:p-10 rounded-3xl glass-panel border border-white/5 mb-10"
+    >
+      <div
+        class="flex flex-col md:flex-row md:items-center justify-between gap-6"
+      >
+        <div>
+          <div
+            class="text-xs text-sky-300 font-medium uppercase tracking-wider mb-2"
           >
-            <svg class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" />
-            </svg>
+            Curriculum Vitae
+          </div>
+          <h1
+            class="text-4xl md:text-5xl font-bold font-outfit text-white mb-2"
+          >
+            {personalInfo.fullName}
+          </h1>
+          <p class="text-slate-300 text-base md:text-lg font-light">
+            AI Researcher at <span class="text-white font-medium">DRW</span> • Current
+            M.S. CS at <span class="text-white font-medium">Stanford</span> • <span
+              class="text-white font-medium">Caltech</span
+            > B.S. CS
+          </p>
+        </div>
+
+        <div class="flex flex-wrap gap-2.5 text-xs">
+          <a
+            href={`mailto:${personalInfo.email}`}
+            class="px-3.5 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:border-sky-400/30 text-slate-300 transition-colors"
+          >
+            {personalInfo.email}
+          </a>
+          <a
+            href={`https://github.com/${personalInfo.github}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="px-3.5 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:border-sky-400/30 text-slate-300 transition-colors"
+          >
             GitHub
           </a>
-          <a 
-            href={`https://linkedin.com/in/${personalInfo.linkedin}`} 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            class="inline-flex items-center px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-colors duration-200 border border-white/10"
+          <a
+            href={`https://linkedin.com/in/${personalInfo.linkedin}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="px-3.5 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:border-sky-400/30 text-slate-300 transition-colors"
           >
-            <svg class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-            </svg>
             LinkedIn
           </a>
+          <div
+            class="px-3.5 py-1.5 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-300"
+            title="Erdős Number 3: Ryan Lin → Anima Anandkumar → Béla Bollobás → Paul Erdős"
+          >
+            Erdős Number: {personalInfo.erdosNumber}
+          </div>
         </div>
       </div>
-    </section>
+    </div>
 
-    <!-- Education -->
-    <section class="mb-8 glass-card rounded-2xl p-8 animate-fade-in-up" style="animation-delay: 50ms">
-      <h2 class="text-2xl font-bold mb-6 text-white flex items-center">
-        <span class="w-1.5 h-8 bg-accent-500 rounded-full mr-3"></span>
-        Education
+    <!-- Section 1: Education -->
+    <section
+      class="p-6 sm:p-8 md:p-10 rounded-3xl glass-panel border border-white/10 mb-8"
+    >
+      <h2
+        class="text-2xl font-bold font-outfit text-white mb-8 flex items-center gap-3"
+      >
+        <span class="w-2 h-6 bg-sky-400 rounded-full"></span>
+        <span>Education</span>
       </h2>
       <div class="space-y-8">
-        {education.map((edu) => (
-          <div class="education-item">
-            <div class="flex flex-col md:flex-row md:justify-between md:items-start mb-2">
-              <h3 class="text-xl font-bold text-white">{edu.title}</h3>
-              <span class="text-sm text-accent-400 font-mono bg-accent-500/10 px-3 py-1 rounded-full border border-accent-500/20">{edu.year}</span>
-            </div>
-            <p class="text-lg text-slate-300 mb-3">{edu.institution}</p>
-            {edu.descriptions && (
-              <ul class="list-disc pl-5 space-y-2 text-slate-400">
+        {
+          education.map((edu) => (
+            <div class="border-l-2 border-white/10 pl-6 space-y-2">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                <h3 class="text-xl font-bold text-white">{edu.title}</h3>
+                <span class="font-mono text-xs text-sky-400 bg-sky-500/10 border border-sky-500/20 px-3 py-1 rounded-full w-fit">
+                  {edu.year}
+                </span>
+              </div>
+              <div class="text-base text-slate-300 font-medium">
+                {edu.institution}
+              </div>
+              <ul class="list-disc pl-5 space-y-1.5 text-sm text-slate-400 font-light pt-2">
                 {edu.descriptions.map((desc) => (
                   <li class="leading-relaxed">{desc}</li>
                 ))}
               </ul>
-            )}
-          </div>
-        ))}
+            </div>
+          ))
+        }
       </div>
     </section>
 
-    <!-- Experience -->
-    <section class="mb-8 glass-card rounded-2xl p-8 animate-fade-in-up" style="animation-delay: 100ms">
-      <h2 class="text-2xl font-bold mb-6 text-white flex items-center">
-        <span class="w-1.5 h-8 bg-accent-500 rounded-full mr-3"></span>
-        Experience
+    <!-- Section 2: Experience -->
+    <section
+      class="p-6 sm:p-8 md:p-10 rounded-3xl glass-panel border border-white/10 mb-8"
+    >
+      <h2
+        class="text-2xl font-bold font-outfit text-white mb-8 flex items-center gap-3"
+      >
+        <span class="w-2 h-6 bg-sky-400 rounded-full"></span>
+        <span>Experience</span>
       </h2>
       <div class="space-y-10">
-        {experience.map((exp) => (
-          <div class="experience-item relative pl-4 border-l-2 border-white/10 hover:border-accent-500/50 transition-colors">
-            <div class="flex flex-col md:flex-row md:justify-between md:items-start mb-2">
-              <h3 class="text-xl font-bold text-white">{exp.title}</h3>
-              <span class="text-sm text-accent-400 font-mono bg-accent-500/10 px-3 py-1 rounded-full border border-accent-500/20 whitespace-nowrap mt-2 md:mt-0 w-fit">{exp.year}</span>
-            </div>
-            <p class="text-lg text-slate-300 mb-3">{exp.institution}</p>
-            {exp.descriptions && (
-              <ul class="list-disc pl-5 space-y-2 text-slate-400">
+        {
+          experience.map((exp) => (
+            <div class="border-l-2 border-white/10 pl-6 space-y-2">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                <h3 class="text-xl font-bold text-white">{exp.title}</h3>
+                <span class="font-mono text-xs text-sky-400 bg-sky-500/10 border border-sky-500/20 px-3 py-1 rounded-full w-fit">
+                  {exp.year}
+                </span>
+              </div>
+              <div class="text-base text-slate-300 font-medium">
+                {exp.institution}
+              </div>
+              <ul class="list-disc pl-5 space-y-1.5 text-sm text-slate-400 font-light pt-2">
                 {exp.descriptions.map((desc) => (
                   <li class="leading-relaxed">{desc}</li>
                 ))}
               </ul>
-            )}
-          </div>
-        ))}
+            </div>
+          ))
+        }
       </div>
     </section>
 
-    <!-- Publications -->
-    <section class="mb-8 glass-card rounded-2xl p-8 animate-fade-in-up" style="animation-delay: 150ms">
-      <h2 class="text-2xl font-bold mb-6 text-white flex items-center">
-        <span class="w-1.5 h-8 bg-accent-500 rounded-full mr-3"></span>
-        Publications
+    <!-- Section 3: Publications -->
+    <section
+      class="p-6 sm:p-8 md:p-10 rounded-3xl glass-panel border border-white/10 mb-8"
+    >
+      <h2
+        class="text-2xl font-bold font-outfit text-white mb-8 flex items-center gap-3"
+      >
+        <span class="w-2 h-6 bg-sky-400 rounded-full"></span>
+        <span>Publications</span>
       </h2>
-      <div class="space-y-8">
-        {publications.map((pub) => {
-          const badge = getVenueBadge(pub.venue, pub.highlight);
-          return (
-          <div class="publication bg-white/5 rounded-xl p-6 shadow-lg flex flex-col md:flex-row md:items-start md:space-x-6 border border-white/10">
-            
-            {/* Left: Text Content */}
-            <div class="flex-1">
-              <h3 class="text-xl font-semibold mb-2">
-                {pub.links.url ? (
-                  <a 
-                    href={pub.links.url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    class="text-white hover:text-accent-400 transition-colors duration-200"
-                  >
-                    {pub.title}
-                  </a>
-                ) : (
-                  <span class="text-white">{pub.title}</span>
-                )}
+      <div class="space-y-6">
+        {
+          publications.map((pub) => {
+            const badge = getVenueBadge(pub.venue, pub.highlight);
+            return (
+              <div class="p-6 rounded-2xl bg-slate-900/60 border border-white/10 flex flex-col md:flex-row md:items-start justify-between gap-4">
+                <div class="flex-grow">
+                  <h3 class="text-lg font-bold text-white mb-1.5">
+                    {pub.links.url ? (
+                      <a
+                        href={pub.links.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="hover:text-sky-300 transition-colors"
+                      >
+                        {pub.title}
+                      </a>
+                    ) : (
+                      pub.title
+                    )}
+                  </h3>
+                  <p class="text-xs text-slate-400 mb-2">
+                    {pub.authors.map((author, aIdx) => (
+                      <span
+                        class={
+                          author.includes("Ryan Y. Lin")
+                            ? "text-sky-300 font-medium"
+                            : ""
+                        }
+                      >
+                        {author}
+                        {aIdx < pub.authors.length - 1 ? ", " : ""}
+                      </span>
+                    ))}
+                  </p>
+                  <div class="flex items-center gap-2">
+                    {badge && <div set:html={badge} />}
+                    <span class="font-mono text-xs text-slate-500">
+                      {pub.year}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2 shrink-0">
+                  {pub.links.pdf && (
+                    <a
+                      href={pub.links.pdf}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 font-mono text-xs transition-colors"
+                    >
+                      PDF
+                    </a>
+                  )}
+                  {pub.links.url && (
+                    <a
+                      href={pub.links.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 font-mono text-xs transition-colors"
+                    >
+                      LINK
+                    </a>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        }
+      </div>
+    </section>
+
+    <!-- Section 4: Skills -->
+    <section class="p-6 sm:p-8 md:p-10 rounded-3xl glass-panel border border-white/10">
+      <h2
+        class="text-2xl font-bold font-outfit text-white mb-8 flex items-center gap-3"
+      >
+        <span class="w-2 h-6 bg-sky-400 rounded-full"></span>
+        <span>Technical Skills</span>
+      </h2>
+      <div class="space-y-6">
+        {
+          skills.map((grp) => (
+            <div>
+              <h3 class="font-mono text-xs text-sky-400 uppercase tracking-wider mb-3">
+                {grp.category}
               </h3>
-              <p class="text-sm text-slate-300">
-                {pub.authors.map((author) => (
-                  author === "Ryan Y. Lin" ? 
-                    <span class="font-bold text-accent-400">{author}</span> : 
-                    author
-                )).reduce((prev, curr) => [prev, ", ", curr])}
-              </p>
-              <p class="text-sm text-slate-400 mt-1">
-                {pub.venue}, {pub.year}
-              </p>
-              
-              {/* New Row: Venue Badge */}
-              {badge && (
-                <div class="mt-3 mb-1" set:html={badge}></div>
-              )}
-
-              <div class="mt-4 flex space-x-3">
-                {pub.links.pdf && (
-                  <a 
-                    href={pub.links.pdf} 
-                    class="p-2 rounded-xl bg-accent-600 text-white hover:bg-accent-500 transition-all duration-200 flex items-center justify-center hover:scale-110 shadow-lg shadow-accent-600/20"
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    title="Open PDF"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" 
-                        d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zM14 2v6h6" />
-                    </svg>
-                  </a>
-                )}
-
-                {pub.links.url && (
-                  <a 
-                    href={pub.links.url} 
-                    class="p-2 rounded-xl bg-accent-600 text-white hover:bg-accent-500 transition-all duration-200 flex items-center justify-center hover:scale-110 shadow-lg shadow-accent-600/20"
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    title={pub.platform}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" 
-                        d="M18 13v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" />
-                    </svg>
-                  </a>
-                )}
-
-                <button
-                  class="relative p-2 w-9 h-9 rounded-xl bg-accent-600 text-white hover:bg-accent-500 
-                        transition-all duration-200 flex items-center justify-center hover:scale-110 copy-bibtex shadow-lg shadow-accent-600/20"
-                  data-bibtex={pub.bibtex}
-                  title="Copy BibTeX"
-                >
-                  <!-- Clipboard icon -->
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 icon transition-opacity duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" 
-                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002-2h2a2 2 0 002 2H9z" />
-                  </svg>
-
-                  <!-- Checkmark overlay (hidden by default) -->
-                  <svg xmlns="http://www.w3.org/2000/svg" 
-                      class="w-5 h-5 absolute top-1.5 right-1.5 text-green-400 dark:text-green-300 
-                              opacity-0 scale-75 check transition-all duration-200" 
-                      fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="5" d="M5 13l4 4L19 7" />
-                  </svg>
-                </button>
+              <div class="flex flex-wrap gap-2">
+                {grp.items.map((item) => (
+                  <span class="px-3 py-1.5 rounded-lg bg-slate-900 border border-white/5 font-mono text-xs text-slate-300">
+                    {item}
+                  </span>
+                ))}
               </div>
             </div>
-          </div>
-          );
-        })}
-      </div>
-    </section>
-
-    <!-- Skills -->
-    <section class="mb-8 glass-card rounded-2xl p-8 animate-fade-in-up" style="animation-delay: 200ms">
-      <h2 class="text-2xl font-bold mb-6 text-white flex items-center">
-        <span class="w-1.5 h-8 bg-accent-500 rounded-full mr-3"></span>
-        Skills & Expertise
-      </h2>
-      <div class="space-y-8">
-        {skills.map((skillGroup) => (
-          <div class="skill-group">
-            <h3 class="text-lg font-medium mb-3 text-slate-200">{skillGroup.category}</h3>
-            <div class="flex flex-wrap gap-2">
-              {skillGroup.items.map((skill) => (
-                <span class="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 rounded-lg text-sm transition-colors">
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-
-    <!-- Awards -->
-    {awards.length > 0 && (
-      <section class="mb-8 glass-card rounded-2xl p-8 animate-fade-in-up" style="animation-delay: 250ms">
-        <h2 class="text-2xl font-bold mb-6 text-white flex items-center">
-          <span class="w-1.5 h-8 bg-accent-500 rounded-full mr-3"></span>
-          Honors and Awards
-        </h2>
-        <div class="space-y-6">
-          {awards.map((award) => (
-            <div class="award-item">
-              <h3 class="text-lg font-medium text-white">{award.year}</h3>
-              <ul class="list-disc pl-5 mt-2 text-slate-400">
-                {award.items.map((item) => (
-                  <li>{item}</li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </section>
-    )}
-  </div>
-</Layout> 
-
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.copy-bibtex').forEach(button => {
-      const icon = button.querySelector('.icon');
-      const check = button.querySelector('.check');
-
-      button.addEventListener('click', async () => {
-        const bibtex = button.getAttribute('data-bibtex');
-        try {
-          await navigator.clipboard.writeText(bibtex || '');
-
-          // Animate swap
-          check.style.opacity = '1';
-
-          setTimeout(() => {
-            check.style.opacity = '0';
-          }, 1500);
-        } catch (err) {
-          console.error('Failed to copy:', err);
-          alert('Failed to copy BibTeX. Please try again.');
+          ))
         }
-      });
-    });
-  });
-</script>
+      </div>
+    </section>
+  </div>
+</Layout>
