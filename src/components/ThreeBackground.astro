@@ -56,7 +56,7 @@
             const sW = typeof screen !== 'undefined' ? screen.width : 0;
             const isPortrait = window.innerHeight > window.innerWidth;
             const maxDimension = isPortrait ? Math.max(sH, sW) : Math.min(sH, sW);
-            return Math.max(maxDimension, window.innerHeight, document.documentElement.clientHeight) + 360;
+            return Math.max(maxDimension, window.innerHeight, document.documentElement.clientHeight) + 180;
         };
 
         const getViewportSize = () => {
@@ -1501,32 +1501,19 @@
             targetLookAt.lerpVectors(p0.look, p1.look, easeT);
         };
 
-        const updateCanvasPosition = () => {
-            if (window.innerWidth < 768) {
-                canvas.style.transform = `translate3d(0, ${window.scrollY}px, 0)`;
-            } else {
-                canvas.style.transform = '';
-            }
-        };
+        canvas.style.transform = '';
 
-        const onScroll = () => {
-            updateCameraFromScroll();
-            updateCanvasPosition();
-        };
-
-        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('scroll', updateCameraFromScroll, { passive: true });
         window.addEventListener('resize', updateSectionMetrics);
         setTimeout(updateSectionMetrics, 200);
         updateCameraFromScroll();
         updateCameraFromScroll();
-        updateCanvasPosition();
 
         let lastTrackedWidth = window.innerWidth;
         const handleResize = () => {
             const isMobile = window.innerWidth < 768;
             // On mobile devices, ignore vertical-only resize events triggered by Safari's dynamic toolbar
             if (isMobile && window.innerWidth === lastTrackedWidth) {
-                updateCanvasPosition();
                 return;
             }
             lastTrackedWidth = window.innerWidth;
@@ -1535,15 +1522,11 @@
             camera.aspect = w / h;
             camera.updateProjectionMatrix();
             renderer.setSize(w, h, false);
-            updateCanvasPosition();
         };
         window.addEventListener('resize', handleResize);
         window.addEventListener('orientationchange', () => {
             lastTrackedWidth = 0;
-            setTimeout(() => {
-                handleResize();
-                updateCanvasPosition();
-            }, 150);
+            setTimeout(handleResize, 150);
         });
         handleResize();
 
@@ -1555,10 +1538,6 @@
             const time = clock.getElapsedTime();
             const dt = Math.min(time - lastTime, 0.1) || 0.016;
             lastTime = time;
-
-            if (window.innerWidth < 768) {
-                canvas.style.transform = `translate3d(0, ${window.scrollY}px, 0)`;
-            }
 
             // Butter-smooth mouse screen coordinates lerp
             smoothMouseNDC.lerp(mouseNDC, 0.22);
