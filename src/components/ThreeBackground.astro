@@ -51,13 +51,18 @@
             };
         };
 
+        const getMobileScreenHeight = () => {
+            const sH = typeof screen !== 'undefined' ? screen.height : 0;
+            const sW = typeof screen !== 'undefined' ? screen.width : 0;
+            const isPortrait = window.innerHeight > window.innerWidth;
+            const maxDimension = isPortrait ? Math.max(sH, sW) : Math.min(sH, sW);
+            return Math.max(maxDimension, window.innerHeight, document.documentElement.clientHeight);
+        };
+
         const getViewportSize = () => {
             const isMobile = window.innerWidth < 768;
             const w = window.innerWidth;
-            // On mobile devices, ensure height covers full physical screen including dynamic bars & curved bottom
-            const h = isMobile
-                ? Math.max(window.innerHeight, window.screen ? window.screen.height : 0, document.documentElement.clientHeight)
-                : window.innerHeight;
+            const h = isMobile ? getMobileScreenHeight() : window.innerHeight;
             return { w, h };
         };
 
@@ -1501,7 +1506,15 @@
         updateCameraFromScroll();
         updateCameraFromScroll();
 
+        let lastTrackedWidth = window.innerWidth;
         const handleResize = () => {
+            const isMobile = window.innerWidth < 768;
+            // On mobile devices, ignore vertical-only resize events triggered by Safari's dynamic toolbar
+            if (isMobile && window.innerWidth === lastTrackedWidth) {
+                return;
+            }
+            lastTrackedWidth = window.innerWidth;
+
             const { w, h } = getViewportSize();
             camera.aspect = w / h;
             camera.updateProjectionMatrix();
@@ -1509,7 +1522,8 @@
         };
         window.addEventListener('resize', handleResize);
         window.addEventListener('orientationchange', () => {
-            setTimeout(handleResize, 100);
+            lastTrackedWidth = 0;
+            setTimeout(handleResize, 150);
         });
         handleResize();
 
@@ -1828,10 +1842,8 @@
             // Twinkle stars gently
             starMat.opacity = 0.75 + Math.sin(time * 1.5) * 0.15;
 
-            // Moon & Corona soft breathing in upper twilight sky (lowered on small viewports so it never goes behind navbar)
-            const isSmallViewport = window.innerWidth < 768 || camera.aspect < 1.0;
-            const baseMoonY = isSmallViewport ? 3.2 : 10.6;
-            const moonBreathe = baseMoonY + Math.sin(time * 0.3) * 0.12;
+            // Moon & Corona soft breathing in upper twilight sky
+            const moonBreathe = 10.6 + Math.sin(time * 0.3) * 0.12;
             moon.position.y = moonBreathe;
             moonCorona.position.y = moonBreathe;
 

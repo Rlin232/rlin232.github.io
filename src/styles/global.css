@@ -32,8 +32,8 @@
     height: 100% !important;
     height: 100vh !important;
     height: 100lvh !important;
-    height: 100dvh !important;
     min-height: 100% !important;
+    min-height: 100vh !important;
     min-height: 100lvh !important;
     min-height: calc(100lvh + env(safe-area-inset-bottom, 0px)) !important;
     display: block !important;
