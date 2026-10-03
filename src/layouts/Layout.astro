@@ -22,7 +22,7 @@ const navPrefix = isHome ? "" : "/";
 <html lang="en" class="h-full scroll-smooth">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 		<link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
 		<meta name="description" content={description} />
@@ -42,7 +42,7 @@ const navPrefix = isHome ? "" : "/";
 		></script>
 	</head>
 	<body
-		class="min-h-full bg-[#070b16] text-slate-100 font-sans selection:bg-sky-400/20 selection:text-sky-200 overflow-x-hidden relative antialiased"
+		class="min-h-full bg-[#050813] text-slate-100 font-sans selection:bg-sky-400/20 selection:text-sky-200 overflow-x-hidden relative antialiased"
 	>
 		<!-- Serene 3D Twilight Waterscape & Fireflies Scene -->
 		<ThreeBackground />
@@ -59,22 +59,40 @@ const navPrefix = isHome ? "" : "/";
 
 		<!-- Peaceful Navigation Header -->
 		<header
-			class="fixed top-0 left-0 w-full z-50 transition-all duration-300 py-4 px-4 sm:px-6 md:px-12 backdrop-blur-md bg-[#070b16]/70 border-b border-white/5"
+			class="fixed top-0 left-0 w-full z-50 transition-all duration-300 py-3.5 px-4 sm:px-6 md:px-12 backdrop-blur-md bg-[#050813]/80 border-b border-white/5"
 		>
 			<div class="max-w-6xl mx-auto flex items-center justify-between">
-				<!-- Brand Identity: Clean Typography (No Emblem) -->
-				<a href="/" class="group flex items-center gap-2 cursor-hover">
-					<span
-						class="font-outfit text-base font-semibold tracking-tight text-white group-hover:text-sky-300 transition-colors"
+				<!-- Left Area: Hamburger (Mobile) + Brand Identity -->
+				<div class="flex items-center gap-1.5 sm:gap-2">
+					<!-- Mobile Hamburger Menu Button -->
+					<button
+						id="mobile-nav-toggle"
+						class="md:hidden p-1.5 -ml-1 text-slate-300 hover:text-white rounded-lg hover:bg-white/10 active:scale-95 transition-all cursor-hover"
+						aria-label="Toggle navigation menu"
+						aria-expanded="false"
 					>
-						Ryan Lin
-					</span>
-					<span
-						class="text-xs text-slate-500 font-light hidden sm:inline"
-					>
-						/ AI Researcher
-					</span>
-				</a>
+						<svg id="hamburger-svg" class="w-5 h-5 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+						</svg>
+						<svg id="close-svg" class="w-5 h-5 hidden transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+						</svg>
+					</button>
+
+					<!-- Brand Identity: Clean Typography (No Emblem) -->
+					<a href="/" class="group flex items-center gap-2 cursor-hover">
+						<span
+							class="font-outfit text-base font-semibold tracking-tight text-white group-hover:text-sky-300 transition-colors"
+						>
+							Ryan Lin
+						</span>
+						<span
+							class="text-xs text-slate-500 font-light hidden sm:inline"
+						>
+							/ AI Researcher
+						</span>
+					</a>
+				</div>
 
 				<!-- Peaceful Navigation Links -->
 				<nav
@@ -113,7 +131,7 @@ const navPrefix = isHome ? "" : "/";
 				</nav>
 
 				<!-- Controls & CV -->
-				<div class="flex items-center gap-3">
+				<div class="flex items-center gap-2.5 sm:gap-3">
 					<!-- Nature Wind Chime Synthesizer Toggle -->
 					<button
 						id="chime-toggle"
@@ -142,6 +160,57 @@ const navPrefix = isHome ? "" : "/";
 						>
 					</a>
 				</div>
+			</div>
+
+			<!-- Mobile Dropdown Navigation Drawer -->
+			<div
+				id="mobile-nav-menu"
+				class="hidden md:hidden overflow-hidden transition-all duration-300 ease-in-out border-t border-white/10 mt-3 pt-3 pb-2"
+			>
+				<nav class="flex flex-col space-y-1 text-sm font-medium text-slate-200">
+					<a
+						href={`${navPrefix}#about`}
+						class="mobile-menu-item py-2.5 px-3 rounded-xl hover:bg-white/5 hover:text-sky-300 transition-colors flex items-center justify-between"
+					>
+						<span>About</span>
+						<span class="text-xs text-slate-500 font-mono">01</span>
+					</a>
+					<a
+						href={`${navPrefix}#research`}
+						class="mobile-menu-item py-2.5 px-3 rounded-xl hover:bg-white/5 hover:text-sky-300 transition-colors flex items-center justify-between"
+					>
+						<span>Research</span>
+						<span class="text-xs text-slate-500 font-mono">02</span>
+					</a>
+					<a
+						href={`${navPrefix}#publications`}
+						class="mobile-menu-item py-2.5 px-3 rounded-xl hover:bg-white/5 hover:text-sky-300 transition-colors flex items-center justify-between"
+					>
+						<span>Publications</span>
+						<span class="text-xs text-slate-500 font-mono">03</span>
+					</a>
+					<a
+						href={`${navPrefix}#journey`}
+						class="mobile-menu-item py-2.5 px-3 rounded-xl hover:bg-white/5 hover:text-sky-300 transition-colors flex items-center justify-between"
+					>
+						<span>Journey</span>
+						<span class="text-xs text-slate-500 font-mono">04</span>
+					</a>
+					<a
+						href={`${navPrefix}#projects`}
+						class="mobile-menu-item py-2.5 px-3 rounded-xl hover:bg-white/5 hover:text-sky-300 transition-colors flex items-center justify-between"
+					>
+						<span>Projects</span>
+						<span class="text-xs text-slate-500 font-mono">05</span>
+					</a>
+					<a
+						href={`${navPrefix}#contact`}
+						class="mobile-menu-item py-2.5 px-3 rounded-xl hover:bg-white/5 hover:text-sky-300 transition-colors flex items-center justify-between"
+					>
+						<span>Contact</span>
+						<span class="text-xs text-slate-500 font-mono">06</span>
+					</a>
+				</nav>
 			</div>
 		</header>
 
@@ -447,6 +516,48 @@ const navPrefix = isHome ? "" : "/";
 								"rgba(186, 230, 253, 0.3)";
 						});
 					});
+			}
+
+			// Mobile Menu Drawer Toggle
+			const mobileNavBtn = document.getElementById("mobile-nav-toggle");
+			const mobileNavMenu = document.getElementById("mobile-nav-menu");
+			const hamburgerSvg = document.getElementById("hamburger-svg");
+			const closeSvg = document.getElementById("close-svg");
+
+			if (mobileNavBtn && mobileNavMenu) {
+				const toggleMobileMenu = (forceState) => {
+					const willOpen = forceState !== undefined ? forceState : mobileNavMenu.classList.contains("hidden");
+					if (willOpen) {
+						mobileNavMenu.classList.remove("hidden");
+						hamburgerSvg?.classList.add("hidden");
+						closeSvg?.classList.remove("hidden");
+						mobileNavBtn.setAttribute("aria-expanded", "true");
+					} else {
+						mobileNavMenu.classList.add("hidden");
+						hamburgerSvg?.classList.remove("hidden");
+						closeSvg?.classList.add("hidden");
+						mobileNavBtn.setAttribute("aria-expanded", "false");
+					}
+				};
+
+				mobileNavBtn.addEventListener("click", (e) => {
+					e.stopPropagation();
+					toggleMobileMenu();
+				});
+
+				// Close when clicking any menu link
+				document.querySelectorAll(".mobile-menu-item").forEach((link) => {
+					link.addEventListener("click", () => {
+						toggleMobileMenu(false);
+					});
+				});
+
+				// Close when clicking outside
+				document.addEventListener("click", (e) => {
+					if (!mobileNavMenu.contains(e.target) && !mobileNavBtn.contains(e.target)) {
+						toggleMobileMenu(false);
+					}
+				});
 			}
 		</script>
 	</body>

@@ -143,7 +143,7 @@ const projects = [
 
 			<!-- Frameless Typewriter Bio (No Borders, Clean & Legible Over Water) -->
 			<div
-				class="max-w-2xl mx-auto mb-10 min-h-[5.5rem] sm:min-h-[4.5rem] flex items-center justify-center"
+				class="max-w-2xl mx-auto mb-10 min-h-[7rem] sm:min-h-[4.5rem] flex items-center justify-center"
 			>
 				<p
 					class="text-base sm:text-xl text-slate-100 font-light leading-relaxed drop-shadow-[0_2px_12px_rgba(0,0,0,0.95)] [text-shadow:_0_2px_10px_rgba(0,0,0,0.95),_0_4px_24px_rgba(2,6,23,0.95)]"
@@ -152,7 +152,7 @@ const projects = [
 					<span id="typewriter"
 						>AI Researcher in Quant Finance @ <span
 							class="text-white font-bold text-[1.2em]">DRW</span
-						> | prev ML @ <span
+						><span class="hidden sm:inline"> | </span><br class="sm:hidden" />prev ML @ <span
 							class="text-white font-bold text-[1.2em]"
 							>Apple</span
 						><br />M.S. CS @ <span
@@ -1062,18 +1062,33 @@ const projects = [
 		const typewriterEl = document.getElementById("typewriter");
 		if (typewriterEl) {
 			const boldStyle = "text-white font-bold text-[1.2em]";
-			const segments = [
-				{ text: "AI Researcher in Quant Finance @ " },
-				{ text: "DRW", className: boldStyle },
-				{ text: " | prev ML @ " },
-				{ text: "Apple", className: boldStyle },
-				{ isBreak: true },
-				{ text: "M.S. CS @ " },
-				{ text: "Stanford", className: boldStyle },
-				{ text: " | " },
-				{ text: "Caltech", className: boldStyle },
-				{ text: " Alum" },
-			];
+			const isMobile = window.innerWidth < 640;
+			const segments = isMobile
+				? [
+						{ text: "AI Researcher in Quant Finance @ " },
+						{ text: "DRW", className: boldStyle },
+						{ isBreak: true },
+						{ text: "prev ML @ " },
+						{ text: "Apple", className: boldStyle },
+						{ isBreak: true },
+						{ text: "M.S. CS @ " },
+						{ text: "Stanford", className: boldStyle },
+						{ text: " | " },
+						{ text: "Caltech", className: boldStyle },
+						{ text: " Alum" },
+				  ]
+				: [
+						{ text: "AI Researcher in Quant Finance @ " },
+						{ text: "DRW", className: boldStyle },
+						{ text: " | prev ML @ " },
+						{ text: "Apple", className: boldStyle },
+						{ isBreak: true },
+						{ text: "M.S. CS @ " },
+						{ text: "Stanford", className: boldStyle },
+						{ text: " | " },
+						{ text: "Caltech", className: boldStyle },
+						{ text: " Alum" },
+				  ];
 
 			// Clear initial fallback for dynamic typing
 			typewriterEl.innerHTML = "";

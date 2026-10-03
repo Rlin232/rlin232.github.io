@@ -1486,11 +1486,15 @@
         updateCameraFromScroll();
         updateCameraFromScroll();
 
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
+        const handleResize = () => {
+            const w = window.innerWidth;
+            const h = Math.max(window.innerHeight, document.documentElement.clientHeight);
+            camera.aspect = w / window.innerHeight;
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
+            renderer.setSize(w, h, false);
+        };
+        window.addEventListener('resize', handleResize);
+        handleResize();
 
         // Main Animation Loop
         const clock = new THREE.Clock();
@@ -1806,8 +1810,10 @@
             // Twinkle stars gently
             starMat.opacity = 0.75 + Math.sin(time * 1.5) * 0.15;
 
-            // Moon & Corona soft breathing in upper twilight sky
-            const moonBreathe = 10.6 + Math.sin(time * 0.3) * 0.12;
+            // Moon & Corona soft breathing in upper twilight sky (lowered on small viewports so it never goes behind navbar)
+            const isSmallViewport = window.innerWidth < 768 || camera.aspect < 1.0;
+            const baseMoonY = isSmallViewport ? 6.4 : 10.6;
+            const moonBreathe = baseMoonY + Math.sin(time * 0.3) * 0.12;
             moon.position.y = moonBreathe;
             moonCorona.position.y = moonBreathe;
 
