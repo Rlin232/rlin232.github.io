@@ -1,10 +1,14 @@
 ---
 ---
 
-<canvas
-    id="bg-canvas"
-    class="fixed top-0 left-0 w-full pointer-events-none z-0"
-></canvas>
+<div id="bg-canvas-wrapper" class="pointer-events-none z-0">
+    <div id="bg-canvas-sticky" class="pointer-events-none">
+        <canvas
+            id="bg-canvas"
+            class="pointer-events-none block"
+        ></canvas>
+    </div>
+</div>
 
 <script>
     import * as THREE from 'three';
@@ -56,7 +60,7 @@
             const sW = typeof screen !== 'undefined' ? screen.width : 0;
             const isPortrait = window.innerHeight > window.innerWidth;
             const maxDimension = isPortrait ? Math.max(sH, sW) : Math.min(sH, sW);
-            return Math.max(maxDimension, window.innerHeight, document.documentElement.clientHeight) + 120;
+            return Math.max(maxDimension, window.innerHeight, document.documentElement.clientHeight);
         };
 
         const getViewportSize = () => {
