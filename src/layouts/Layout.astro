@@ -10,7 +10,7 @@ interface Props {
 
 const {
 	title,
-	description = "Ryan Lin – AI Researcher, Stanford M.S. CS, Caltech graduate, and swimmer. Exploring physics-informed machine learning, geometric deep learning, and continuous systems.",
+	description = "Ryan Lin – AI Researcher, Stanford M.S. CS, Caltech graduate, and swimmer.",
 	hideFooter = false,
 } = Astro.props;
 
@@ -22,10 +22,16 @@ const navPrefix = isHome ? "" : "/";
 <html lang="en" class="min-h-full scroll-smooth">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+		/>
 		<meta name="theme-color" content="#050813" />
 		<meta name="apple-mobile-web-app-capable" content="yes" />
-		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+		<meta
+			name="apple-mobile-web-app-status-bar-style"
+			content="black-translucent"
+		/>
 		<link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
 		<meta name="description" content={description} />
@@ -64,16 +70,39 @@ const navPrefix = isHome ? "" : "/";
 						aria-label="Toggle navigation menu"
 						aria-expanded="false"
 					>
-						<svg id="hamburger-svg" class="w-5 h-5 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+						<svg
+							id="hamburger-svg"
+							class="w-5 h-5 transition-transform duration-200"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M4 6h16M4 12h16M4 18h16"></path>
 						</svg>
-						<svg id="close-svg" class="w-5 h-5 hidden transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+						<svg
+							id="close-svg"
+							class="w-5 h-5 hidden transition-transform duration-200"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M6 18L18 6M6 6l12 12"></path>
 						</svg>
 					</button>
 
 					<!-- Brand Identity: Clean Typography (No Emblem) -->
-					<a href="/" class="group flex items-center gap-2 cursor-hover">
+					<a
+						href="/"
+						class="group flex items-center gap-2 cursor-hover"
+					>
 						<span
 							class="font-outfit text-base font-semibold tracking-tight text-white group-hover:text-sky-300 transition-colors"
 						>
@@ -160,7 +189,9 @@ const navPrefix = isHome ? "" : "/";
 				id="mobile-nav-menu"
 				class="hidden md:hidden overflow-hidden transition-all duration-300 ease-in-out border-t border-white/10 mt-3 pt-3 pb-2"
 			>
-				<nav class="flex flex-col space-y-1 text-sm font-medium text-slate-200">
+				<nav
+					class="flex flex-col space-y-1 text-sm font-medium text-slate-200"
+				>
 					<a
 						href={`${navPrefix}#about`}
 						class="mobile-menu-item py-2.5 px-3 rounded-xl hover:bg-white/5 hover:text-sky-300 transition-colors flex items-center justify-between"
@@ -293,11 +324,15 @@ const navPrefix = isHome ? "" : "/";
 			const initAudio = () => {
 				try {
 					if (!audioCtx) {
-						const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+						const AudioContextClass =
+							window.AudioContext || window.webkitAudioContext;
 						if (AudioContextClass) {
 							audioCtx = new AudioContextClass();
 							masterGain = audioCtx.createGain();
-							masterGain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+							masterGain.gain.setValueAtTime(
+								0.25,
+								audioCtx.currentTime,
+							);
 							masterGain.connect(audioCtx.destination);
 						}
 					}
@@ -313,7 +348,9 @@ const navPrefix = isHome ? "" : "/";
 						source.start(0);
 					}
 					// Prime iOS media session with a tiny silent data URI audio element
-					const silentAudio = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=");
+					const silentAudio = new Audio(
+						"data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=",
+					);
 					silentAudio.volume = 0.01;
 					silentAudio.play().catch(() => {});
 				} catch (e) {}
@@ -348,7 +385,7 @@ const navPrefix = isHome ? "" : "/";
 					osc2.frequency.setValueAtTime(freq * 2.756, now);
 
 					gain2.gain.setValueAtTime(0.001, now);
-					gain2.gain.exponentialRampToValueAtTime(0.10, now + 0.015);
+					gain2.gain.exponentialRampToValueAtTime(0.1, now + 0.015);
 					gain2.gain.exponentialRampToValueAtTime(
 						0.0001,
 						now + duration * 0.45,
@@ -418,7 +455,11 @@ const navPrefix = isHome ? "" : "/";
 					} else {
 						const tId = setTimeout(() => {
 							if (chimesEnabled) {
-								playChimeNote(note.freq, note.dur || 2.4, note.pan);
+								playChimeNote(
+									note.freq,
+									note.dur || 2.4,
+									note.pan,
+								);
 							}
 						}, note.delay);
 						scheduledNoteTimeouts.push(tId);
@@ -548,7 +589,10 @@ const navPrefix = isHome ? "" : "/";
 
 			if (mobileNavBtn && mobileNavMenu) {
 				const toggleMobileMenu = (forceState) => {
-					const willOpen = forceState !== undefined ? forceState : mobileNavMenu.classList.contains("hidden");
+					const willOpen =
+						forceState !== undefined
+							? forceState
+							: mobileNavMenu.classList.contains("hidden");
 					if (willOpen) {
 						mobileNavMenu.classList.remove("hidden");
 						hamburgerSvg?.classList.add("hidden");
@@ -568,15 +612,20 @@ const navPrefix = isHome ? "" : "/";
 				});
 
 				// Close when clicking any menu link
-				document.querySelectorAll(".mobile-menu-item").forEach((link) => {
-					link.addEventListener("click", () => {
-						toggleMobileMenu(false);
+				document
+					.querySelectorAll(".mobile-menu-item")
+					.forEach((link) => {
+						link.addEventListener("click", () => {
+							toggleMobileMenu(false);
+						});
 					});
-				});
 
 				// Close when clicking outside
 				document.addEventListener("click", (e) => {
-					if (!mobileNavMenu.contains(e.target) && !mobileNavBtn.contains(e.target)) {
+					if (
+						!mobileNavMenu.contains(e.target) &&
+						!mobileNavBtn.contains(e.target)
+					) {
 						toggleMobileMenu(false);
 					}
 				});
