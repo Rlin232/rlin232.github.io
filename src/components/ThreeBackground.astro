@@ -58,7 +58,7 @@
             const sW = typeof screen !== 'undefined' ? screen.width : 0;
             const isPortrait = window.innerHeight > window.innerWidth;
             const maxDimension = isPortrait ? Math.max(sH, sW) : Math.min(sH, sW);
-            return Math.max(maxDimension, window.innerHeight, document.documentElement.clientHeight);
+            return Math.max(maxDimension, window.innerHeight, document.documentElement.clientHeight) + 360;
         };
 
         const getViewportSize = () => {
