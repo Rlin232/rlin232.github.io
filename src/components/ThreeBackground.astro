@@ -1376,6 +1376,7 @@
         scene.add(fireflies);
 
         // --- 9. BUTTER-SMOOTH CONTINUOUS WATER RAYCASTING ---
+        const clock = new THREE.Clock();
         const raycaster = new THREE.Raycaster();
         const waterMathPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0.1);
         const mouseNDC = new THREE.Vector2(0, 0);
@@ -1394,15 +1395,93 @@
         let lastSpawnPos = new THREE.Vector2(999, 999);
         let lastSpawnTime = 0;
 
-        window.addEventListener('mousemove', (e) => {
-            mouseNDC.x = (e.clientX / window.innerWidth) * 2 - 1;
-            mouseNDC.y = -(e.clientY / window.innerHeight) * 2 + 1;
+        const updatePointerCoords = (clientX, clientY, isDirectTap = false) => {
+            const rect = canvas.getBoundingClientRect();
+            const w = rect.width > 0 ? rect.width : window.innerWidth;
+            const h = rect.height > 0 ? rect.height : (window.innerWidth < 768 ? getMobileScreenHeight() : window.innerHeight);
+            const x = clientX - (rect.left || 0);
+            const y = clientY - (rect.top || 0);
+
+            mouseNDC.x = (x / w) * 2 - 1;
+            mouseNDC.y = -(y / h) * 2 + 1;
             isMouseActive = true;
-        });
+
+            if (isDirectTap) {
+                // Instantly sync coordinates so tap ripple appears exactly under the fingertip
+                smoothMouseNDC.copy(mouseNDC);
+                targetMouseX = mouseNDC.x;
+                targetMouseY = mouseNDC.y;
+
+                raycaster.setFromCamera(mouseNDC, camera);
+                const riverHits = raycaster.intersectObject(river);
+                let tappedPoint = null;
+
+                if (riverHits.length > 0) {
+                    tappedPoint = riverHits[0].point;
+                } else {
+                    const planeHit = raycaster.ray.intersectPlane(waterMathPlane, hitPoint);
+                    if (planeHit) {
+                        const rx = getRiverX(hitPoint.z);
+                        if (Math.abs(hitPoint.x - rx) < 7.0) {
+                            tappedPoint = hitPoint;
+                        }
+                    }
+                }
+
+                if (tappedPoint) {
+                    smoothWaterCursor.copy(tappedPoint);
+                    prevWaterCursor.copy(tappedPoint);
+                    smoothCursorSpeed = 1.2;
+                    const rx = getRiverX(tappedPoint.z);
+                    const distToRiver = Math.abs(tappedPoint.x - rx);
+                    const channelProximity = Math.max(0, Math.min(1.0, (7.0 - distToRiver) / 2.5));
+
+                    if (channelProximity > 0.05) {
+                        const pulseStrength = 0.85;
+                        const time = clock.getElapsedTime();
+                        rippleUniforms[currentRippleIndex].set(tappedPoint.x, tappedPoint.z, time, pulseStrength);
+                        currentRippleIndex = (currentRippleIndex + 1) % RIPPLE_COUNT;
+                        lastSpawnPos.set(tappedPoint.x, tappedPoint.z);
+                        lastSpawnTime = time;
+
+                        waterMat.uniforms.uWaterCursor.value.set(
+                            tappedPoint.x,
+                            tappedPoint.z,
+                            1.2,
+                            channelProximity
+                        );
+                    }
+                }
+            }
+        };
+
+        window.addEventListener('mousemove', (e) => {
+            updatePointerCoords(e.clientX, e.clientY, false);
+        }, { passive: true });
+
+        window.addEventListener('mousedown', (e) => {
+            updatePointerCoords(e.clientX, e.clientY, true);
+        }, { passive: true });
+
+        window.addEventListener('touchstart', (e) => {
+            if (e.touches && e.touches.length > 0) {
+                updatePointerCoords(e.touches[0].clientX, e.touches[0].clientY, true);
+            }
+        }, { passive: true });
+
+        window.addEventListener('touchmove', (e) => {
+            if (e.touches && e.touches.length > 0) {
+                updatePointerCoords(e.touches[0].clientX, e.touches[0].clientY, false);
+            }
+        }, { passive: true });
 
         window.addEventListener('mouseleave', () => {
             isMouseActive = false;
         });
+
+        window.addEventListener('touchend', () => {
+            smoothCursorSpeed *= 0.5;
+        }, { passive: true });
 
         // --- 10. SAFE NON-CLIPPING CAMERA WAYPOINTS WITH ALTERNATING BANK STAGING ---
         // Dynamically frames the river on one side while opening the opposite bank for content
@@ -1531,7 +1610,6 @@
         handleResize();
 
         // Main Animation Loop
-        const clock = new THREE.Clock();
         let lastTime = 0;
 
         const animate = () => {
