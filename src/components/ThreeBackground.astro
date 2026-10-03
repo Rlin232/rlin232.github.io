@@ -2,12 +2,10 @@
 ---
 
 <div id="bg-canvas-wrapper" class="pointer-events-none z-0">
-    <div id="bg-canvas-sticky" class="pointer-events-none">
-        <canvas
-            id="bg-canvas"
-            class="pointer-events-none block"
-        ></canvas>
-    </div>
+    <canvas
+        id="bg-canvas"
+        class="pointer-events-none block"
+    ></canvas>
 </div>
 
 <script>
@@ -60,7 +58,7 @@
             const sW = typeof screen !== 'undefined' ? screen.width : 0;
             const isPortrait = window.innerHeight > window.innerWidth;
             const maxDimension = isPortrait ? Math.max(sH, sW) : Math.min(sH, sW);
-            return Math.max(maxDimension, window.innerHeight, document.documentElement.clientHeight);
+            return Math.max(maxDimension, window.innerHeight, document.documentElement.clientHeight) + 360;
         };
 
         const getViewportSize = () => {
@@ -1584,10 +1582,17 @@
             targetLookAt.lerpVectors(p0.look, p1.look, easeT);
         };
 
-        canvas.style.transform = '';
+        const updateCanvasPosition = () => {
+            if (window.innerWidth < 768) {
+                canvas.style.transform = `translate3d(0, ${window.scrollY}px, 0)`;
+            } else {
+                canvas.style.transform = '';
+            }
+        };
 
         const onScroll = () => {
             updateCameraFromScroll();
+            updateCanvasPosition();
         };
 
         window.addEventListener('scroll', onScroll, { passive: true });
@@ -1595,12 +1600,14 @@
         setTimeout(updateSectionMetrics, 200);
         updateCameraFromScroll();
         updateCameraFromScroll();
+        updateCanvasPosition();
 
         let lastTrackedWidth = window.innerWidth;
         const handleResize = () => {
             const isMobile = window.innerWidth < 768;
             // On mobile devices, ignore vertical-only resize events triggered by Safari's dynamic toolbar
             if (isMobile && window.innerWidth === lastTrackedWidth) {
+                updateCanvasPosition();
                 return;
             }
             lastTrackedWidth = window.innerWidth;
@@ -1609,15 +1616,18 @@
             camera.aspect = w / h;
             camera.updateProjectionMatrix();
             renderer.setSize(w, h, false);
+            updateCanvasPosition();
         };
         window.addEventListener('resize', handleResize);
         window.addEventListener('orientationchange', () => {
             lastTrackedWidth = 0;
             setTimeout(() => {
                 handleResize();
+                updateCanvasPosition();
             }, 150);
         });
         handleResize();
+        updateCanvasPosition();
 
         // Main Animation Loop
         let lastTime = 0;
@@ -1626,6 +1636,10 @@
             const time = clock.getElapsedTime();
             const dt = Math.min(time - lastTime, 0.1) || 0.016;
             lastTime = time;
+
+            if (window.innerWidth < 768) {
+                updateCanvasPosition();
+            }
 
             // Butter-smooth mouse screen coordinates lerp
             smoothMouseNDC.lerp(mouseNDC, 0.22);
