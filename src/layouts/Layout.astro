@@ -298,22 +298,40 @@ const navPrefix = isHome ? "" : "/";
 			let masterGain = null;
 
 			const initAudio = () => {
-				if (!audioCtx) {
-					audioCtx = new (
-						window.AudioContext || window.webkitAudioContext
-					)();
-					masterGain = audioCtx.createGain();
-					masterGain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-					masterGain.connect(audioCtx.destination);
-				}
-				if (audioCtx.state === "suspended") {
-					audioCtx.resume();
-				}
+				try {
+					if (!audioCtx) {
+						const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+						if (AudioContextClass) {
+							audioCtx = new AudioContextClass();
+							masterGain = audioCtx.createGain();
+							masterGain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+							masterGain.connect(audioCtx.destination);
+						}
+					}
+					if (audioCtx) {
+						if (audioCtx.state === "suspended") {
+							audioCtx.resume();
+						}
+						// Play an inaudible 1-sample buffer synchronously to unlock iOS Safari WebAudio engine
+						const buffer = audioCtx.createBuffer(1, 1, 22050);
+						const source = audioCtx.createBufferSource();
+						source.buffer = buffer;
+						source.connect(audioCtx.destination);
+						source.start(0);
+					}
+					// Prime iOS media session with a tiny silent data URI audio element
+					const silentAudio = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=");
+					silentAudio.volume = 0.01;
+					silentAudio.play().catch(() => {});
+				} catch (e) {}
 			};
 
 			const playChimeNote = (freq, duration = 2.4, pan = 0) => {
 				if (!chimesEnabled || !audioCtx) return;
 				try {
+					if (audioCtx.state === "suspended") {
+						audioCtx.resume();
+					}
 					const now = audioCtx.currentTime;
 
 					// Fundamental Oscillator
@@ -323,10 +341,10 @@ const navPrefix = isHome ? "" : "/";
 					osc1.frequency.setValueAtTime(freq, now);
 
 					// Bell envelope: smooth attack, gentle exponential decay
-					gain1.gain.setValueAtTime(0.0001, now);
-					gain1.gain.exponentialRampToValueAtTime(0.045, now + 0.015);
+					gain1.gain.setValueAtTime(0.001, now);
+					gain1.gain.exponentialRampToValueAtTime(0.32, now + 0.02);
 					gain1.gain.exponentialRampToValueAtTime(
-						0.00005,
+						0.0001,
 						now + duration,
 					);
 
@@ -336,20 +354,24 @@ const navPrefix = isHome ? "" : "/";
 					osc2.type = "sine";
 					osc2.frequency.setValueAtTime(freq * 2.756, now);
 
-					gain2.gain.setValueAtTime(0.0001, now);
-					gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.01);
+					gain2.gain.setValueAtTime(0.001, now);
+					gain2.gain.exponentialRampToValueAtTime(0.10, now + 0.015);
 					gain2.gain.exponentialRampToValueAtTime(
-						0.00005,
+						0.0001,
 						now + duration * 0.45,
 					);
 
-					// Stereo panning
+					// Stereo panning (with safe fallback for browsers without StereoPannerNode)
 					let dest = masterGain;
-					if (audioCtx.createStereoPanner) {
-						const panner = audioCtx.createStereoPanner();
-						panner.pan.setValueAtTime(pan, now);
-						panner.connect(masterGain);
-						dest = panner;
+					if (typeof audioCtx.createStereoPanner === "function") {
+						try {
+							const panner = audioCtx.createStereoPanner();
+							panner.pan.setValueAtTime(pan, now);
+							panner.connect(masterGain);
+							dest = panner;
+						} catch (e) {
+							dest = masterGain;
+						}
 					}
 
 					osc1.connect(gain1);
@@ -397,12 +419,17 @@ const navPrefix = isHome ? "" : "/";
 				stopTune();
 
 				chimeTune.forEach((note) => {
-					const tId = setTimeout(() => {
-						if (chimesEnabled) {
-							playChimeNote(note.freq, note.dur || 2.4, note.pan);
-						}
-					}, note.delay);
-					scheduledNoteTimeouts.push(tId);
+					if (note.delay === 0) {
+						// Play note 0 synchronously in the direct user gesture stack
+						playChimeNote(note.freq, note.dur || 2.4, note.pan);
+					} else {
+						const tId = setTimeout(() => {
+							if (chimesEnabled) {
+								playChimeNote(note.freq, note.dur || 2.4, note.pan);
+							}
+						}, note.delay);
+						scheduledNoteTimeouts.push(tId);
+					}
 				});
 
 				// Loop the tune peacefully every 14.5 seconds if sound remains enabled
@@ -418,7 +445,7 @@ const navPrefix = isHome ? "" : "/";
 			const chimeLabel = document.getElementById("chime-label");
 
 			if (chimeBtn) {
-				chimeBtn.addEventListener("click", () => {
+				const handleToggle = () => {
 					initAudio();
 					chimesEnabled = !chimesEnabled;
 					if (chimesEnabled) {
@@ -438,7 +465,9 @@ const navPrefix = isHome ? "" : "/";
 						);
 						stopTune();
 					}
-				});
+				};
+
+				chimeBtn.addEventListener("click", handleToggle);
 			}
 
 			// Lenis Smooth Scroll Setup

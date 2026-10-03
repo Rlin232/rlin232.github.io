@@ -664,9 +664,9 @@
             const rawY = rPos.getY(i); // 0 to 2.1
             const t = Math.max(0, rawY / 2.1);
 
-            // Natural arching curvature: bends toward water with tip droop
-            const arch = t * t * 0.48;
-            const droop = Math.pow(t, 3.2) * 0.22;
+            // Natural arching curvature: bends gracefully toward water with enhanced tip droop
+            const arch = t * t * 0.65;
+            const droop = Math.pow(t, 2.6) * 0.38;
             let vx = rPos.getX(i);
             let vz = rPos.getZ(i);
 
@@ -734,13 +734,16 @@
                 const s = (0.7 + Math.random() * 0.45) * coreFactor;
                 reedDummy.scale.set(s, s * (0.95 + Math.random() * 0.3), s);
 
-                // Lean outward toward the water channel
-                const leanDir = Math.sign(rx - x);
-                const riverLean = leanDir * (0.24 + Math.random() * 0.32);
-                const crossLean = (Math.random() - 0.5) * 0.25;
-                const yaw = (leanDir < 0 ? Math.PI : 0) + (Math.random() - 0.5) * 0.5;
+                // Point and hang noticeably outward over the water channel
+                reedDummy.rotation.order = 'YXZ';
+                const dx = rx - x;
+                const dz = -0.15; // slight downstream flow bias
+                const yaw = Math.atan2(-dz, dx) + (Math.random() - 0.5) * 0.28;
+                // riverTilt tilts the stalk toward local +X (hanging out over the water)
+                const riverTilt = -(0.28 + Math.random() * 0.24);
+                const crossLean = (Math.random() - 0.5) * 0.16;
 
-                reedDummy.rotation.set(crossLean, yaw, riverLean);
+                reedDummy.rotation.set(crossLean, yaw, riverTilt, 'YXZ');
                 reedDummy.updateMatrix();
                 instancedReeds.setMatrixAt(reedsPlaced, reedDummy.matrix);
 
@@ -1621,7 +1624,8 @@
                 reedDummy.rotation.set(
                     r.baseRot.x + bendX,
                     r.baseRot.y,
-                    r.baseRot.z + bendZ
+                    r.baseRot.z + bendZ,
+                    'YXZ'
                 );
                 reedDummy.updateMatrix();
                 instancedReeds.setMatrixAt(i, reedDummy.matrix);
