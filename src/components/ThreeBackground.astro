@@ -51,8 +51,20 @@
             };
         };
 
+        const getViewportSize = () => {
+            const isMobile = window.innerWidth < 768;
+            const w = window.innerWidth;
+            // On mobile devices, ensure height covers full physical screen including dynamic bars & curved bottom
+            const h = isMobile
+                ? Math.max(window.innerHeight, window.screen ? window.screen.height : 0, document.documentElement.clientHeight)
+                : window.innerHeight;
+            return { w, h };
+        };
+
+        const { w: initW, h: initH } = getViewportSize();
+
         // Camera setup centered directly over the river channel
-        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 200);
+        const camera = new THREE.PerspectiveCamera(50, initW / initH, 0.1, 200);
         camera.position.set(getRiverX(24), 7.2, 24);
         camera.lookAt(getRiverX(6), 1.8, 6);
 
@@ -64,7 +76,7 @@
             powerPreference: "high-performance"
         });
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.5));
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize(initW, initH, false);
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 1.15;
 
@@ -1490,13 +1502,15 @@
         updateCameraFromScroll();
 
         const handleResize = () => {
-            const w = window.innerWidth;
-            const h = Math.max(window.innerHeight, document.documentElement.clientHeight);
-            camera.aspect = w / window.innerHeight;
+            const { w, h } = getViewportSize();
+            camera.aspect = w / h;
             camera.updateProjectionMatrix();
             renderer.setSize(w, h, false);
         };
         window.addEventListener('resize', handleResize);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(handleResize, 100);
+        });
         handleResize();
 
         // Main Animation Loop
