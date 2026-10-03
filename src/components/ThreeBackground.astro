@@ -1580,11 +1580,19 @@
             targetLookAt.lerpVectors(p0.look, p1.look, easeT);
         };
 
+        let lastCanvasY = -1;
         const updateCanvasPosition = () => {
             if (window.innerWidth < 768) {
-                canvas.style.transform = `translate3d(0, ${window.scrollY}px, 0)`;
+                const sy = Math.round(window.scrollY);
+                if (sy !== lastCanvasY) {
+                    lastCanvasY = sy;
+                    canvas.style.transform = `translate3d(0, ${sy}px, 0)`;
+                }
             } else {
-                canvas.style.transform = '';
+                if (lastCanvasY !== null) {
+                    lastCanvasY = null;
+                    canvas.style.transform = '';
+                }
             }
         };
 
