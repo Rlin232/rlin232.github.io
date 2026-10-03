@@ -1830,7 +1830,7 @@
 
             // Moon & Corona soft breathing in upper twilight sky (lowered on small viewports so it never goes behind navbar)
             const isSmallViewport = window.innerWidth < 768 || camera.aspect < 1.0;
-            const baseMoonY = isSmallViewport ? 6.4 : 10.6;
+            const baseMoonY = isSmallViewport ? 3.2 : 10.6;
             const moonBreathe = baseMoonY + Math.sin(time * 0.3) * 0.12;
             moon.position.y = moonBreathe;
             moonCorona.position.y = moonBreathe;
