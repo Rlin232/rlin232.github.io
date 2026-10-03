@@ -969,7 +969,7 @@ const projects = [
 						Math.min(1, 1 - (rectTop - vh * 0.55) / (vh * 0.33)),
 					);
 					opacity = t * t * (3 - 2 * t); // Smooth Hermite curve
-				} else if (rectBottom < vh * 0.65) {
+				} else if (i < zoneMetrics.length - 1 && rectBottom < vh * 0.65) {
 					// Leaving through top: begins fading when bottom reaches vh*0.65, fully faded out at vh*0.35
 					const t = Math.max(
 						0,

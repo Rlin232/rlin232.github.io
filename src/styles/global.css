@@ -25,6 +25,8 @@
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
     width: 100vw !important;
     width: 100% !important;
     height: 100vh !important;
@@ -37,22 +39,21 @@
     margin: 0 !important;
     padding: 0 !important;
     border: none !important;
-    bottom: auto !important;
   }
 
   @media (max-width: 768px) {
     #bg-canvas {
-      position: absolute !important;
+      position: fixed !important;
       top: 0 !important;
       left: 0 !important;
-      bottom: auto !important;
+      right: 0 !important;
+      bottom: -80px !important;
       width: 100vw !important;
       width: 100% !important;
-      height: calc(100vh + 120px) !important;
-      height: calc(100lvh + 120px) !important;
-      min-height: calc(100vh + 120px) !important;
-      min-height: calc(100lvh + 120px) !important;
-      will-change: transform;
+      height: calc(100vh + 80px) !important;
+      height: calc(100lvh + 80px) !important;
+      min-height: calc(100vh + 80px) !important;
+      min-height: calc(100lvh + 80px) !important;
     }
   }
 
