@@ -521,6 +521,18 @@ const navPrefix = isHome ? "" : "/";
 				}
 				requestAnimationFrame(raf);
 
+				// Immediately recalculate scroll limits on window resize (fixes overscrolling past end on vertical resize)
+				window.addEventListener("resize", () => {
+					lenis.resize();
+				});
+
+				if (typeof ResizeObserver !== "undefined") {
+					const ro = new ResizeObserver(() => {
+						lenis.resize();
+					});
+					ro.observe(document.body);
+				}
+
 				// Smooth anchor scroll
 				document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
 					anchor.addEventListener("click", function (e) {
