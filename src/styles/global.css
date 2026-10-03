@@ -18,6 +18,7 @@
     min-height: 100lvh;
     overflow-x: clip;
     position: relative;
+    background: radial-gradient(circle at 50% 100%, #07172c 0%, #050813 60%, #02040a 100%) no-repeat fixed;
   }
 
   /* Fullscreen background layer - Desktop default */
@@ -45,26 +46,29 @@
     border: none;
   }
 
-  /* Smallest viewport only:
-     Fixed full-bleed background pinned to viewport with hardware acceleration.
-     top: -100px and height: calc(100lvh + 360px) extend beyond the viewport bounds
-     to seamlessly cover beneath the top notch and dynamic bottom Safari toolbar
-     without jitter, canvas translation, or bottom scroll overflow. */
+  /* Smallest viewport only (Mobile Safari seamless fix):
+     Fixed full-bleed background locked to 100lvh (large viewport height)
+     with GPU hardware acceleration. Eliminates scroll jitter entirely,
+     prevents toolbar collapse/expand resizing jumps, and renders
+     seamlessly under the floating Safari address bar without cut-off. */
   @media (max-width: 768px) {
     #bg-canvas-wrapper {
       position: fixed !important;
-      top: -100px !important;
+      top: 0 !important;
       left: 0 !important;
       right: 0 !important;
+      bottom: auto !important;
       width: 100vw !important;
       width: 100% !important;
-      height: calc(100lvh + 360px) !important;
-      min-height: calc(100lvh + 360px) !important;
+      height: 100lvh !important;
+      min-height: 100lvh !important;
       pointer-events: none !important;
       z-index: 0 !important;
       margin: 0 !important;
       padding: 0 !important;
       border: none !important;
+      -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 40px), rgba(5, 8, 19, 0.95) 100%);
+      mask-image: linear-gradient(to bottom, black calc(100% - 40px), rgba(5, 8, 19, 0.95) 100%);
     }
 
     #bg-canvas {
