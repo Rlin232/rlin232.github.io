@@ -10,6 +10,7 @@
 
 <script>
     import * as THREE from 'three';
+    import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
     const canvas = document.querySelector("#bg-canvas");
     if (canvas) {
@@ -69,21 +70,24 @@
         };
 
         const { w: initW, h: initH } = getViewportSize();
+        const isMobileDevice = window.innerWidth < 768;
 
         // Camera setup centered directly over the river channel
         const camera = new THREE.PerspectiveCamera(50, initW / initH, 0.1, 200);
         camera.position.set(getRiverX(24), 7.2, 24);
         camera.lookAt(getRiverX(6), 1.8, 6);
 
-        // High-resolution Renderer with ACES Filmic Tonemapping
+        // High-performance Renderer with ACES Filmic Tonemapping
+        // On mobile, MSAA antialiasing is disabled and pixel ratio is capped at 1.5 to slash GPU workload by ~64%
         const renderer = new THREE.WebGLRenderer({
             canvas: canvas,
             alpha: false,
-            antialias: true,
+            antialias: !isMobileDevice,
             powerPreference: "high-performance"
         });
         renderer.setClearColor(0x050813, 1.0);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.5));
+        const maxDPR = isMobileDevice ? 1.5 : 2.5;
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxDPR));
         renderer.setSize(initW, initH, false);
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 1.15;
@@ -466,36 +470,40 @@
         const createDetailedTreeGeom = () => {
             const group = new THREE.Group();
 
-            // 1. Tapered Wooden Trunk extending 1.1 units below ground to ensure trees on hills/slopes never have exposed stump bottoms
+            // 1. Tapered Wooden Trunk + Angled Branches merged into a single wood geometry
             const trunkGeom = new THREE.CylinderGeometry(0.14, 0.38, 3.8, 8);
             trunkGeom.translate(0, 0.8, 0); // Bottom is at y = -1.1, top is at y = +2.7
+
             const trunkMat = new THREE.MeshStandardMaterial({
                 color: 0x1f1610, // Dark cedar bark
                 roughness: 0.9
             });
-            const trunkMesh = new THREE.Mesh(trunkGeom, trunkMat);
-            group.add(trunkMesh);
 
-            // 2. Angled Branches
-            const branchGeom = new THREE.CylinderGeometry(0.06, 0.12, 1.2, 6);
-            branchGeom.translate(0, 0.6, 0);
-            
-            const b1 = new THREE.Mesh(branchGeom, trunkMat);
-            b1.position.set(0, 1.2, 0);
-            b1.rotation.set(0.3, 0.5, 0.6);
-            group.add(b1);
+            const branchBase = new THREE.CylinderGeometry(0.06, 0.12, 1.2, 6);
+            branchBase.translate(0, 0.6, 0);
 
-            const b2 = new THREE.Mesh(branchGeom, trunkMat);
-            b2.position.set(0, 1.5, 0);
-            b2.rotation.set(-0.4, 2.0, -0.5);
-            group.add(b2);
+            const b1 = branchBase.clone();
+            b1.rotateZ(0.6);
+            b1.rotateY(0.5);
+            b1.rotateX(0.3);
+            b1.translate(0, 1.2, 0);
 
-            const b3 = new THREE.Mesh(branchGeom, trunkMat);
-            b3.position.set(0, 1.8, 0);
-            b3.rotation.set(0.2, -1.5, 0.4);
-            group.add(b3);
+            const b2 = branchBase.clone();
+            b2.rotateZ(-0.5);
+            b2.rotateY(2.0);
+            b2.rotateX(-0.4);
+            b2.translate(0, 1.5, 0);
 
-            // 3. Dense Organic Foliage Canopies (Deformed low-poly spheres)
+            const b3 = branchBase.clone();
+            b3.rotateZ(0.4);
+            b3.rotateY(-1.5);
+            b3.rotateX(0.2);
+            b3.translate(0, 1.8, 0);
+
+            const mergedWoodGeom = mergeGeometries([trunkGeom, b1, b2, b3]);
+            group.add(new THREE.Mesh(mergedWoodGeom, trunkMat));
+
+            // 2. Dense Organic Foliage Canopies merged into a single foliage geometry
             const foliageMat = new THREE.MeshStandardMaterial({
                 color: 0x061e1c, // Rich twilight pine
                 roughness: 0.8,
@@ -503,9 +511,8 @@
                 flatShading: true
             });
 
-            const makeFoliageCluster = (r, x, y, z) => {
+            const makeFoliageClusterGeom = (r, x, y, z) => {
                 const geom = new THREE.IcosahedronGeometry(r, 1);
-                // Subtle organic perturbation
                 const pos = geom.attributes.position;
                 for (let i = 0; i < pos.count; i++) {
                     const vx = pos.getX(i);
@@ -515,21 +522,22 @@
                     pos.setXYZ(i, vx * factor, vy * factor, vz * factor);
                 }
                 geom.computeVertexNormals();
-                const m = new THREE.Mesh(geom, foliageMat);
-                m.position.set(x, y, z);
-                return m;
+                geom.translate(x, y, z);
+                return geom;
             };
 
-            // Main crown canopy
-            group.add(makeFoliageCluster(0.95, 0, 3.2, 0));
-            group.add(makeFoliageCluster(0.85, 0.3, 2.7, 0.2));
-            group.add(makeFoliageCluster(0.8, -0.3, 2.6, -0.2));
-            group.add(makeFoliageCluster(0.7, 0.2, 2.2, -0.3));
+            const foliageClusters = [
+                makeFoliageClusterGeom(0.95, 0, 3.2, 0),
+                makeFoliageClusterGeom(0.85, 0.3, 2.7, 0.2),
+                makeFoliageClusterGeom(0.8, -0.3, 2.6, -0.2),
+                makeFoliageClusterGeom(0.7, 0.2, 2.2, -0.3),
+                makeFoliageClusterGeom(0.65, 0.7, 1.8, 0.4),
+                makeFoliageClusterGeom(0.6, -0.6, 2.0, -0.4),
+                makeFoliageClusterGeom(0.55, -0.5, 2.2, 0.4)
+            ];
 
-            // Branch clusters
-            group.add(makeFoliageCluster(0.65, 0.7, 1.8, 0.4));
-            group.add(makeFoliageCluster(0.6, -0.6, 2.0, -0.4));
-            group.add(makeFoliageCluster(0.55, -0.5, 2.2, 0.4));
+            const mergedFoliageGeom = mergeGeometries(foliageClusters);
+            group.add(new THREE.Mesh(mergedFoliageGeom, foliageMat));
 
             return group;
         };
@@ -613,8 +621,7 @@
                 color: 0x1f2b38, // Silvery birch bark
                 roughness: 0.75
             });
-            const trunkMesh = new THREE.Mesh(trunkGeom, trunkMat);
-            group.add(trunkMesh);
+            group.add(new THREE.Mesh(trunkGeom, trunkMat));
 
             const birchFoliageMat = new THREE.MeshStandardMaterial({
                 color: 0x072528, // Crisp twilight birch foliage
@@ -622,17 +629,21 @@
                 flatShading: true
             });
 
-            const addBirchCluster = (r, x, y, z) => {
+            const makeBirchClusterGeom = (r, x, y, z) => {
                 const geom = new THREE.IcosahedronGeometry(r, 1);
-                const m = new THREE.Mesh(geom, birchFoliageMat);
-                m.position.set(x, y, z);
-                group.add(m);
+                geom.translate(x, y, z);
+                return geom;
             };
 
-            addBirchCluster(0.85, 0, 3.8, 0);
-            addBirchCluster(0.7, 0.25, 3.3, 0.15);
-            addBirchCluster(0.65, -0.2, 3.1, -0.2);
-            addBirchCluster(0.55, 0.35, 2.7, -0.1);
+            const birchClusters = [
+                makeBirchClusterGeom(0.85, 0, 3.8, 0),
+                makeBirchClusterGeom(0.7, 0.25, 3.3, 0.15),
+                makeBirchClusterGeom(0.65, -0.2, 3.1, -0.2),
+                makeBirchClusterGeom(0.55, 0.35, 2.7, -0.1)
+            ];
+
+            const mergedBirchFoliage = mergeGeometries(birchClusters);
+            group.add(new THREE.Mesh(mergedBirchFoliage, birchFoliageMat));
 
             return group;
         };
@@ -1613,6 +1624,8 @@
             const { w, h } = getViewportSize();
             camera.aspect = w / h;
             camera.updateProjectionMatrix();
+            const maxDPR = isMobile ? 1.5 : 2.5;
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxDPR));
             renderer.setSize(w, h, false);
         };
         window.addEventListener('resize', handleResize);
@@ -1720,19 +1733,22 @@
             // --- UNIFIED, GENTLE, SPATIALLY-COHERENT WIND FIELD ---
             // Pines, birches, and riverside reeds all respond to the exact same continuous wind field
             // Nearby objects in close patches sway in the same direction and phase!
-            trees.forEach((tree) => {
-                const w = getWindAt(tree.position.x, tree.position.z, time);
-                const sway = 0.022 * w.strength;
-                tree.rotation.z = tree.userData.baseRotZ - w.dirX * sway;
-                tree.rotation.x = tree.userData.baseRotX + w.dirZ * sway;
-            });
+            // Skip per-tree CPU sway updates on mobile to eliminate CPU matrix calculations every frame
+            if (window.innerWidth >= 768) {
+                trees.forEach((tree) => {
+                    const w = getWindAt(tree.position.x, tree.position.z, time);
+                    const sway = 0.022 * w.strength;
+                    tree.rotation.z = tree.userData.baseRotZ - w.dirX * sway;
+                    tree.rotation.x = tree.userData.baseRotX + w.dirZ * sway;
+                });
 
-            birchTrees.forEach((tree) => {
-                const w = getWindAt(tree.position.x, tree.position.z, time);
-                const sway = 0.034 * w.strength;
-                tree.rotation.z = tree.userData.baseRotZ - w.dirX * sway;
-                tree.rotation.x = tree.userData.baseRotX + w.dirZ * sway;
-            });
+                birchTrees.forEach((tree) => {
+                    const w = getWindAt(tree.position.x, tree.position.z, time);
+                    const sway = 0.034 * w.strength;
+                    tree.rotation.z = tree.userData.baseRotZ - w.dirX * sway;
+                    tree.rotation.x = tree.userData.baseRotX + w.dirZ * sway;
+                });
+            }
 
             // Riverside reeds bend together in patches along the passing breeze
             for (let i = 0; i < reedCount; i++) {
